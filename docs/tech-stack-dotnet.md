@@ -35,7 +35,7 @@ SDK 锁定：`global.json` → .NET 10.0.301
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/lab/bazi` | 四柱、藏干十神、格局用神、`flowYear`+`flowMonth` 流年流月、`flowCalendarMonth`+`flowDay` 流日、小运 |
+| POST | `/lab/bazi` | 四柱、格局用神/破格、`flowYear` 流月含节气起止、`flowMonth` 含节内流日 |
 | POST | `/lab/bazi/interpret` | 排盘 + ONNX 解读流水线 |
 | POST | `/lab/bazi/hepan` | 双人合盘（纳音、用神互补） |
 | GET | `/lab/bazi/cities` | 城市经度表 |

@@ -1,0 +1,7 @@
+- [x] IChing.Lab.Abstractions 项目独立编译通过，零依赖其他 IChing.Lab.* 项目
+- [x] 四接口（IChartEngine / IPromptBuilder / IInferenceEngine / IPluginModule）已定义
+- [x] 共享 DTO（ChartRequest / PromptContext / PromptBuildResult / GenerateOptions / GenerationResult）已定义
+- [x] IPluginManifest 含 RequiredApiVersion 字段
+- [x] AbstractionsVersion 常量存在
+- [x] 外部项目仅引用 Abstractions.dll 即可实现接口并编译通过（用 mock 实现验证）
+- [x] dotnet build src/IChing.Lab.sln 全绿，无破坏性变更

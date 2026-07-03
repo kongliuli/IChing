@@ -1,3 +1,6 @@
+using IChing.Lab.Abstractions.Engines;
+using IChing.Lab.Abstractions.Models;
+using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Liuyao;
@@ -5,6 +8,7 @@ using IChing.Lab.Core.Tarot;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Prompts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace IChing.Lab.Api.Controllers;
 
@@ -12,11 +16,71 @@ namespace IChing.Lab.Api.Controllers;
 [Route("lab")]
 public class LabController : ControllerBase
 {
-    private readonly ChartInterpretationService _interpretation;
+    private readonly ChartInterpretationOrchestrator _interpretation;
+    private readonly IEnumerable<IChartEngine> _engines;
+    private readonly IEnumerable<IInferenceEngine> _inferenceEngines;
+    private readonly IReadOnlyDictionary<string, IPromptBuilder> _promptBuilders;
+    private readonly IConfiguration _configuration;
 
-    public LabController(ChartInterpretationService interpretation)
+    public LabController(
+        ChartInterpretationOrchestrator interpretation,
+        IEnumerable<IChartEngine> engines,
+        IEnumerable<IPromptBuilder> promptBuilders,
+        IEnumerable<IInferenceEngine> inferenceEngines,
+        IConfiguration configuration)
     {
         _interpretation = interpretation;
+        _engines = engines;
+        _inferenceEngines = inferenceEngines;
+        _promptBuilders = promptBuilders.ToDictionary(b => b.TemplateId);
+        _configuration = configuration;
+    }
+
+    /// <summary>按 templateId 选取已注册的 IPromptBuilder。</summary>
+    private IPromptBuilder ResolvePromptBuilder(string templateId) =>
+        _promptBuilders.TryGetValue(templateId, out var builder)
+            ? builder
+            : throw new InvalidOperationException($"prompt builder not registered: {templateId}");
+
+    /// <summary>列出所有已注册的排盘引擎（domain + engineId）。</summary>
+    [HttpGet("engines")]
+    public IActionResult Engines() =>
+        Ok(_engines.Select(e => new { domain = e.Domain, engineId = e.EngineId }));
+
+    /// <summary>简单存活探活，无需鉴权，返回 ok。</summary>
+    [HttpGet("/health")]
+    public IActionResult Health() => Ok(new { status = "ok" });
+
+    /// <summary>
+    /// 解读引擎健康检查：返回所有已注册 IInferenceEngine 的就绪状态与是否默认引擎。
+    /// 路由以 "/" 开头为绝对路径，绕过控制器级 <c>lab</c> 前缀，落在 <c>/health/engines</c>。
+    /// 不需要鉴权，供内部探活与运维面板使用。
+    /// </summary>
+    [HttpGet("/health/engines")]
+    public IActionResult HealthEngines()
+    {
+        var defaultEngineId = ResolveDefaultEngineId();
+        var payload = _inferenceEngines
+            .Select(e => new EngineHealthStatus(e.EngineId, e.IsReady, e.EngineId == defaultEngineId))
+            .ToList();
+        return Ok(payload);
+    }
+
+    /// <summary>
+    /// 解析默认引擎标识：优先读 <c>plugins:inferenceEngines</c> 中 <c>default=true</c> 的项，
+    /// 其次读 <c>plugins:defaultEngine</c>；均未配置返回 null（所有引擎 isDefault=false）。
+    /// </summary>
+    private string? ResolveDefaultEngineId()
+    {
+        foreach (var child in _configuration.GetSection("plugins:inferenceEngines").GetChildren())
+        {
+            if (string.Equals(child["default"], "true", StringComparison.OrdinalIgnoreCase))
+            {
+                return child["id"];
+            }
+        }
+
+        return _configuration["plugins:defaultEngine"];
     }
 
     [HttpPost("bazi")]
@@ -111,7 +175,14 @@ public class LabController : ControllerBase
             return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, null));
         }
 
-        var prompt = LiuyaoPromptBuilder.BuildTier1(req.Question ?? "综合", req.Focus, digest, chart);
+        var liuyaoBuilder = ResolvePromptBuilder("liuyao-tier1-default");
+        var liuyaoCtx = new PromptContext(
+            Chart: chart,
+            RuleDigest: digest,
+            Question: req.Question ?? "综合",
+            Focus: req.Focus,
+            MaxTokens: req.MaxTokens ?? 512);
+        var prompt = liuyaoBuilder.Build(liuyaoCtx).PromptText;
         var gen = _interpretation.Generate(prompt, req.MaxTokens ?? 512);
         return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, new
         {
@@ -148,12 +219,15 @@ public class LabController : ControllerBase
         var positions = reading.Positions
             .Select(p => new TarotPositionPrompt(p.PositionTitleZh, p.PositionContext, p.CardNameZh, p.Reversed, p.Meaning))
             .ToList();
-        var prompt = TarotPromptBuilder.BuildEnglishTier1(
-            req.Question ?? "General reading",
-            reading.SpreadTitleZh,
-            digest,
-            positions,
-            reading.Positions.Count >= 10 ? 500 : 280);
+        var wordLimit = reading.Positions.Count >= 10 ? 500 : 280;
+        var tarotBuilder = ResolvePromptBuilder("tarot-tier1-en");
+        var tarotCtx = new PromptContext(
+            Chart: new TarotPromptInput(reading.SpreadTitleZh, positions, wordLimit),
+            RuleDigest: digest,
+            Question: req.Question ?? "General reading",
+            Focus: null,
+            MaxTokens: req.MaxTokens ?? 512);
+        var prompt = tarotBuilder.Build(tarotCtx).PromptText;
         var result = _interpretation.InterpretTarotEnglishThenChinese(prompt, req.MaxTokens ?? 512, req.MaxTokens ?? 512);
 
         return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, new
@@ -303,3 +377,8 @@ public record LiuyaoReadRequest(
     int? MaxTokens);
 
 public record TarotReadRequest(string? SpreadId, string? Question, int? Seed, int? MaxTokens);
+
+/// <summary>
+/// 解读引擎健康状态项，序列化为 <c>{ engineId, isReady, isDefault }</c>。
+/// </summary>
+public record EngineHealthStatus(string EngineId, bool IsReady, bool IsDefault);

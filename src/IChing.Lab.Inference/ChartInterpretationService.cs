@@ -8,6 +8,7 @@ using Microsoft.ML.OnnxRuntimeGenAI;
 
 namespace IChing.Lab.Inference;
 
+[Obsolete("Use ChartInterpretationOrchestrator + IInferenceEngine")]
 public sealed class ChartInterpretationService : IDisposable
 {
     private const int PromptTokenBuffer = 2048;

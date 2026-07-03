@@ -1,0 +1,15 @@
+- [x] Scriban NuGet 包已加入 IChing.Lab.Inference.csproj
+- [x] prompts/ 目录下有 4 个 .txt 模板文件
+- [x] 模板使用 Scriban 语法（{{ var }}）
+- [x] TemplatePromptBuilder 实现 IPromptBuilder
+- [x] PromptTemplateRegistry 启动时扫描 prompts/ 目录
+- [x] FileSystemWatcher 监听变更并触发热重载
+- [x] 模板加载失败时回退到内嵌默认，不抛异常
+- [x] ChartInterpretationOrchestrator 注入并使用 IPromptBuilder
+- [x] 原 3 个 static PromptBuilder 标记 [Obsolete]
+- [x] appsettings.json 含 prompts:templateRoot 配置
+- [x] prompts/ 目录配置为复制到输出目录
+- [x] dotnet test 全绿
+- [x] dry-run fixture 输出与改造前 diff 为空
+- [x] 运行时改模板文件，下次请求立即生效
+- [x] 删除模板文件后请求不失败，日志有 warning

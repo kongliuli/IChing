@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- 进程内引擎插件：不把引用程序集（含 Abstractions）复制到输出，避免在 plugins/ 出现重复副本；
+         共享接口由主程序的 default ALC 提供，保证主程序与插件类型同一。 -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <!-- 已安装 LLamaSharp 0.27.0 + LLamaSharp.Backend.Cpu 0.27.0，启用真实模型加载代码路径；
+         未安装时此常量不定义，自动回退到桩实现（GenerateAsync 返回固定文本）。 -->
+    <DefineConstants>$(DefineConstants);LLAMA_AVAILABLE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="LLamaSharp" Version="0.27.0" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.27.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.*" />
+  </ItemGroup>
+
+</Project>

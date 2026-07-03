@@ -1,4 +1,5 @@
 using IChing.Lab.Core.Bazi;
+using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Liuyao;
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Inference;
@@ -21,9 +22,7 @@ public class LabController : ControllerBase
     [HttpPost("bazi")]
     public IActionResult Bazi([FromBody] BaziRequest req)
     {
-        var chart = BaziEngine.Calculate(new BaziInput(
-            req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
-            req.Longitude, req.Gender, req.Sect));
+        var chart = BaziEngine.Calculate(MapBaziInput(req));
         return Ok(chart);
     }
 
@@ -35,10 +34,8 @@ public class LabController : ControllerBase
             return BadRequest(new { error = "tier must be 0, 1, or 2" });
         }
 
-        var chart = BaziEngine.Calculate(new BaziInput(
-            req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
-            req.Longitude, req.Gender, req.Sect));
-        var preview = new { oneLiner = $"日柱 {chart.DayPillar}，月柱 {chart.MonthPillar}；先看四柱、大运与关注点「{req.Focus ?? "综合"}」。" };
+        var chart = BaziEngine.Calculate(MapBaziInput(req));
+        var preview = new { oneLiner = $"日柱 {chart.DayPillar.GanZhi}，月柱 {chart.MonthPillar.GanZhi}；先看四柱、大运与关注点「{req.Focus ?? "综合"}」。" };
 
         if (tier == 0)
         {
@@ -53,6 +50,25 @@ public class LabController : ControllerBase
             isFallback = result.IsFallback
         }));
     }
+
+    [HttpPost("bazi/interpret")]
+    public IActionResult BaziInterpret([FromBody] BaziInterpretRequest req)
+    {
+        var chart = BaziEngine.Calculate(MapBaziInput(req));
+        var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 256);
+        return Ok(new { chart, interpretation = result });
+    }
+
+    [HttpPost("bazi/hepan")]
+    public IActionResult HePan([FromBody] HePanRequest req)
+    {
+        var a = BaziEngine.Calculate(MapBaziInput(req.PersonA));
+        var b = BaziEngine.Calculate(MapBaziInput(req.PersonB));
+        return Ok(HePanService.Compare(a, b));
+    }
+
+    [HttpGet("bazi/cities")]
+    public IActionResult Cities() => Ok(CityLookup.List());
 
     [HttpPost("interpret")]
     public IActionResult Interpret([FromBody] InterpretRequest req)
@@ -149,8 +165,24 @@ public class LabController : ControllerBase
         }));
     }
 
+    [HttpPost("tarot/interpret")]
+    public IActionResult TarotInterpret([FromBody] TarotDrawRequest req)
+    {
+        var reading = TarotEngine.Draw(req.SpreadId ?? "past-present-future", req.Question, req.Seed);
+        var narrative = TarotNarrative.Build(reading);
+        return Ok(new { reading, narrative });
+    }
+
     [HttpGet("tarot/spreads")]
     public IActionResult TarotSpreads() => Ok(SpreadCatalog.List());
+
+    [HttpGet("calendar/day")]
+    public IActionResult CalendarDay(
+        [FromQuery] int year,
+        [FromQuery] int month,
+        [FromQuery] int day,
+        [FromQuery] int sect = 1) =>
+        Ok(HuangLiService.GetDay(year, month, day, sect));
 
     private static bool ValidTier(int tier) => tier is >= 0 and <= 2;
 
@@ -199,27 +231,68 @@ public class LabController : ControllerBase
             reversedCount = reading.Positions.Count(p => p.Reversed)
         };
     }
+
+    private static BaziInput MapBaziInput(BaziRequest req) =>
+        new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
+            req.Longitude, req.City, req.Gender, req.Sect,
+            req.FlowYear, req.FlowMonth, req.FlowCalendarMonth, req.FlowDay);
+
+    private static BaziInput MapBaziInput(BaziReadRequest req) =>
+        new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
+            req.Longitude, req.City, req.Gender, req.Sect,
+            req.FlowYear, req.FlowMonth, req.FlowCalendarMonth, req.FlowDay);
+
+    private static BaziInput MapBaziInput(BaziInterpretRequest req) =>
+        new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
+            req.Longitude, req.City, req.Gender, req.Sect,
+            req.FlowYear, req.FlowMonth, req.FlowCalendarMonth, req.FlowDay);
 }
 
 public record BaziRequest(
     int Year, int Month, int Day, int Hour,
     int Minute = 0, int Second = 0,
     double? Longitude = null,
+    string? City = null,
     int? Gender = null,
-    int Sect = 1);
-
-public record InterpretRequest(object Chart, string? Focus, int? MaxTokens);
-
-public record TarotDrawRequest(string? SpreadId, string? Question, int? Seed);
+    int Sect = 1,
+    int? FlowYear = null,
+    int? FlowMonth = null,
+    int? FlowCalendarMonth = null,
+    int? FlowDay = null);
 
 public record BaziReadRequest(
     int Year, int Month, int Day, int Hour,
     int Minute = 0, int Second = 0,
     double? Longitude = null,
+    string? City = null,
     int? Gender = null,
     int Sect = 1,
+    int? FlowYear = null,
+    int? FlowMonth = null,
+    int? FlowCalendarMonth = null,
+    int? FlowDay = null,
     string? Focus = null,
     int? MaxTokens = null);
+
+public record BaziInterpretRequest(
+    int Year, int Month, int Day, int Hour,
+    int Minute = 0, int Second = 0,
+    double? Longitude = null,
+    string? City = null,
+    int? Gender = null,
+    int Sect = 1,
+    int? FlowYear = null,
+    int? FlowMonth = null,
+    int? FlowCalendarMonth = null,
+    int? FlowDay = null,
+    string? Focus = null,
+    int? MaxTokens = null);
+
+public record HePanRequest(BaziRequest PersonA, BaziRequest PersonB);
+
+public record InterpretRequest(object Chart, string? Focus, int? MaxTokens);
+
+public record TarotDrawRequest(string? SpreadId, string? Question, int? Seed);
 
 public record LiuyaoReadRequest(
     string? Method,

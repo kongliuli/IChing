@@ -1,5 +1,6 @@
 using IChing.Lab.Api.Components;
 using IChing.Lab.Inference;
+using IChing.Lab.Core.Rules;
 using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,7 @@ builder.Services.AddRazorComponents();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton(new RuleEngine(ReadRuleEngineOptions(builder.Configuration)));
 
 var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys");
 Directory.CreateDirectory(dataProtectionKeysPath);
@@ -51,6 +53,27 @@ static string ResolveModelPath(string configuredPath, string contentRoot)
     };
 
     return candidates.FirstOrDefault(Directory.Exists) ?? candidates[1];
+}
+
+static RuleEngineOptions ReadRuleEngineOptions(IConfiguration configuration)
+{
+    var section = configuration.GetSection("RuleEngine");
+    var options = new RuleEngineOptions();
+    if (int.TryParse(section["MinWeight"], out var minWeight))
+    {
+        options.MinWeight = minWeight;
+    }
+
+    foreach (var plugin in section.GetSection("Plugins").GetChildren())
+    {
+        options.Plugins[plugin.Key] = new RulePluginOptions
+        {
+            Enabled = bool.TryParse(plugin["Enabled"], out var enabled) ? enabled : null,
+            Weight = int.TryParse(plugin["Weight"], out var weight) ? weight : null
+        };
+    }
+
+    return options;
 }
 
 public partial class Program;

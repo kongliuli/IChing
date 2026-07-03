@@ -1,8 +1,5 @@
-# Java MVP Spike（已归档）
+# 历史技术验证已移除
 
-此目录下的 `iching-common`、`iching-paipan-core`、`iching-server` 为 **Java/Spring Boot 技术验证**，用于验证用户/订单/排盘 API 形态。
+旧的服务端技术验证目录已经删除。
 
-**不作为最终产品技术栈。** 正式调研与开发请使用：
-
-- `src/IChing.Lab.*`（.NET 8）
-- `docs/tech-stack-dotnet.md`
+当前仓库正式实现只保留 .NET Lab：`src/IChing.Lab.Core`、`src/IChing.Lab.Api`、`src/IChing.Lab.Inference`。

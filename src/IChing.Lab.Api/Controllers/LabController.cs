@@ -1,6 +1,8 @@
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Liuyao;
+using IChing.Lab.Core.Readings;
+using IChing.Lab.Core.Rules;
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Prompts;
@@ -13,10 +15,12 @@ namespace IChing.Lab.Api.Controllers;
 public class LabController : ControllerBase
 {
     private readonly ChartInterpretationService _interpretation;
+    private readonly RuleEngine _ruleEngine;
 
-    public LabController(ChartInterpretationService interpretation)
+    public LabController(ChartInterpretationService interpretation, RuleEngine ruleEngine)
     {
         _interpretation = interpretation;
+        _ruleEngine = ruleEngine;
     }
 
     [HttpPost("bazi")]
@@ -35,15 +39,16 @@ public class LabController : ControllerBase
         }
 
         var chart = BaziEngine.Calculate(MapBaziInput(req));
-        var preview = new { oneLiner = $"日柱 {chart.DayPillar.GanZhi}，月柱 {chart.MonthPillar.GanZhi}；先看四柱、大运与关注点「{req.Focus ?? "综合"}」。" };
+        var digest = ReadingSummaries.BuildBaziRuleDigest(chart, req.Focus, _ruleEngine);
+        var preview = ReadingSummaries.BuildBaziPreview(chart, req.Focus, _ruleEngine);
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("bazi", tier, chart, null, preview, null));
+            return Ok(ReadEnvelope("bazi", tier, chart, digest, preview, null));
         }
 
         var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 512);
-        return Ok(ReadEnvelope("bazi", tier, chart, null, preview, new
+        return Ok(ReadEnvelope("bazi", tier, chart, digest, preview, new
         {
             text = result.Text,
             textEn = result.TextEn,
@@ -100,10 +105,11 @@ public class LabController : ControllerBase
         var chart = req.Method == "time"
             ? LiuyaoNajiaService.Time(req.At ?? DateTimeOffset.Now)
             : LiuyaoNajiaService.Coin(req.At ?? DateTimeOffset.Now, req.Seed);
-        var digest = BuildLiuyaoRuleDigest(chart, req.Question, req.Focus);
+        var digest = ReadingSummaries.BuildLiuyaoRuleDigest(chart, req.Question, req.Focus, _ruleEngine);
+        var moving = string.Join("; ", chart.Lines.Where(l => l.IsChanging).Select(l => $"{l.Index} moving"));
         var preview = new
         {
-            oneLiner = $"{chart.OriginalHexagram}{(chart.ChangedHexagram is null ? "" : $" 之 {chart.ChangedHexagram}")}；{string.Join("，", chart.Lines.Where(l => l.IsChanging).Select(l => $"{l.Index}爻动"))}"
+            oneLiner = $"{chart.OriginalHexagram}{(chart.ChangedHexagram is null ? "" : $" -> {chart.ChangedHexagram}")}; moving: {(string.IsNullOrWhiteSpace(moving) ? "none" : moving)}"
         };
 
         if (tier == 0)
@@ -111,7 +117,7 @@ public class LabController : ControllerBase
             return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, null));
         }
 
-        var prompt = LiuyaoPromptBuilder.BuildTier1(req.Question ?? "综合", req.Focus, digest, chart);
+        var prompt = LiuyaoPromptBuilder.BuildTier1(req.Question ?? "general", req.Focus, digest, chart);
         var gen = _interpretation.Generate(prompt, req.MaxTokens ?? 512);
         return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, new
         {
@@ -134,10 +140,10 @@ public class LabController : ControllerBase
         }
 
         var reading = TarotEngine.Draw(req.SpreadId ?? "past-present-future", req.Question, req.Seed);
-        var digest = BuildTarotRuleDigest(reading);
+        var digest = ReadingSummaries.BuildTarotRuleDigest(reading, _ruleEngine);
         var preview = new
         {
-            oneLiner = string.Join("；", reading.Positions.Select(p => $"[{p.PositionTitleZh}] {p.CardNameZh}{(p.Reversed ? "逆位" : "正位")}：{p.Meaning}"))
+            oneLiner = string.Join("; ", reading.Positions.Select(p => $"[{p.PositionTitleZh}] {p.CardNameZh}{(p.Reversed ? " reversed" : " upright")}: {p.Meaning}"))
         };
 
         if (tier == 0)
@@ -193,7 +199,7 @@ public class LabController : ControllerBase
         engine = new
         {
             paipan = domain == "liuyao" ? "IChingLibrary.SixLines" : "IChing.Lab.Core",
-            rules = "iching-rules-v0",
+            rules = "iching-rules-v1",
             narrative = tier == 0 ? "none" : "qwen2.5-1.5b-onnx-genai"
         },
         chart,
@@ -201,36 +207,6 @@ public class LabController : ControllerBase
         tier0Preview,
         narrative
     };
-
-    private static object BuildLiuyaoRuleDigest(LiuyaoNajiaResult chart, string? question, string? focus)
-    {
-        var shi = chart.Lines.FirstOrDefault(l => l.Role?.Contains("世") == true);
-        var ying = chart.Lines.FirstOrDefault(l => l.Role?.Contains("应") == true);
-        return new
-        {
-            shiYaoSummary = shi is null ? "未标出世爻" : $"{shi.Index}爻{shi.SixKin}{shi.StemBranch}持世",
-            yingYaoSummary = ying is null ? "未标出应爻" : $"{ying.Index}爻{ying.SixKin}{ying.StemBranch}为应",
-            changingSummaries = chart.Lines.Where(l => l.IsChanging).Select(l => $"{l.Index}爻{l.SixKin}{l.StemBranch}动").ToList(),
-            questionType = focus ?? question ?? "综合",
-            yongShenSummary = "未分类问事默认以世爻为用神",
-            alerts = Array.Empty<string>()
-        };
-    }
-
-    private static object BuildTarotRuleDigest(TarotReading reading)
-    {
-        var names = reading.Positions.Select(p => p.CardName).ToList();
-        return new
-        {
-            majorCount = names.Count(n => !n.Contains(" of ")),
-            total = names.Count,
-            wands = names.Count(n => n.EndsWith("of Wands")),
-            cups = names.Count(n => n.EndsWith("of Cups")),
-            swords = names.Count(n => n.EndsWith("of Swords")),
-            pentacles = names.Count(n => n.EndsWith("of Pentacles")),
-            reversedCount = reading.Positions.Count(p => p.Reversed)
-        };
-    }
 
     private static BaziInput MapBaziInput(BaziRequest req) =>
         new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,

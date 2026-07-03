@@ -1,0 +1,99 @@
+@page "/rule-plugins"
+
+<main class="rulesShell">
+    <header>
+        <div>
+            <p>Layer1 Rule Engine</p>
+            <h1>Rule Plugins</h1>
+        </div>
+        <div class="headerActions">
+            <a href="/lab-tool">Lab Tool</a>
+            <select id="domainFilter" onchange="loadPlugins()">
+                <option value="">All domains</option>
+                <option value="bazi">BaZi</option>
+                <option value="liuyao">Liuyao</option>
+                <option value="tarot">Tarot</option>
+            </select>
+        </div>
+    </header>
+
+    <section id="pluginList" class="pluginList">Loading...</section>
+</main>
+
+<script>
+async function loadPlugins() {
+    const domain = document.getElementById("domainFilter").value;
+    const response = await fetch(`/lab/rules/plugins${domain ? `?domain=${encodeURIComponent(domain)}` : ""}`);
+    const data = await response.json();
+    const list = document.getElementById("pluginList");
+    list.innerHTML = data.plugins.map(renderPlugin).join("");
+}
+
+function renderPlugin(plugin) {
+    const key = cssId(plugin.id);
+    return `
+        <article class="plugin">
+            <div>
+                <small>${escapeHtml(plugin.domain)} / ${escapeHtml(plugin.id)}</small>
+                <h2>${escapeHtml(plugin.title)}</h2>
+                <p>${escapeHtml(plugin.description)}</p>
+            </div>
+            <label>
+                <span>Enabled</span>
+                <input type="checkbox" ${plugin.enabled ? "checked" : ""} onchange="savePlugin('${escapeAttr(plugin.id)}')" id="enabled-${key}">
+            </label>
+            <label>
+                <span>Weight</span>
+                <input type="number" min="0" max="1000" value="${plugin.weight}" onchange="savePlugin('${escapeAttr(plugin.id)}')" id="weight-${key}">
+            </label>
+        </article>`;
+}
+
+async function savePlugin(id) {
+    const key = cssId(id);
+    const enabled = document.getElementById(`enabled-${key}`).checked;
+    const weight = Number(document.getElementById(`weight-${key}`).value);
+    const response = await fetch(`/lab/rules/plugins/${encodeURIComponent(id)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled, weight })
+    });
+    if (!response.ok) {
+        alert((await response.json()).error || "Update failed");
+    }
+    await loadPlugins();
+}
+
+function cssId(value) {
+    return String(value).replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function escapeAttr(value) {
+    return String(value ?? "").replace(/[\\']/g, "\\$&");
+}
+
+document.addEventListener("DOMContentLoaded", loadPlugins);
+</script>
+
+<style>
+    .rulesShell { min-height: 100vh; padding: 28px; background: #eef1f4; color: #172026; font-family: "Segoe UI", sans-serif; }
+    header { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    h1, h2, p { margin: 0; }
+    header p, .plugin small, .plugin p { color: #66747c; }
+    h1 { margin-top: 6px; font-size: 36px; letter-spacing: 0; }
+    .headerActions { display: flex; align-items: center; justify-content: end; gap: 10px; flex-wrap: wrap; }
+    .headerActions a { border-radius: 8px; padding: 10px 12px; background: #25313b; color: #fff; text-decoration: none; font-weight: 700; }
+    select, input { border: 1px solid #c9d1d8; border-radius: 8px; padding: 10px 11px; background: #fff; color: #172026; }
+    .pluginList { display: grid; gap: 10px; }
+    .plugin { display: grid; grid-template-columns: minmax(0, 1fr) 110px 120px; align-items: center; gap: 14px; border: 1px solid #dbe1e6; border-radius: 8px; background: #fff; padding: 16px; box-shadow: 0 10px 24px rgba(20, 31, 39, .06); }
+    .plugin h2 { margin: 4px 0; font-size: 18px; letter-spacing: 0; }
+    label { display: grid; gap: 6px; color: #43505a; font-size: 13px; font-weight: 700; }
+    input[type="checkbox"] { width: 22px; height: 22px; }
+    @@media (max-width: 760px) {
+        header, .plugin { grid-template-columns: 1fr; display: grid; align-items: stretch; }
+    }
+</style>

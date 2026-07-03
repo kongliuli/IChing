@@ -1,6 +1,7 @@
 using System.Text.Json;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Liuyao;
+using IChing.Lab.Core.Rules;
 using IChing.Lab.Core.Tarot;
 
 namespace IChing.Lab.Core.Readings;
@@ -12,37 +13,62 @@ public static class ReadingSummaries
         WriteIndented = true
     };
 
-    public static BaziPreview BuildBaziPreview(BaziChart chart, string? focus) =>
-        new($"Day pillar {chart.DayPillar.GanZhi}, month pillar {chart.MonthPillar.GanZhi}; focus: {Blank(focus, "general")}.");
-
-    public static LiuyaoRuleDigest BuildLiuyaoRuleDigest(LiuyaoNajiaResult chart, string? question, string? focus)
+    public static BaziPreview BuildBaziPreview(BaziChart chart, string? focus, RuleEngine? engine = null)
     {
-        var shi = chart.Lines.FirstOrDefault(l => l.Role?.Contains("世", StringComparison.Ordinal) == true);
-        var ying = chart.Lines.FirstOrDefault(l => l.Role?.Contains("应", StringComparison.Ordinal) == true);
+        var result = (engine ?? RuleEngine.Default).Run("bazi", chart, focus: focus);
+        return new BaziPreview(
+            $"Day pillar {chart.DayPillar.GanZhi}, month pillar {chart.MonthPillar.GanZhi}; focus: {Blank(focus, "general")}.",
+            result.ActivePlugins,
+            result.Items);
+    }
+
+    public static BaziRuleDigest BuildBaziRuleDigest(BaziChart chart, string? focus, RuleEngine? engine = null)
+    {
+        var result = (engine ?? RuleEngine.Default).Run("bazi", chart, focus: focus);
+        return new BaziRuleDigest(
+            chart.DayMaster,
+            $"{chart.YearPillar.GanZhi} {chart.MonthPillar.GanZhi} {chart.DayPillar.GanZhi} {chart.HourPillar.GanZhi}",
+            chart.YongShen.Summary,
+            result.ActivePlugins,
+            result.Items);
+    }
+
+    public static LiuyaoRuleDigest BuildLiuyaoRuleDigest(LiuyaoNajiaResult chart, string? question, string? focus, RuleEngine? engine = null)
+    {
+        var result = (engine ?? RuleEngine.Default).Run("liuyao", chart, question, focus);
+        var shi = chart.Lines.FirstOrDefault(IsShi);
+        var ying = chart.Lines.FirstOrDefault(IsYing);
+        var yongShen = result.Items.FirstOrDefault(i => i.PluginId == "liuyao.yongshen.keyword")?.Text
+            ?? "Unclassified questions use the Shi line as the subject.";
 
         return new LiuyaoRuleDigest(
-            ShiYaoSummary: shi is null ? "Shi line not marked" : $"{shi.Index}: {shi.SixKin} {shi.StemBranch}",
-            YingYaoSummary: ying is null ? "Ying line not marked" : $"{ying.Index}: {ying.SixKin} {ying.StemBranch}",
-            ChangingSummaries: chart.Lines
+            shi is null ? "Shi line not marked" : $"{shi.Index}: {shi.SixKin} {shi.StemBranch}",
+            ying is null ? "Ying line not marked" : $"{ying.Index}: {ying.SixKin} {ying.StemBranch}",
+            chart.Lines
                 .Where(l => l.IsChanging)
                 .Select(l => $"{l.Index}: {l.SixKin} {l.StemBranch} changes")
                 .ToList(),
-            QuestionType: Blank(focus, Blank(question, "general")),
-            YongShenSummary: "Unclassified questions use the Shi line as the subject.",
-            Alerts: []);
+            Blank(focus, Blank(question, "general")),
+            yongShen,
+            [],
+            result.ActivePlugins,
+            result.Items);
     }
 
-    public static TarotRuleDigest BuildTarotRuleDigest(TarotReading reading)
+    public static TarotRuleDigest BuildTarotRuleDigest(TarotReading reading, RuleEngine? engine = null)
     {
+        var result = (engine ?? RuleEngine.Default).Run("tarot", reading, reading.Question);
         var names = reading.Positions.Select(p => p.CardName).ToList();
         return new TarotRuleDigest(
-            MajorCount: names.Count(n => !n.Contains(" of ", StringComparison.Ordinal)),
-            Total: names.Count,
-            Wands: names.Count(n => n.EndsWith("of Wands", StringComparison.Ordinal)),
-            Cups: names.Count(n => n.EndsWith("of Cups", StringComparison.Ordinal)),
-            Swords: names.Count(n => n.EndsWith("of Swords", StringComparison.Ordinal)),
-            Pentacles: names.Count(n => n.EndsWith("of Pentacles", StringComparison.Ordinal)),
-            ReversedCount: reading.Positions.Count(p => p.Reversed));
+            names.Count(n => !n.Contains(" of ", StringComparison.Ordinal)),
+            names.Count,
+            names.Count(n => n.EndsWith("of Wands", StringComparison.Ordinal)),
+            names.Count(n => n.EndsWith("of Cups", StringComparison.Ordinal)),
+            names.Count(n => n.EndsWith("of Swords", StringComparison.Ordinal)),
+            names.Count(n => n.EndsWith("of Pentacles", StringComparison.Ordinal)),
+            reading.Positions.Count(p => p.Reversed),
+            result.ActivePlugins,
+            result.Items);
     }
 
     public static string BuildChatPrompt(string domain, string? question, string? focus, object chart, object? ruleDigest)
@@ -74,9 +100,27 @@ public static class ReadingSummaries
 
     private static string Blank(string? value, string fallback) =>
         string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+
+    private static bool IsShi(LiuyaoLineDetail line) =>
+        line.Role?.Contains("世", StringComparison.Ordinal) == true ||
+        line.Role?.Contains("涓?", StringComparison.Ordinal) == true;
+
+    private static bool IsYing(LiuyaoLineDetail line) =>
+        line.Role?.Contains("应", StringComparison.Ordinal) == true ||
+        line.Role?.Contains("搴?", StringComparison.Ordinal) == true;
 }
 
-public record BaziPreview(string OneLiner);
+public record BaziPreview(
+    string OneLiner,
+    IReadOnlyList<string> ActivePlugins,
+    IReadOnlyList<RuleDigestItem> Items);
+
+public record BaziRuleDigest(
+    string DayMaster,
+    string PillarSummary,
+    string YongShenSummary,
+    IReadOnlyList<string> ActivePlugins,
+    IReadOnlyList<RuleDigestItem> Items);
 
 public record LiuyaoRuleDigest(
     string ShiYaoSummary,
@@ -84,7 +128,9 @@ public record LiuyaoRuleDigest(
     IReadOnlyList<string> ChangingSummaries,
     string QuestionType,
     string YongShenSummary,
-    IReadOnlyList<string> Alerts);
+    IReadOnlyList<string> Alerts,
+    IReadOnlyList<string> ActivePlugins,
+    IReadOnlyList<RuleDigestItem> Items);
 
 public record TarotRuleDigest(
     int MajorCount,
@@ -93,4 +139,6 @@ public record TarotRuleDigest(
     int Cups,
     int Swords,
     int Pentacles,
-    int ReversedCount);
+    int ReversedCount,
+    IReadOnlyList<string> ActivePlugins,
+    IReadOnlyList<RuleDigestItem> Items);

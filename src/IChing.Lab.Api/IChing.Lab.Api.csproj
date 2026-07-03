@@ -22,4 +22,8 @@
     <None Include="..\..\prompts\**\*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" LinkBase="prompts" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="IChing.Lab.Tests" />
+  </ItemGroup>
+
 </Project>

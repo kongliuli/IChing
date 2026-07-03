@@ -40,10 +40,10 @@
 - [x] `calendar-finddays-remote`（find-days 节气表远程 API）
 
 ### 配置与验证
-- [ ] `appsettings.json` 含 `plugins:chartEngines` 数组（每域默认 + 备用）
-- [ ] `GET /lab/engines` 每域返回 ≥ 5 条记录
-- [ ] 桥接 sidecar 离线时 `IsReady=false` 不阻断其他引擎
-- [ ] 切换 `chartEngines[domain=bazi].default` 后 `/lab/bazi` 响应 `engine.paipan` 相应变化
-- [ ] `dotnet build` 全绿（主程序 + 所有新 samples）
-- [ ] `dotnet test` 全绿（含各域桥接 mock 测试）
+- [x] `appsettings.json` 含 `plugins:chartEngines` 数组（每域默认 + 备用）
+- [x] `GET /lab/engines` 每域返回 ≥ 5 条记录
+- [x] 桥接 sidecar 离线时 `IsReady=false` 不阻断其他引擎
+- [x] 切换 `chartEngines[domain=bazi].default` 后 `/lab/bazi` 响应 `engine.paipan` 相应变化
+- [x] `dotnet build` 全绿（主程序 + 所有新 samples）
+- [x] `dotnet test` 全绿（含各域桥接 mock 测试）
 - [x] 未引入 RAG（桥接仅取排盘计算结果，不接 LLM/RAG 层）

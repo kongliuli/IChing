@@ -66,16 +66,16 @@
 
 ## 阶段六：配置、发现与验证
 
-- [ ] Task 11: 配置与发现
-  - [ ] SubTask 11.1: `appsettings.json` 新增 `plugins:chartEngines` 数组，声明每域默认 + 备用引擎
-  - [ ] SubTask 11.2: `GET /lab/engines` 返回所有引擎含 `engineId / domain / source / algorithmBasis`
-  - [ ] SubTask 11.3: 桥接 sidecar 离线时引擎 `IsReady=false` 不阻断其他引擎
+- [x] Task 11: 配置与发现
+  - [x] SubTask 11.1: `appsettings.json` 新增 `plugins:chartEngines` 数组，声明每域默认 + 备用引擎
+  - [x] SubTask 11.2: `GET /lab/engines` 返回所有引擎含 `engineId / domain / source / algorithmBasis`
+  - [x] SubTask 11.3: 桥接 sidecar 离线时引擎 `IsReady=false` 不阻断其他引擎
 
-- [ ] Task 12: 验证
-  - [ ] SubTask 12.1: `dotnet build` 全绿（主程序 + 所有新 samples 项目）
-  - [ ] SubTask 12.2: `dotnet test` 全绿（含各域桥接 mock 测试）
-  - [ ] SubTask 12.3: `/lab/engines` 每域返回 ≥ 5 条记录
-  - [ ] SubTask 12.4: 切换 `chartEngines[domain=bazi].default` 到 `bazi-cnlunar-port`，`/lab/bazi` 响应 `engine.paipan="bazi-cnlunar-port"`
+- [x] Task 12: 验证
+  - [x] SubTask 12.1: `dotnet build` 全绿（主程序 + 所有新 samples 项目）
+  - [x] SubTask 12.2: `dotnet test` 全绿（含各域桥接 mock 测试）
+  - [x] SubTask 12.3: `/lab/engines` 每域返回 ≥ 5 条记录
+  - [x] SubTask 12.4: 切换 `chartEngines[domain=bazi].default` 到 `bazi-cnlunar-port`，`/lab/bazi` 响应 `engine.paipan="bazi-cnlunar-port"`
 
 # Task Dependencies
 - 依赖 [plugin-abstractions](../plugin-abstractions/spec.md) / [wrap-chart-engines](../wrap-chart-engines/spec.md) / [plugin-loader-and-di](../plugin-loader-and-di/spec.md) 已完成

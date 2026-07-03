@@ -42,10 +42,22 @@ public class LabController : ControllerBase
             ? builder
             : throw new InvalidOperationException($"prompt builder not registered: {templateId}");
 
-    /// <summary>列出所有已注册的排盘引擎（domain + engineId）。</summary>
+    /// <summary>
+    /// 列出所有已注册的排盘引擎，返回完整 metadata：domain / engineId / source / version /
+    /// algorithmBasis / templateHint / moduleFocus，供客户端按算法来源选取引擎与运维诊断使用。
+    /// </summary>
     [HttpGet("engines")]
     public IActionResult Engines() =>
-        Ok(_engines.Select(e => new { domain = e.Domain, engineId = e.EngineId }));
+        Ok(_engines.Select(e => new
+        {
+            domain = e.Domain,
+            engineId = e.EngineId,
+            source = e.Metadata.Source,
+            version = e.Metadata.Version,
+            algorithmBasis = e.Metadata.AlgorithmBasis,
+            templateHint = e.Metadata.TemplateHint,
+            moduleFocus = e.Metadata.ModuleFocus
+        }));
 
     /// <summary>简单存活探活，无需鉴权，返回 ok。</summary>
     [HttpGet("/health")]
@@ -83,6 +95,24 @@ public class LabController : ControllerBase
         return _configuration["plugins:defaultEngine"];
     }
 
+    /// <summary>
+    /// 从 <c>plugins:chartEngines</c> 数组中查找 <c>domain</c> 等于指定域的项，
+    /// 返回其 <c>default</c> 引擎标识；未配置或未匹配返回 null（由调用方回退到原硬编码逻辑）。
+    /// 内部 static 以便单元测试在不构造控制器的情况下直接验证查找逻辑。
+    /// </summary>
+    internal static string? ResolveChartEngine(IConfiguration configuration, string domain)
+    {
+        foreach (var child in configuration.GetSection("plugins:chartEngines").GetChildren())
+        {
+            if (string.Equals(child["domain"], domain, StringComparison.OrdinalIgnoreCase))
+            {
+                return child["default"];
+            }
+        }
+
+        return null;
+    }
+
     [HttpPost("bazi")]
     public IActionResult Bazi([FromBody] BaziRequest req)
     {
@@ -103,7 +133,7 @@ public class LabController : ControllerBase
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("bazi", tier, chart, null, preview, null));
+            return Ok(ReadEnvelope("bazi", tier, chart, null, preview, null, ResolveChartEngine(_configuration, "bazi")));
         }
 
         var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 512);
@@ -112,7 +142,7 @@ public class LabController : ControllerBase
             text = result.Text,
             textEn = result.TextEn,
             isFallback = result.IsFallback
-        }));
+        }, ResolveChartEngine(_configuration, "bazi")));
     }
 
     [HttpPost("bazi/interpret")]
@@ -172,7 +202,7 @@ public class LabController : ControllerBase
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, null));
+            return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, null, ResolveChartEngine(_configuration, "liuyao")));
         }
 
         var liuyaoBuilder = ResolvePromptBuilder("liuyao-tier1-default");
@@ -189,7 +219,7 @@ public class LabController : ControllerBase
             text = gen.IsFallback ? preview.oneLiner : gen.Text,
             isFallback = gen.IsFallback,
             fallbackReason = gen.FallbackReason
-        }));
+        }, ResolveChartEngine(_configuration, "liuyao")));
     }
 
     [HttpPost("tarot/draw")]
@@ -213,7 +243,7 @@ public class LabController : ControllerBase
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, null));
+            return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, null, ResolveChartEngine(_configuration, "tarot")));
         }
 
         var positions = reading.Positions
@@ -236,7 +266,7 @@ public class LabController : ControllerBase
             textEn = result.TextEn,
             isFallback = result.IsFallback,
             fallbackReason = result.FallbackReason
-        }));
+        }, ResolveChartEngine(_configuration, "tarot")));
     }
 
     [HttpPost("tarot/interpret")]
@@ -260,13 +290,13 @@ public class LabController : ControllerBase
 
     private static bool ValidTier(int tier) => tier is >= 0 and <= 2;
 
-    private static object ReadEnvelope(string domain, int tier, object chart, object? ruleDigest, object tier0Preview, object? narrative) => new
+    private static object ReadEnvelope(string domain, int tier, object chart, object? ruleDigest, object tier0Preview, object? narrative, string? paipanEngine = null) => new
     {
         domain,
         tier,
         engine = new
         {
-            paipan = domain == "liuyao" ? "IChingLibrary.SixLines" : "IChing.Lab.Core",
+            paipan = paipanEngine ?? (domain == "liuyao" ? "IChingLibrary.SixLines" : "IChing.Lab.Core"),
             rules = "iching-rules-v0",
             narrative = tier == 0 ? "none" : "qwen2.5-1.5b-onnx-genai"
         },

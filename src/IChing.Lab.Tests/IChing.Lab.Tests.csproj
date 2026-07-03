@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\samples\TarotEngines\TarotEngines.csproj" />
     <ProjectReference Include="..\..\samples\LiuyaoEngines\LiuyaoEngines.csproj" />
     <ProjectReference Include="..\..\samples\BaziEngines\BaziEngines.csproj" />
+    <ProjectReference Include="..\..\samples\CalendarEngines\CalendarEngines.csproj" />
   </ItemGroup>
 
 </Project>

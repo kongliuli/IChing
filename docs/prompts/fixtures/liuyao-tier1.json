@@ -1,0 +1,30 @@
+{
+  "id": "liuyao-tier1",
+  "domain": "liuyao",
+  "tier": 1,
+  "language": "zh",
+  "question": "这次投资能否成？",
+  "focus": "财运",
+  "ruleDigest": {
+    "shiYaoSummary": "3爻兄弟子水持世",
+    "yingYaoSummary": "6爻父母戌土为应",
+    "changingSummaries": ["2爻妻财酉金动", "5爻子孙午火动化回头克"],
+    "monthBranch": "寅",
+    "dayBranch": "子",
+    "kongWang": "戌亥空",
+    "yongShenSummary": "问财，用神妻财酉金在2爻",
+    "wangShuaiSummary": "用神得月建之气，不弱",
+    "alerts": ["世爻无破", "用神不空"]
+  },
+  "chart": {
+    "originalHexagram": "水雷屯",
+    "changedHexagram": "泽雷随",
+    "changingLineIndexes": [2, 5],
+    "lines": [
+      { "index": 1, "position": "初爻", "yinYang": "阳", "stemBranch": "庚子", "sixKin": "兄弟", "isChanging": false },
+      { "index": 2, "position": "二爻", "yinYang": "阴", "stemBranch": "庚寅", "sixKin": "妻财", "isChanging": true },
+      { "index": 3, "position": "三爻", "yinYang": "阴", "stemBranch": "庚辰", "sixKin": "兄弟", "role": "世", "isChanging": false }
+    ]
+  },
+  "maxTokens": 512
+}

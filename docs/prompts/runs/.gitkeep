@@ -1,0 +1,3 @@
+# 本地试跑记录（不提交 git）
+
+在此目录保存 PromptTest 输出与 QA 笔记，格式见 docs/inference-layer-design.md §9.4

@@ -1,11 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    DEPRECATED: IChing.Desktop is paused in favor of the IChing.Lab.Api plugin mainline.
+    替代方案: 使用 IChing.Lab.Api + 插件化推理引擎, 例如
+      samples/OpenAiCompatibleEngine/OpenAiRemoteEngine (基于 IChing.Lab.Abstractions 的插件实现).
+    本项目仅保留可编译状态, 不再新增功能, 不参与默认 CI 构建. See spec: deprecate-desktop.
+  -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Description>Deprecated — paused in favor of IChing.Lab.Api plugin mainline</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -72,6 +72,7 @@ curl -X POST http://localhost:5xxx/lab/bazi/interpret \
 | `IChing.Lab.Core` | 八字/六爻/塔罗/黄历/合盘算法 |
 | `IChing.Lab.Inference` | ONNX GenAI 解读 |
 | `IChing.Lab.Api` | HTTP 探针 |
+| `IChing.Desktop` | WPF 桌面端 (deprecated, paused) |
 
 ## 文档
 

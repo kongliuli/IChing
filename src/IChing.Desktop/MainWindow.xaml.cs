@@ -1,3 +1,4 @@
+// DEPRECATED: Desktop client paused. Use IChing.Lab.Api + plugins. See spec: deprecate-desktop.
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;

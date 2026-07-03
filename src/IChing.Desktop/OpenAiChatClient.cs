@@ -1,3 +1,4 @@
+// DEPRECATED: This OpenAI client is superseded by samples/OpenAiCompatibleEngine/OpenAiRemoteEngine (plugin-based). See spec: deprecate-desktop.
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;

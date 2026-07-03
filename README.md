@@ -38,7 +38,7 @@ bash scripts/download-qwen-model.sh ./models/qwen3-0.6b-genai
 ```bash
 curl -X POST http://localhost:5xxx/lab/bazi \
   -H 'Content-Type: application/json' \
-  -d '{"year":1990,"month":5,"day":20,"hour":12,"city":"上海","gender":1,"flowYear":2026,"flowMonth":7}'
+  -d '{"year":1990,"month":5,"day":20,"hour":12,"city":"上海","gender":1,"flowYear":2026,"flowMonth":7,"flowCalendarMonth":7,"flowDay":3}'
 ```
 
 ### 合盘示例

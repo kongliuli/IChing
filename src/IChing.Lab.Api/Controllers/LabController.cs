@@ -88,11 +88,13 @@ public class LabController : ControllerBase
 
     private static BaziInput MapBaziInput(BaziRequest req) =>
         new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
-            req.Longitude, req.City, req.Gender, req.Sect, req.FlowYear, req.FlowMonth);
+            req.Longitude, req.City, req.Gender, req.Sect,
+            req.FlowYear, req.FlowMonth, req.FlowCalendarMonth, req.FlowDay);
 
     private static BaziInput MapBaziInput(BaziInterpretRequest req) =>
         new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
-            req.Longitude, req.City, req.Gender, req.Sect, req.FlowYear, req.FlowMonth);
+            req.Longitude, req.City, req.Gender, req.Sect,
+            req.FlowYear, req.FlowMonth, req.FlowCalendarMonth, req.FlowDay);
 }
 
 public record BaziRequest(
@@ -103,7 +105,9 @@ public record BaziRequest(
     int? Gender = null,
     int Sect = 1,
     int? FlowYear = null,
-    int? FlowMonth = null);
+    int? FlowMonth = null,
+    int? FlowCalendarMonth = null,
+    int? FlowDay = null);
 
 public record BaziInterpretRequest(
     int Year, int Month, int Day, int Hour,
@@ -114,6 +118,8 @@ public record BaziInterpretRequest(
     int Sect = 1,
     int? FlowYear = null,
     int? FlowMonth = null,
+    int? FlowCalendarMonth = null,
+    int? FlowDay = null,
     string? Focus = null,
     int? MaxTokens = null);
 

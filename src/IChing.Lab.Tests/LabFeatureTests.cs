@@ -59,11 +59,31 @@ public class BaziTrueSolarTimeTests
     }
 
     [Fact]
-    public void YongShen_IsPopulated()
+    public void YongShen_HasGeJu()
     {
         var chart = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1));
-        Assert.NotEmpty(chart.YongShen.Strength);
-        Assert.NotEmpty(chart.YongShen.FavoredElements);
+        Assert.NotEmpty(chart.YongShen.GeJu.Pattern);
+        Assert.NotEmpty(chart.YongShen.PrimaryYongShen);
+    }
+
+    [Fact]
+    public void FlowYear_IncludesXiaoYun()
+    {
+        var chart = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1, FlowYear: 2026));
+        Assert.NotNull(chart.FlowYear?.XiaoYun);
+        Assert.Equal(2026, chart.FlowYear!.XiaoYun!.Year);
+    }
+
+    [Fact]
+    public void FlowCalendarMonth_ListsFlowDays()
+    {
+        var chart = BaziEngine.Calculate(new BaziInput(
+            1990, 5, 20, 10, Gender: 1,
+            FlowYear: 2026, FlowCalendarMonth: 7, FlowDay: 3));
+        Assert.NotNull(chart.FlowYear?.FlowDays);
+        Assert.True(chart.FlowYear!.FlowDays!.Count >= 28);
+        Assert.NotNull(chart.FlowYear.SelectedDay);
+        Assert.Equal(3, chart.FlowYear.SelectedDay!.Day);
     }
 }
 
@@ -110,6 +130,9 @@ public class LiuyaoNajiaTests
         Assert.NotNull(found?.Changed);
         Assert.NotEmpty(found.Changed.SymbolicStars);
         Assert.Equal(6, found.Changed.Lines.Count);
+        Assert.NotNull(found.Comparison);
+        Assert.Equal(6, found.Comparison!.Lines.Count);
+        Assert.NotEmpty(found.Comparison.OriginalShiYing);
     }
 }
 

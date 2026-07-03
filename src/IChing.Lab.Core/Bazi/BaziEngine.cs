@@ -41,7 +41,7 @@ public static class BaziEngine
 
             if (input.FlowYear is int fy)
             {
-                flowYear = ResolveFlowYear(periods, fy, input.FlowMonth);
+                flowYear = ResolveFlowYear(periods, fy, input.FlowMonth, input.FlowCalendarMonth, input.FlowDay);
             }
         }
 
@@ -95,7 +95,8 @@ public static class BaziEngine
     }
 
     private static FlowYearInfo? ResolveFlowYear(
-        Lunar.EightChar.DaYun[] periods, int year, int? flowMonth)
+        Lunar.EightChar.DaYun[] periods, int year, int? flowMonth,
+        int? flowCalendarMonth, int? flowDay)
     {
         foreach (var period in periods)
         {
@@ -123,6 +124,23 @@ public static class BaziEngine
                            ?? months.FirstOrDefault(m => m.Index == fm);
             }
 
+            var xiaoYun = period.GetXiaoYun(10)
+                .FirstOrDefault(x => x.Year == year);
+            XiaoYunInfo? xiaoYunInfo = xiaoYun is null
+                ? null
+                : new XiaoYunInfo(xiaoYun.Year, xiaoYun.GanZhi, xiaoYun.Age, xiaoYun.Xun, xiaoYun.XunKong);
+
+            IReadOnlyList<FlowDayInfo>? flowDays = null;
+            FlowDayInfo? selectedDay = null;
+            if (flowCalendarMonth is int cm)
+            {
+                flowDays = FlowDayHelper.ListDaysInMonth(year, cm);
+                if (flowDay is int fd)
+                {
+                    selectedDay = FlowDayHelper.GetDay(year, cm, fd);
+                }
+            }
+
             return new FlowYearInfo(
                 year,
                 match.GanZhi,
@@ -132,7 +150,10 @@ public static class BaziEngine
                 match.Xun,
                 match.XunKong,
                 months,
-                selected);
+                selected,
+                xiaoYunInfo,
+                flowDays,
+                selectedDay);
         }
 
         return null;
@@ -147,7 +168,9 @@ public record BaziInput(
     int? Gender = null,
     int Sect = 1,
     int? FlowYear = null,
-    int? FlowMonth = null);
+    int? FlowMonth = null,
+    int? FlowCalendarMonth = null,
+    int? FlowDay = null);
 
 public record YunInfo(
     int StartYear, int StartMonth, int StartDay, int StartHour,
@@ -177,6 +200,13 @@ public record FlowMonthInfo(
     string Xun,
     string XunKong);
 
+public record XiaoYunInfo(
+    int Year,
+    string GanZhi,
+    int Age,
+    string Xun,
+    string XunKong);
+
 public record FlowYearInfo(
     int Year,
     string GanZhi,
@@ -186,7 +216,10 @@ public record FlowYearInfo(
     string Xun,
     string XunKong,
     IReadOnlyList<FlowMonthInfo> Months,
-    FlowMonthInfo? SelectedMonth);
+    FlowMonthInfo? SelectedMonth,
+    XiaoYunInfo? XiaoYun,
+    IReadOnlyList<FlowDayInfo>? FlowDays,
+    FlowDayInfo? SelectedDay);
 
 public record BaziChart(
     string Engine,

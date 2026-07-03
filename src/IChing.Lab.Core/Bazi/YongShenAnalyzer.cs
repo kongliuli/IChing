@@ -1,6 +1,6 @@
 namespace IChing.Lab.Core.Bazi;
 
-/// <summary>ponytail: 月令得令 + 五行计数，Lab 级用神启发式；非流派精算。</summary>
+/// <summary>ponytail: 月令得令 + 格局细分用神，Lab 级启发式。</summary>
 public static class YongShenAnalyzer
 {
     private static readonly Dictionary<string, string> GanWuXing = new()
@@ -36,20 +36,20 @@ public static class YongShenAnalyzer
     public static YongShenProfile Analyze(BaziChart chart)
     {
         var dmWx = GanWuXing[chart.DayMaster];
-        var monthWx = ZhiWuXing[chart.MonthPillar.Zhi];
-        var strength = JudgeStrength(dmWx, monthWx);
-        var favored = strength.Contains("强")
-            ? (IReadOnlyList<string>)["官杀", "食伤", "财星"]
-            : ["印星", "比劫"];
-        var favoredElements = MapCategoriesToElements(chart.DayMaster, favored);
+        var strength = JudgeStrength(dmWx, ZhiWuXing[chart.MonthPillar.Zhi]);
+        var geJu = GeJuAnalyzer.Analyze(chart, strength);
         var shiShenCounts = CountShiShenCategories(chart);
 
         return new YongShenProfile(
             strength,
-            favored,
-            favoredElements,
+            geJu,
+            geJu.PrimaryYongShen,
+            geJu.SecondaryYongShen,
+            geJu.FavoredCategories,
+            geJu.FavoredElements,
             shiShenCounts,
-            $"日主{chart.DayMaster}（{dmWx}），{strength}，喜{favoredElements}");
+            $"{geJu.Summary}；主用神{geJu.PrimaryYongShen}" +
+            (geJu.SecondaryYongShen is null ? "" : $"，辅用神{geJu.SecondaryYongShen}"));
     }
 
     private static string JudgeStrength(string dmWx, string monthWx)
@@ -76,36 +76,6 @@ public static class YongShenAnalyzer
 
         return "身中和";
     }
-
-    private static IReadOnlyList<string> MapCategoriesToElements(string dayMaster, IReadOnlyList<string> categories)
-    {
-        if (!GanWuXing.TryGetValue(dayMaster, out var dmWx))
-        {
-            return [];
-        }
-
-        var elements = new List<string>();
-        foreach (var cat in categories)
-        {
-            elements.Add(cat switch
-            {
-                "比劫" => dmWx,
-                "印星" => ElementThatGenerates(dmWx),
-                "食伤" => Generates.GetValueOrDefault(dmWx, dmWx),
-                "财星" => Overcomes.GetValueOrDefault(dmWx, dmWx),
-                "官杀" => ElementThatOvercomes(dmWx),
-                _ => dmWx
-            });
-        }
-
-        return elements.Distinct().ToList();
-    }
-
-    private static string ElementThatGenerates(string target) =>
-        Generates.FirstOrDefault(kv => kv.Value == target).Key ?? target;
-
-    private static string ElementThatOvercomes(string target) =>
-        Overcomes.FirstOrDefault(kv => kv.Value == target).Key ?? target;
 
     private static IReadOnlyDictionary<string, int> CountShiShenCategories(BaziChart chart)
     {
@@ -153,6 +123,9 @@ public static class YongShenAnalyzer
 
 public record YongShenProfile(
     string Strength,
+    GeJuInfo GeJu,
+    string PrimaryYongShen,
+    string? SecondaryYongShen,
     IReadOnlyList<string> FavoredCategories,
     IReadOnlyList<string> FavoredElements,
     IReadOnlyDictionary<string, int> ShiShenCounts,

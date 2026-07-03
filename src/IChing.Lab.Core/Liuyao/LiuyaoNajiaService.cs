@@ -59,8 +59,11 @@ public static class LiuyaoNajiaService
                 Nature: d.Changed.Meta.GetNature()?.Label,
                 HexagramBody: changedFull.Original.FindHexagramBody()?.Label,
                 SymbolicStars: MapSymbolicStars(changedFull),
-                Lines: changedLines);
+                Lines: changedLines,
+                Comparison: LiuyaoComparisonBuilder.Build(lines, changedLines));
         }
+
+        ChangedComparison? comparison = changedDetail?.Comparison;
 
         return new LiuyaoNajiaResult(
             Engine: "IChingLibrary.SixLines",
@@ -74,7 +77,8 @@ public static class LiuyaoNajiaService
             HexagramBody: d.Original.FindHexagramBody()?.Label,
             SymbolicStars: MapSymbolicStars(d),
             Lines: lines,
-            Changed: changedDetail
+            Changed: changedDetail,
+            Comparison: comparison
         );
     }
 
@@ -182,7 +186,8 @@ public record ChangedHexagramDetail(
     string? Nature,
     string? HexagramBody,
     IReadOnlyList<SymbolicStarEntry> SymbolicStars,
-    IReadOnlyList<LiuyaoLineDetail> Lines);
+    IReadOnlyList<LiuyaoLineDetail> Lines,
+    ChangedComparison Comparison);
 
 public record LiuyaoNajiaResult(
     string Engine,
@@ -196,4 +201,5 @@ public record LiuyaoNajiaResult(
     string? HexagramBody,
     IReadOnlyList<SymbolicStarEntry> SymbolicStars,
     IReadOnlyList<LiuyaoLineDetail> Lines,
-    ChangedHexagramDetail? Changed);
+    ChangedHexagramDetail? Changed,
+    ChangedComparison? Comparison);

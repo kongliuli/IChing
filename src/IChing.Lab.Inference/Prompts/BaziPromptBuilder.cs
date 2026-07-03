@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace IChing.Lab.Inference.Prompts;
 
+[Obsolete("改用 IPromptBuilder（TemplatePromptBuilder）+ 外置 Scriban 模板 prompts/bazi-tier1-default.txt")]
 public static class BaziPromptBuilder
 {
     public static string BuildTier1(object chart, object ruleDigest, string? focus, int wordMax = 400)

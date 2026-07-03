@@ -1,4 +1,6 @@
 using System.Text.Json;
+using IChing.Lab.Abstractions.Models;
+using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Inference.Prompts;
 
 namespace IChing.Lab.Inference;
@@ -19,6 +21,68 @@ public static class PromptFixtureLoader
             SourcePath: path);
     }
 
+    /// <summary>
+    /// 通过 <see cref="IPromptBuilder"/> 构建.fixture 的 Prompt，返回带 NeedsTranslationPass 元信息的结果。
+    /// </summary>
+    public static PromptBuildResult BuildPrompt(PromptFixture fixture, IPromptBuilder builder)
+    {
+        var root = fixture.Raw;
+        PromptContext ctx = fixture.Domain switch
+        {
+            "bazi" => new PromptContext(
+                Chart: JsonSerializer.Deserialize<object>(root.GetProperty("chart").GetRawText())!,
+                RuleDigest: JsonSerializer.Deserialize<object>(root.GetProperty("ruleDigest").GetRawText())!,
+                Question: null,
+                Focus: root.TryGetProperty("focus", out var bf) ? bf.GetString() : null,
+                MaxTokens: GetMaxTokens(fixture)),
+
+            "liuyao" => new PromptContext(
+                Chart: JsonSerializer.Deserialize<object>(root.GetProperty("chart").GetRawText())!,
+                RuleDigest: JsonSerializer.Deserialize<object>(root.GetProperty("ruleDigest").GetRawText())!,
+                Question: root.GetProperty("question").GetString(),
+                Focus: root.TryGetProperty("focus", out var lf) ? lf.GetString() : null,
+                MaxTokens: GetMaxTokens(fixture)),
+
+            "tarot" => new PromptContext(
+                Chart: BuildTarotInput(root),
+                RuleDigest: JsonSerializer.Deserialize<object>(root.GetProperty("ruleDigest").GetRawText())!,
+                Question: root.GetProperty("question").GetString(),
+                Focus: null,
+                MaxTokens: GetMaxTokens(fixture)),
+
+            _ => throw new InvalidOperationException($"unknown domain: {fixture.Domain}")
+        };
+
+        return builder.Build(ctx);
+    }
+
+    /// <summary>由 fixture 推导 templateId：tarot 用 language 作为 variant，其余用 default。</summary>
+    public static string ResolveTemplateId(PromptFixture fixture)
+    {
+        var variant = fixture.Domain == "tarot"
+            ? (fixture.Language ?? "en")
+            : "default";
+        return $"{fixture.Domain}-tier{fixture.Tier}-{variant}";
+    }
+
+    private static TarotPromptInput BuildTarotInput(JsonElement root)
+    {
+        var positions = root.GetProperty("positions").EnumerateArray()
+            .Select(p => new TarotPositionPrompt(
+                p.GetProperty("positionTitle").GetString()!,
+                p.GetProperty("positionContext").GetString()!,
+                p.GetProperty("cardName").GetString()!,
+                p.GetProperty("reversed").GetBoolean(),
+                p.GetProperty("meaningEn").GetString()!))
+            .ToList();
+
+        var spreadTitle = root.GetProperty("spreadTitle").GetString()!;
+        var wordLimit = root.TryGetProperty("wordLimit", out var wl) ? wl.GetInt32() : 280;
+        return new TarotPromptInput(spreadTitle, positions, wordLimit);
+    }
+
+#pragma warning disable CS0618 // 保留向下兼容的静态构建路径，仅供已 [Obsolete] 的 ChartInterpretationService 使用
+    [Obsolete("改用 BuildPrompt(fixture, IPromptBuilder)")]
     public static string BuildPrompt(PromptFixture fixture)
     {
         var root = fixture.Raw;
@@ -59,6 +123,7 @@ public static class PromptFixtureLoader
             positions,
             root.TryGetProperty("wordLimit", out var wl) ? wl.GetInt32() : 280);
     }
+#pragma warning restore CS0618
 
     public static int GetMaxTokens(PromptFixture fixture)
     {

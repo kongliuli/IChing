@@ -1,0 +1,15 @@
+<|im_start|>system
+Translate the following English divination reading into natural Simplified Chinese.
+Keep every tarot card name exactly in English, including capitalization.
+Do NOT translate, replace, or substitute card names.
+Do NOT add, remove, or change the divination conclusions.
+Do NOT add labels such as "中文：".
+
+<|im_start|>user
+Protected card names, keep exactly as written:
+{{ card_names_block }}
+
+English:
+{{ english_text }}
+
+<|im_start|>assistant

@@ -1,5 +1,7 @@
 using System.Text.Json;
 using IChing.Lab.Abstractions.Engines;
+using IChing.Lab.Abstractions.Models;
+using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Inference.Prompts;
 using LabModels = IChing.Lab.Abstractions.Models;
@@ -15,16 +17,25 @@ public sealed class ChartInterpretationOrchestrator
 {
     private const string DefaultEngineId = "onnx-genai-qwen2.5-1.5b";
     private const string FallbackEngineId = "template-fallback";
+    private const string TarotTranslateTemplateId = "tarot-translate-to-zh";
     private readonly IReadOnlyDictionary<string, IInferenceEngine> _engines;
+    private readonly IReadOnlyDictionary<string, IPromptBuilder> _promptBuilders;
     private readonly ILogger<ChartInterpretationOrchestrator> _logger;
 
     public ChartInterpretationOrchestrator(
         IEnumerable<IInferenceEngine> engines,
+        IEnumerable<IPromptBuilder> promptBuilders,
         ILogger<ChartInterpretationOrchestrator> logger)
     {
         _engines = engines.ToDictionary(e => e.EngineId);
+        // 按 TemplateId 索引 PromptBuilder，供 RunFixture / 翻译 pass 按 domain+tier+templateId 选取。
+        _promptBuilders = promptBuilders.ToDictionary(b => b.TemplateId);
         _logger = logger;
     }
+
+    /// <summary>按 templateId 选取已注册的 IPromptBuilder；未注册返回 null。</summary>
+    public IPromptBuilder? SelectPromptBuilder(string templateId) =>
+        _promptBuilders.TryGetValue(templateId, out var builder) ? builder : null;
 
     /// <summary>默认 ONNX 引擎是否已加载模型（供原 IsModelLoaded 调用方使用）。</summary>
     public bool IsModelLoaded => SelectEngine(DefaultEngineId)?.IsReady ?? false;
@@ -75,7 +86,26 @@ public sealed class ChartInterpretationOrchestrator
             return new TarotInterpretResult(engineId, pass1.Text, TextEn: null, pass1.IsFallback, pass1.FallbackReason);
         }
 
-        var translatePrompt = TarotPromptBuilder.BuildTranslateToChinese(pass1.Text, ExtractTarotCardNames(englishPrompt));
+        // 翻译 pass 改用 IPromptBuilder（tarot-translate-to-zh 模板）构建；builder 未注册时降级返回英文初稿。
+        var translateBuilder = SelectPromptBuilder(TarotTranslateTemplateId);
+        if (translateBuilder is null)
+        {
+            return new TarotInterpretResult(
+                engineId,
+                pass1.Text,
+                pass1.Text,
+                IsFallback: true,
+                "translate prompt builder not registered");
+        }
+
+        var cardNames = ExtractTarotCardNames(englishPrompt);
+        var translateCtx = new PromptContext(
+            Chart: pass1.Text,
+            RuleDigest: cardNames,
+            Question: null,
+            Focus: null,
+            MaxTokens: translateMaxTokens);
+        var translatePrompt = translateBuilder.Build(translateCtx).PromptText;
         var pass2 = Generate(translatePrompt, translateMaxTokens, engineId);
         if (pass2.IsFallback || string.IsNullOrWhiteSpace(pass2.Text) || LooksLikeBadTranslation(pass2.Text))
         {
@@ -100,10 +130,22 @@ public sealed class ChartInterpretationOrchestrator
     /// </summary>
     public InterpretResult RunFixture(PromptFixture fixture)
     {
-        var prompt = PromptFixtureLoader.BuildPrompt(fixture);
+        // 通过 IPromptBuilder（按 fixture 推导的 templateId）构建 prompt；builder 未注册时降级。
+        var templateId = PromptFixtureLoader.ResolveTemplateId(fixture);
+        var builder = SelectPromptBuilder(templateId);
+        if (builder is null)
+        {
+            return new InterpretResult(
+                FallbackEngineId,
+                $"[prompt builder not registered: {templateId}]",
+                IsFallback: true);
+        }
+
+        var promptResult = PromptFixtureLoader.BuildPrompt(fixture, builder);
+        var prompt = promptResult.PromptText;
         var maxTokens = PromptFixtureLoader.GetMaxTokens(fixture);
 
-        if (PromptFixtureLoader.NeedsTranslation(fixture))
+        if (promptResult.NeedsTranslationPass)
         {
             var tarot = InterpretTarotEnglishThenChinese(
                 prompt,

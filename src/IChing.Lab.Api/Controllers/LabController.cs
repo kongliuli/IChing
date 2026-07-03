@@ -1,3 +1,6 @@
+using IChing.Lab.Abstractions.Engines;
+using IChing.Lab.Abstractions.Models;
+using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Liuyao;
@@ -13,11 +16,29 @@ namespace IChing.Lab.Api.Controllers;
 public class LabController : ControllerBase
 {
     private readonly ChartInterpretationOrchestrator _interpretation;
+    private readonly IEnumerable<IChartEngine> _engines;
+    private readonly IReadOnlyDictionary<string, IPromptBuilder> _promptBuilders;
 
-    public LabController(ChartInterpretationOrchestrator interpretation)
+    public LabController(
+        ChartInterpretationOrchestrator interpretation,
+        IEnumerable<IChartEngine> engines,
+        IEnumerable<IPromptBuilder> promptBuilders)
     {
         _interpretation = interpretation;
+        _engines = engines;
+        _promptBuilders = promptBuilders.ToDictionary(b => b.TemplateId);
     }
+
+    /// <summary>按 templateId 选取已注册的 IPromptBuilder。</summary>
+    private IPromptBuilder ResolvePromptBuilder(string templateId) =>
+        _promptBuilders.TryGetValue(templateId, out var builder)
+            ? builder
+            : throw new InvalidOperationException($"prompt builder not registered: {templateId}");
+
+    /// <summary>列出所有已注册的排盘引擎（domain + engineId）。</summary>
+    [HttpGet("engines")]
+    public IActionResult Engines() =>
+        Ok(_engines.Select(e => new { domain = e.Domain, engineId = e.EngineId }));
 
     [HttpPost("bazi")]
     public IActionResult Bazi([FromBody] BaziRequest req)
@@ -111,7 +132,14 @@ public class LabController : ControllerBase
             return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, null));
         }
 
-        var prompt = LiuyaoPromptBuilder.BuildTier1(req.Question ?? "综合", req.Focus, digest, chart);
+        var liuyaoBuilder = ResolvePromptBuilder("liuyao-tier1-default");
+        var liuyaoCtx = new PromptContext(
+            Chart: chart,
+            RuleDigest: digest,
+            Question: req.Question ?? "综合",
+            Focus: req.Focus,
+            MaxTokens: req.MaxTokens ?? 512);
+        var prompt = liuyaoBuilder.Build(liuyaoCtx).PromptText;
         var gen = _interpretation.Generate(prompt, req.MaxTokens ?? 512);
         return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, new
         {
@@ -148,12 +176,15 @@ public class LabController : ControllerBase
         var positions = reading.Positions
             .Select(p => new TarotPositionPrompt(p.PositionTitleZh, p.PositionContext, p.CardNameZh, p.Reversed, p.Meaning))
             .ToList();
-        var prompt = TarotPromptBuilder.BuildEnglishTier1(
-            req.Question ?? "General reading",
-            reading.SpreadTitleZh,
-            digest,
-            positions,
-            reading.Positions.Count >= 10 ? 500 : 280);
+        var wordLimit = reading.Positions.Count >= 10 ? 500 : 280;
+        var tarotBuilder = ResolvePromptBuilder("tarot-tier1-en");
+        var tarotCtx = new PromptContext(
+            Chart: new TarotPromptInput(reading.SpreadTitleZh, positions, wordLimit),
+            RuleDigest: digest,
+            Question: req.Question ?? "General reading",
+            Focus: null,
+            MaxTokens: req.MaxTokens ?? 512);
+        var prompt = tarotBuilder.Build(tarotCtx).PromptText;
         var result = _interpretation.InterpretTarotEnglishThenChinese(prompt, req.MaxTokens ?? 512, req.MaxTokens ?? 512);
 
         return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, new

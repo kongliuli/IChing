@@ -3,6 +3,7 @@ using System.Text.Json;
 
 namespace IChing.Lab.Inference.Prompts;
 
+[Obsolete("改用 IPromptBuilder（TemplatePromptBuilder）+ 外置 Scriban 模板 prompts/tarot-tier1-en.txt 与 prompts/tarot-translate-to-zh.txt")]
 public static class TarotPromptBuilder
 {
     public static string BuildEnglishTier1(

@@ -26,6 +26,7 @@
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
     <ProjectReference Include="..\IChing.Lab.Inference\IChing.Lab.Inference.csproj" />
     <ProjectReference Include="..\IChing.Lab.PluginLoader\IChing.Lab.PluginLoader.csproj" />
+    <ProjectReference Include="..\..\samples\OpenAiCompatibleEngine\OpenAiCompatibleEngine.csproj" />
   </ItemGroup>
 
 </Project>

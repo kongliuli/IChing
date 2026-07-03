@@ -26,6 +26,7 @@ public sealed class EngineModule : IPluginModule
         // 模式 C：远程 API 引擎
         services.AddSingleton<IInferenceEngine, OpenAiRemoteEngine>();
         services.AddSingleton<IInferenceEngine, AzureOpenAiEngine>();
+        services.AddSingleton<IInferenceEngine, DeepSeekEngine>();
     }
 }
 

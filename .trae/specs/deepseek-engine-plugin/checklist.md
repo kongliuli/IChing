@@ -1,0 +1,14 @@
+- [x] `samples/OpenAiCompatibleEngine/DeepSeekEngine.cs` 存在，继承 `OpenAiCompatibleEngineBase`
+- [x] `EngineId="deepseek-remote"`，`ModelName="deepseek-chat"`，`ApiEndpoint="/v1/chat/completions"`
+- [x] `HttpClient.BaseAddress="https://api.deepseek.com/v1"`，默认 `Authorization: Bearer sk-2c248bc685c144739c88181fb665d89d`
+- [x] 代码注释明确标注 `TEST-ONLY / 生产环境须改为 User Secrets`
+- [x] `EngineModule.Register` 追加注册 `DeepSeekEngine`
+- [x] `appsettings.json` 的 `plugins:inferenceEngines` 含 `deepseek-remote` 条目
+- [x] `plugins:fallbackChain` 为 `["onnx-genai-qwen2.5-1.5b", "ollama-local", "deepseek-remote", "openai-remote", "template-fallback"]`
+- [x] `DeepSeekEngineTests` mock HttpMessageHandler 验证请求体 `model="deepseek-chat"` 与 `Authorization` 头
+- [x] 测试验证响应解析 `choices[0].message.content` 返回 `IsFallback=false`
+- [x] 测试验证 HTTP 5xx 返回 `IsFallback=true`
+- [x] `dotnet build` 全绿（主程序 + samples/OpenAiCompatibleEngine）
+- [x] `dotnet test` 全绿（含新增 DeepSeek 测试）
+- [ ] `GET /health/engines` 含 `deepseek-remote` 条目
+- [x] 未引入 RAG（仅纯生成调用）

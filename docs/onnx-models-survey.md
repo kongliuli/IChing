@@ -115,8 +115,13 @@ olive auto-opt --model_name Qwen/Qwen2.5-0.5B-Instruct --device cpu --precision 
 
 ---
 
-## Lab 后续任务（未实现）
+## Lab 后续任务
 
-- [ ] `IChing.Lab.Inference` 项目：封装 ORT GenAI
-- [ ] `POST /lab/interpret`：命盘 JSON → 短解读
-- [ ] 模型文件放 `models/`（gitignore），CI 不打包
+> 推理层完整设计见 [`inference-layer-design.md`](./inference-layer-design.md)
+
+- [x] `IChing.Lab.Inference` 项目：封装 ORT GenAI
+- [x] `POST /lab/interpret`：命盘 JSON → 短解读
+- [x] PromptTest 控制台 + fixtures
+- [ ] 切换默认模型至 Qwen2.5-1.5B 并完成试跑
+- [ ] `POST /lab/{domain}/read?tier=` 统一解读 API
+- [ ] Layer1 规则引擎 + Tier 0 免费模板

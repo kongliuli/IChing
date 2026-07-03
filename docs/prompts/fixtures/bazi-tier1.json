@@ -1,0 +1,22 @@
+{
+  "id": "bazi-tier1",
+  "domain": "bazi",
+  "tier": 1,
+  "language": "zh",
+  "focus": "事业",
+  "ruleDigest": {
+    "dayMaster": "日主庚金",
+    "monthStrength": "生于午月，火旺金弱",
+    "tenGodHighlight": "月干透出正官",
+    "alerts": ["无冲克提纲"]
+  },
+  "chart": {
+    "yearPillar": "庚午",
+    "monthPillar": "辛巳",
+    "dayPillar": "庚辰",
+    "hourPillar": "壬午",
+    "yearNaYin": "路旁土",
+    "daYun": ["壬午", "癸未", "甲申"]
+  },
+  "maxTokens": 512
+}

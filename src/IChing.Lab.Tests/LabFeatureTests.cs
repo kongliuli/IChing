@@ -51,4 +51,25 @@ public class TarotDeckTests
         var reading = TarotEngine.Draw("celtic-cross", "career", 7);
         Assert.Equal(10, reading.Positions.Count);
     }
+
+    [Fact]
+    public void SpreadCatalog_ReturnsUsableMetadata()
+    {
+        var spreads = SpreadCatalog.List();
+        Assert.True(spreads.Count >= 8);
+        Assert.Contains(spreads, s => s.Id == "relationship" && s.CardCount == 5);
+        Assert.All(spreads, s => Assert.False(string.IsNullOrWhiteSpace(s.Description)));
+    }
+
+    [Fact]
+    public void Draw_IncludesPositionContextAndIsSeedStable()
+    {
+        var first = TarotEngine.Draw("horseshoe", "career", 42);
+        var second = TarotEngine.Draw("horseshoe", "career", 42);
+
+        Assert.All(first.Positions, p => Assert.False(string.IsNullOrWhiteSpace(p.PositionContext)));
+        Assert.Equal(
+            first.Positions.Select(p => (p.PositionKey, p.CardName, p.Reversed)),
+            second.Positions.Select(p => (p.PositionKey, p.CardName, p.Reversed)));
+    }
 }

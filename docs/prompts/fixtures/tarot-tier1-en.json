@@ -1,0 +1,47 @@
+{
+  "id": "tarot-tier1-en",
+  "domain": "tarot",
+  "tier": 1,
+  "language": "en",
+  "question": "Should I change jobs this year?",
+  "spreadId": "past-present-future",
+  "spreadTitle": "Past-Present-Future",
+  "ruleDigest": {
+    "majorCount": 2,
+    "total": 3,
+    "wands": 1,
+    "cups": 0,
+    "swords": 1,
+    "pentacles": 1,
+    "reversedCount": 1
+  },
+  "positions": [
+    {
+      "positionKey": "past",
+      "positionTitle": "Past",
+      "positionContext": "influences already in play",
+      "cardName": "The Tower",
+      "reversed": true,
+      "meaningEn": "Fear of sudden change; resisted transformation"
+    },
+    {
+      "positionKey": "present",
+      "positionTitle": "Present",
+      "positionContext": "current central issue",
+      "cardName": "Eight of Pentacles",
+      "reversed": false,
+      "meaningEn": "Skill-building, diligence, craftsmanship"
+    },
+    {
+      "positionKey": "future",
+      "positionTitle": "Future",
+      "positionContext": "likely direction",
+      "cardName": "The Star",
+      "reversed": false,
+      "meaningEn": "Hope, renewal, long-term vision"
+    }
+  ],
+  "wordLimit": 280,
+  "maxTokens": 512,
+  "translateMaxTokens": 512
+}

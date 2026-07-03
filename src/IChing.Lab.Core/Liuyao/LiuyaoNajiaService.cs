@@ -71,8 +71,8 @@ public static class LiuyaoNajiaService
             Index: idx + 1,
             Position: line.LinePosition.Label,
             YinYang: line.YinYang.Label,
-            StemBranch: line.TryGetStemBranch(out var sb) ? sb.ToString() : null,
-            SixKin: line.TryGetSixKin(out var kin) ? kin.Label : null,
+            StemBranch: line.TryGetStemBranch(out var sb) ? sb?.ToString() : null,
+            SixKin: line.TryGetSixKin(out var kin) ? kin?.Label : null,
             SixSpirit: line.SixSpirit?.Label,
             Role: line.Position?.Label,
             IsChanging: changing);

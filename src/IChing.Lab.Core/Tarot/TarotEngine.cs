@@ -86,6 +86,18 @@ public static class SpreadCatalog
                 new("external", "External Influences", "外部环境与他人"),
                 new("hopes-fears", "Hopes and Fears", "希望与担忧"),
                 new("outcome", "Final Outcome", "最终结果")
+            ]),
+        ["horseshoe"] = new(
+            "horseshoe",
+            "Horseshoe",
+            [
+                new("past", "Past", "过去影响"),
+                new("present", "Present", "当前状况"),
+                new("future", "Future", "近期趋势"),
+                new("self", "Self", "自身角色"),
+                new("environment", "Environment", "环境与他人"),
+                new("advice", "Advice", "建议行动"),
+                new("outcome", "Outcome", "可能结果")
             ])
     };
 

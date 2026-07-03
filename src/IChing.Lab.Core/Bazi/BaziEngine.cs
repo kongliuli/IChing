@@ -6,10 +6,16 @@ public static class BaziEngine
 {
     public static BaziChart Calculate(BaziInput input)
     {
+        var longitude = input.Longitude;
+        if (longitude is null && input.City is not null && CityLookup.TryGetLongitude(input.City, out var lon))
+        {
+            longitude = lon;
+        }
+
         var wallClock = new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second);
-        var corrected = input.Longitude is null
+        var corrected = longitude is null
             ? wallClock
-            : TrueSolarTime.Apply(wallClock, input.Longitude.Value);
+            : TrueSolarTime.Apply(wallClock, longitude.Value);
 
         var solar = Solar.FromYmdHms(
             corrected.Year, corrected.Month, corrected.Day,
@@ -19,6 +25,7 @@ public static class BaziEngine
 
         IReadOnlyList<DaYunPeriod>? daYun = null;
         YunInfo? yunInfo = null;
+        FlowYearInfo? flowYear = null;
         if (input.Gender is not null)
         {
             var yun = eight.GetYun(input.Gender.Value, input.Sect);
@@ -31,26 +38,87 @@ public static class BaziEngine
                 .Select(d => new DaYunPeriod(
                     d.Index, d.GanZhi, d.StartYear, d.EndYear, d.StartAge, d.EndAge))
                 .ToList();
+
+            if (input.FlowYear is int fy)
+            {
+                flowYear = ResolveFlowYear(periods, fy);
+            }
         }
 
         return new BaziChart(
             Engine: "lunar-csharp-1.6.8",
             WallClock: wallClock.ToString("yyyy-MM-dd HH:mm:ss"),
-            TrueSolarTime: input.Longitude is null ? null : corrected.ToString("yyyy-MM-dd HH:mm:ss"),
-            Longitude: input.Longitude,
+            TrueSolarTime: longitude is null ? null : corrected.ToString("yyyy-MM-dd HH:mm:ss"),
+            Longitude: longitude,
+            City: input.City,
             Solar: solar.ToString(),
             Lunar: lunar.ToString(),
-            YearPillar: eight.Year,
-            MonthPillar: eight.Month,
-            DayPillar: eight.Day,
-            HourPillar: eight.Time,
-            YearNaYin: eight.YearNaYin,
-            MonthNaYin: eight.MonthNaYin,
-            DayNaYin: eight.DayNaYin,
-            TimeNaYin: eight.TimeNaYin,
+            DayMaster: eight.DayGan,
+            YearPillar: MapPillar(eight.Year, eight.YearGan, eight.YearZhi,
+                eight.YearHideGan, eight.YearShiShenGan, eight.YearShiShenZhi,
+                eight.YearWuXing, eight.YearNaYin),
+            MonthPillar: MapPillar(eight.Month, eight.MonthGan, eight.MonthZhi,
+                eight.MonthHideGan, eight.MonthShiShenGan, eight.MonthShiShenZhi,
+                eight.MonthWuXing, eight.MonthNaYin),
+            DayPillar: MapPillar(eight.Day, eight.DayGan, eight.DayZhi,
+                eight.DayHideGan, eight.DayShiShenGan, eight.DayShiShenZhi,
+                eight.DayWuXing, eight.DayNaYin),
+            HourPillar: MapPillar(eight.Time, eight.TimeGan, eight.TimeZhi,
+                eight.TimeHideGan, eight.TimeShiShenGan, eight.TimeShiShenZhi,
+                eight.TimeWuXing, eight.TimeNaYin),
+            WuXingSummary: SummarizeWuXing(eight),
             Yun: yunInfo,
-            DaYun: daYun
+            DaYun: daYun,
+            FlowYear: flowYear
         );
+    }
+
+    private static BaziPillar MapPillar(
+        string ganZhi, string gan, string zhi,
+        IList<string> hideGan, string shiShenGan, IList<string> shiShenZhi,
+        string wuXing, string naYin) =>
+        new(ganZhi, gan, zhi, hideGan.ToList(), shiShenGan, shiShenZhi.ToList(), wuXing, naYin);
+
+    private static WuXingSummary SummarizeWuXing(Lunar.EightChar.EightChar eight)
+    {
+        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var wx in new[] { eight.YearWuXing, eight.MonthWuXing, eight.DayWuXing, eight.TimeWuXing })
+        {
+            counts.TryGetValue(wx, out var n);
+            counts[wx] = n + 1;
+        }
+
+        var dominant = counts.OrderByDescending(kv => kv.Value).First().Key;
+        return new WuXingSummary(counts, dominant);
+    }
+
+    private static FlowYearInfo? ResolveFlowYear(Lunar.EightChar.DaYun[] periods, int year)
+    {
+        foreach (var period in periods)
+        {
+            if (year < period.StartYear || year > period.EndYear)
+            {
+                continue;
+            }
+
+            var liuNian = period.GetLiuNian(10);
+            var match = liuNian.FirstOrDefault(l => l.Year == year);
+            if (match is null)
+            {
+                continue;
+            }
+
+            return new FlowYearInfo(
+                year,
+                match.GanZhi,
+                match.Age,
+                period.GanZhi,
+                period.Index,
+                match.Xun,
+                match.XunKong);
+        }
+
+        return null;
     }
 }
 
@@ -58,8 +126,10 @@ public record BaziInput(
     int Year, int Month, int Day, int Hour,
     int Minute = 0, int Second = 0,
     double? Longitude = null,
+    string? City = null,
     int? Gender = null,
-    int Sect = 1);
+    int Sect = 1,
+    int? FlowYear = null);
 
 public record YunInfo(
     int StartYear, int StartMonth, int StartDay, int StartHour,
@@ -68,21 +138,44 @@ public record YunInfo(
 public record DaYunPeriod(
     int Index, string GanZhi, int StartYear, int EndYear, int StartAge, int EndAge);
 
+public record BaziPillar(
+    string GanZhi,
+    string Gan,
+    string Zhi,
+    IReadOnlyList<string> HideGan,
+    string ShiShenGan,
+    IReadOnlyList<string> ShiShenZhi,
+    string WuXing,
+    string NaYin);
+
+public record WuXingSummary(
+    IReadOnlyDictionary<string, int> Counts,
+    string Dominant);
+
+public record FlowYearInfo(
+    int Year,
+    string GanZhi,
+    int Age,
+    string DaYunGanZhi,
+    int DaYunIndex,
+    string Xun,
+    string XunKong);
+
 public record BaziChart(
     string Engine,
     string WallClock,
     string? TrueSolarTime,
     double? Longitude,
+    string? City,
     string Solar,
     string Lunar,
-    string YearPillar,
-    string MonthPillar,
-    string DayPillar,
-    string HourPillar,
-    string YearNaYin,
-    string MonthNaYin,
-    string DayNaYin,
-    string TimeNaYin,
+    string DayMaster,
+    BaziPillar YearPillar,
+    BaziPillar MonthPillar,
+    BaziPillar DayPillar,
+    BaziPillar HourPillar,
+    WuXingSummary WuXingSummary,
     YunInfo? Yun,
-    IReadOnlyList<DaYunPeriod>? DaYun
+    IReadOnlyList<DaYunPeriod>? DaYun,
+    FlowYearInfo? FlowYear
 );

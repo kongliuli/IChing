@@ -20,35 +20,48 @@ bash scripts/download-qwen-model.sh ./models/qwen3-0.6b-genai
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/lab/bazi` | 八字四柱 + 真太阳时 + 大运（需 `gender`） |
+| POST | `/lab/bazi` | 八字四柱 + 藏干十神 + 真太阳时 + 大运 + 流年 |
+| POST | `/lab/bazi/interpret` | 排盘 + ONNX 解读一步完成 |
+| POST | `/lab/bazi/hepan` | 双人八字合盘 |
+| GET | `/lab/bazi/cities` | 城市经度查找表 |
 | POST | `/lab/interpret` | 命盘 JSON → ONNX 短解读 |
 | GET | `/lab/interpret/status` | 模型是否已加载 |
-| POST | `/lab/liuyao/coin` | 六爻铜钱法 + 纳甲六亲 |
+| POST | `/lab/liuyao/coin` | 六爻铜钱法 + 纳甲六亲伏神神煞 |
 | POST | `/lab/liuyao/time` | 六爻时间卦 + 纳甲 |
-| POST | `/lab/tarot/draw` | 塔罗抽牌（78 张 + Celtic Cross） |
+| POST | `/lab/tarot/draw` | 塔罗抽牌（78 张 + Celtic Cross / Horseshoe） |
+| POST | `/lab/tarot/interpret` | 抽牌 + Layer1 叙事摘要 |
 | GET | `/lab/tarot/spreads` | 可用牌阵列表 |
+| GET | `/lab/calendar/day` | 黄历日课（宜忌/吉神凶煞） |
 
 ### 八字示例
 
 ```bash
 curl -X POST http://localhost:5xxx/lab/bazi \
   -H 'Content-Type: application/json' \
-  -d '{"year":1990,"month":5,"day":20,"hour":12,"longitude":121.47,"gender":1}'
+  -d '{"year":1990,"month":5,"day":20,"hour":12,"city":"上海","gender":1,"flowYear":2026}'
 ```
 
-### 解读示例
+### 合盘示例
 
 ```bash
-curl -X POST http://localhost:5xxx/lab/interpret \
+curl -X POST http://localhost:5xxx/lab/bazi/hepan \
   -H 'Content-Type: application/json' \
-  -d '{"chart":{"yearPillar":"庚午"},"focus":"事业"}'
+  -d '{"personA":{"year":1990,"month":5,"day":20,"hour":10,"gender":1},"personB":{"year":1992,"month":8,"day":15,"hour":14,"gender":0}}'
+```
+
+### 解读流水线示例
+
+```bash
+curl -X POST http://localhost:5xxx/lab/bazi/interpret \
+  -H 'Content-Type: application/json' \
+  -d '{"year":1990,"month":5,"day":20,"hour":12,"gender":1,"focus":"事业"}'
 ```
 
 ## 模块
 
 | 项目 | 说明 |
 |------|------|
-| `IChing.Lab.Core` | 八字/六爻/塔罗算法 |
+| `IChing.Lab.Core` | 八字/六爻/塔罗/黄历/合盘算法 |
 | `IChing.Lab.Inference` | ONNX GenAI 解读 |
 | `IChing.Lab.Api` | HTTP 探针 |
 

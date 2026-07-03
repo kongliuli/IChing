@@ -56,10 +56,55 @@ public static class LiuyaoNajiaService
             CastingTime: d.CastingTime.Solar.ToString("O"),
             OriginalHexagram: d.Original.Meta.Label,
             ChangedHexagram: d.Changed?.Meta.Label,
+            OriginalNature: d.Original.Meta.GetNature()?.Label,
+            ChangedNature: d.Changed?.Meta.GetNature()?.Label,
+            HexagramBody: d.Original.FindHexagramBody()?.Label,
+            SymbolicStars: MapSymbolicStars(d),
             Lines: lines,
             ChangedLines: changedLines
         );
     }
+
+    private static IReadOnlyList<SymbolicStarEntry> MapSymbolicStars(SixLineDivination d)
+    {
+        if (d.SymbolicStars is null)
+        {
+            return [];
+        }
+
+        var entries = new List<SymbolicStarEntry>();
+        foreach (var star in KnownStars)
+        {
+            var branches = d.SymbolicStars.GetStars(star);
+            if (branches is null || branches.Length == 0)
+            {
+                continue;
+            }
+
+            entries.Add(new SymbolicStarEntry(
+                star.Label,
+                branches.Select(b => b.Label).ToList()));
+        }
+
+        return entries;
+    }
+
+    private static readonly SymbolicStar[] KnownStars =
+    [
+        SymbolicStar.Nobleman,
+        SymbolicStar.SalarySpirit,
+        SymbolicStar.CultureFlourish,
+        SymbolicStar.PostHorse,
+        SymbolicStar.PeachBlossom,
+        SymbolicStar.YangBlade,
+        SymbolicStar.GeneralsStar,
+        SymbolicStar.Canopy,
+        SymbolicStar.DisasterMalignity,
+        SymbolicStar.RobberyMalignity,
+        SymbolicStar.DeathSpirit,
+        SymbolicStar.CelestialPhysician,
+        SymbolicStar.HeavenlyJoy
+    ];
 
     private static LiuyaoLineDetail MapLine(Line line, int idx, SixLineDivination? source)
     {
@@ -67,17 +112,42 @@ public static class LiuyaoNajiaService
                        idx < source.Changed!.Lines.Count &&
                        source.Original.Lines[idx].YinYang != source.Changed!.Lines[idx].YinYang;
 
+        HiddenDeityDetail? hidden = null;
+        if (line.HasHiddenDeity)
+        {
+            var hiddenInfo = HiddenDeityInfo.FromLine(line);
+            hidden = new HiddenDeityDetail(
+                hiddenInfo.StemBranch.ToString(),
+                hiddenInfo.SixKin.Label);
+        }
+
+        IReadOnlyList<string>? lineStars = null;
+        if (source?.SymbolicStars is not null && line.TryGetStemBranch(out var sb))
+        {
+            var stars = source.SymbolicStars.GetStarsForBranch(sb.Branch).ToList();
+            if (stars.Count > 0)
+            {
+                lineStars = stars.Select(s => s.Label).ToList();
+            }
+        }
+
         return new LiuyaoLineDetail(
             Index: idx + 1,
             Position: line.LinePosition.Label,
             YinYang: line.YinYang.Label,
-            StemBranch: line.TryGetStemBranch(out var sb) ? sb.ToString() : null,
+            StemBranch: line.TryGetStemBranch(out var stemBranch) ? stemBranch.ToString() : null,
             SixKin: line.TryGetSixKin(out var kin) ? kin.Label : null,
             SixSpirit: line.SixSpirit?.Label,
             Role: line.Position?.Label,
-            IsChanging: changing);
+            IsChanging: changing,
+            HiddenDeity: hidden,
+            SymbolicStars: lineStars);
     }
 }
+
+public record HiddenDeityDetail(string StemBranch, string SixKin);
+
+public record SymbolicStarEntry(string Name, IReadOnlyList<string> Branches);
 
 public record LiuyaoLineDetail(
     int Index,
@@ -87,7 +157,9 @@ public record LiuyaoLineDetail(
     string? SixKin,
     string? SixSpirit,
     string? Role,
-    bool IsChanging);
+    bool IsChanging,
+    HiddenDeityDetail? HiddenDeity,
+    IReadOnlyList<string>? SymbolicStars);
 
 public record LiuyaoNajiaResult(
     string Engine,
@@ -96,5 +168,9 @@ public record LiuyaoNajiaResult(
     string CastingTime,
     string OriginalHexagram,
     string? ChangedHexagram,
+    string? OriginalNature,
+    string? ChangedNature,
+    string? HexagramBody,
+    IReadOnlyList<SymbolicStarEntry> SymbolicStars,
     IReadOnlyList<LiuyaoLineDetail> Lines,
     IReadOnlyList<LiuyaoLineDetail>? ChangedLines);

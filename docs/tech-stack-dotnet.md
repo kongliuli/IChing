@@ -24,22 +24,29 @@ SDK 锁定：`global.json` → .NET 10.0.301
 
 | 模块 | 实现 |
 |------|------|
-| 八字 | lunar-csharp + 自研真太阳时 + `GetYun` 大运 |
-| 六爻 | [IChingLibrary.SixLines](https://www.nuget.org/packages/IChingLibrary.SixLines) 纳甲/六亲/六神 |
-| 塔罗 | 78 张牌 + Celtic Cross 等牌阵 |
+| 八字 | lunar-csharp + 真太阳时 + 大运 + 藏干/十神/流年 + 城市经度表 |
+| 六爻 | IChingLibrary.SixLines 纳甲/六亲/六神/伏神/神煞/卦性 |
+| 塔罗 | 78 张牌 + Celtic Cross / Horseshoe + Layer1 叙事 |
+| 合盘 | 日主生克 + 五行互补 + 地支六合冲 |
+| 黄历 | lunar-csharp 日宜忌/吉神凶煞 |
 | AI | Microsoft.ML.OnnxRuntimeGenAI + Qwen3-0.6B |
 
 ## Lab API
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/lab/bazi` | 四柱、`longitude` 真太阳时、`gender` 大运 |
+| POST | `/lab/bazi` | 四柱、藏干十神、`city`/`longitude` 真太阳时、`gender` 大运、`flowYear` 流年 |
+| POST | `/lab/bazi/interpret` | 排盘 + ONNX 解读流水线 |
+| POST | `/lab/bazi/hepan` | 双人合盘 |
+| GET | `/lab/bazi/cities` | 城市经度表 |
 | POST | `/lab/interpret` | 命盘 JSON → 短解读 |
 | GET | `/lab/interpret/status` | ONNX 模型加载状态 |
-| POST | `/lab/liuyao/coin` | 铜钱法 + 纳甲 |
-| POST | `/lab/liuyao/time` | 时间卦 + 纳甲 |
-| POST | `/lab/tarot/draw` | 抽牌（含 `celtic-cross`） |
+| POST | `/lab/liuyao/coin` | 铜钱法 + 纳甲/伏神/神煞 |
+| POST | `/lab/liuyao/time` | 时间卦 + 纳甲/伏神/神煞 |
+| POST | `/lab/tarot/draw` | 抽牌（`celtic-cross` / `horseshoe`） |
+| POST | `/lab/tarot/interpret` | 抽牌 + Layer1 叙事 |
 | GET | `/lab/tarot/spreads` | 牌阵列表 |
+| GET | `/lab/calendar/day` | 黄历日课 |
 
 ## 本地运行
 

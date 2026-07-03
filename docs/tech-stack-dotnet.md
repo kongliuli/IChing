@@ -26,7 +26,7 @@ SDK 锁定：`global.json` → .NET 10.0.301
 |------|------|
 | 八字 | lunar-csharp + 自研真太阳时 + `GetYun` 大运 |
 | 六爻 | [IChingLibrary.SixLines](https://www.nuget.org/packages/IChingLibrary.SixLines) 纳甲/六亲/六神 |
-| 塔罗 | 78 张牌 + Celtic Cross 等牌阵 |
+| 塔罗 | 78 张牌 + Celtic Cross 等牌阵（优化见 `docs/research-tarot-optimization.md`） |
 | AI | Microsoft.ML.OnnxRuntimeGenAI + Qwen3-0.6B |
 
 ## Lab API

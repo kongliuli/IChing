@@ -129,13 +129,16 @@ flowchart TB
 | [TarotSchema/codex](https://github.com/TarotSchema/codex) | 牌/牌阵机器可读 schema |
 | [RoxyAPI 数据模型](https://roxyapi.com/blogs/tarot-data-model-cards-spreads-readings) | spread + seed + positions 设计 |
 
-**Lab 当前**：22 张大阿卡纳 + 2 种三牌阵，`seed` 可复现。
+**Lab 当前**：78 张牌 + 3 种牌阵（含 Celtic Cross），`seed` 可复现；小阿卡纳为模板拼接，无牌面图像。
+
+> 详细优化调研见 [`docs/research-tarot-optimization.md`](research-tarot-optimization.md)。
 
 ### 3.4 可增强逻辑（后续）
 
 - **元素关系**（火水土风）：相邻牌生克修饰释义权重
 - **牌阵级叙事**：过去→现在→未来时态一致性检查
 - **问题分类**：感情/事业/决策 → 选择不同牌阵与 prompt 模板
+- **小阿卡纳逐张释义、牌面图像、会话缓存、牌组模板**：见优化调研文档
 
 ---
 
@@ -157,5 +160,5 @@ flowchart TB
 1. **.NET 正式栈**：Core 纯算法 + Api 探针，逐步替换 Java Spike。
 2. **八字**：继续用 lunar-csharp，补真太阳时（可移植 `true-solar-time` 逻辑到 C#）。
 3. **六爻**：评估直接引用或移植 IChingLibrary 纳甲体系。
-4. **塔罗**：扩展 78 牌 + 牌阵 schema，Layer1 模板先行。
+4. **塔罗**：见 [`docs/research-tarot-optimization.md`](research-tarot-optimization.md)（P0 洗牌修正 → P1 牌义/图像 → P2 牌阵/会话）。
 5. **ONNX**：见 `docs/onnx-models-survey.md`，用于解读层而非排盘。

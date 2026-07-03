@@ -59,8 +59,8 @@
 | **Microsoft.ML.OnnxRuntimeGenAI**（已在用） | `Microsoft.ML.OnnxRuntimeGenAI` | ONNX + `genai_config.json` | 微软官方，与 .NET 10 深度集成，零外部依赖 | **默认引擎**，Qwen2.5-1.5B 已落地 |
 | [LLamaSharp](https://github.com/SciSharp/LLamaSharp) 0.26.0 | `LLamaSharp` + `LLamaSharp.Backend.Cpu/Cuda12` | GGUF（Q4_K_S / Q5_K_M / Q8_0） | llama.cpp C# 绑定，支持 Llama3 / Phi / Mistral / Gemma3 / Qwen3，CPU/GPU/CUDA/Vulkan/Metal 全覆盖，与 Semantic Kernel / Kernel Memory 集成 | **次选引擎**，模型选择更丰富，可用 Qwen3-4B Q4 替代 1.5B 提质量 |
 | [LM-Kit.NET](https://cloud.tencent.com.cn/developer/article/2690938) | 单 NuGet 包 | GGUF / ONNX / LMK | 全栈 SDK：推理 + Agent + RAG + 文档智能 + 56+ 内置工具，零外部依赖 | **进阶引擎**，将来做塔罗 RAG 知识库 / 多 Agent 编排时引入 |
-| **Ollama / LMStudio** | HTTP 客户端 | GGUF | 用户友好，OpenAI 兼容 API | **不推荐**：[实测比 llama.cpp 慢 70%](https://www.banandre.com/blog/llamacpp-vs-ollama-performance-divide-local-llm-runtimes)，且 Qwen3.5 时代 tool calling 不稳定 |
-| **OpenAI 兼容远程**（[OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs) 已实现） | HTTP | 远程 | 无本地资源消耗，质量上限高 | **远程引擎**，桌面端 / 付费 Tier 2 用 |
+| **Ollama / LMStudio** | HTTP 客户端 | GGUF | 用户友好，OpenAI 兼容 API，一键换模型 | **本地 HTTP 引擎**：开发/调试优先，生产场景吞吐不如 llama.cpp（[实测慢 ~70%](https://www.banandre.com/blog/llamacpp-vs-ollama-performance-divide-local-llm-runtimes)）；Qwen3.5 时代 tool calling 不稳定，但作为「试模型」入口仍不可替代 |
+| **OpenAI 兼容远程**（[OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs) 已实现） | HTTP | 远程 | 无本地资源消耗，质量上限高 | **远程 API 引擎**，桌面端 / 付费 Tier 2 用 |
 
 #### 2.2.1 关键趋势（2026 Q2）
 
@@ -278,14 +278,93 @@ flowchart LR
 
 `GenerateOptions.EngineHint` 提示优先引擎，Orchestrator 按配置链回退。
 
-#### 4.4.3 候选引擎实现
+#### 4.4.3 三类 AI 调用模式（统一为 `IInferenceEngine` 实现）
 
-| EngineId | 程序集 | 依赖 | 适用 tier |
-|----------|--------|------|-----------|
-| `onnx-genai-qwen2.5-1.5b` | IChing.Lab.Inference（内置） | `Microsoft.ML.OnnxRuntimeGenAI` | 1 / 2 |
-| `llama-sharp-qwen3-4b` | plugins/LLamaSharpEngine.dll | `LLamaSharp` + `LLamaSharp.Backend.Cpu` | 1 / 2 |
-| `openai-remote` | plugins/OpenAiRemoteEngine.dll | HTTP（已有 [OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs)） | 2（桌面端付费档） |
-| `template-fallback` | IChing.Lab.Inference（内置） | 无 | 0 / 降级 |
+按"调用形态"而非"模型种类"分类，每类对应一种典型插件实现：
+
+| 模式 | 进程模型 | 延迟 | 资源 | 适用 | 对应 EngineId |
+|------|----------|------|------|------|---------------|
+| **A. 本地进程内（ONNX / LLamaSharp）** | 同进程，native DLL 直调 | 最低（无 HTTP） | 占主进程内存 | 服务端默认、Tier 1/2 主路径 | `onnx-genai-*` / `llama-sharp-*` |
+| **B. 本地 HTTP（Ollama / LMStudio / llama-server）** | 独立进程，HTTP 调用 | 中（HTTP + 序列化） | 进程隔离，可独立重启 | 开发调试、A/B 试模型、桌面端用户自带模型 | `ollama-local` / `llama-server-local` |
+| **C. 远程 API（OpenAI / Azure / 第三方兼容）** | 远端服务，HTTP 调用 | 高（公网 RTT） | 零本地资源 | 桌面端付费档、Tier 2 详析、本地引擎不可用时降级 | `openai-remote` / `azure-remote` / `third-party-openai-compatible` |
+
+##### 模式 A：本地进程内
+
+- 直接 `P/Invoke` 或 NuGet 包加载 native 推理库
+- 已实现：[OnnxGenAiEngine](file:///workspace/src/IChing.Lab.Inference/ChartInterpretationService.cs)（基于 `Microsoft.ML.OnnxRuntimeGenAI`）
+- 候选新增：`LLamaSharpEngine`（基于 `LLamaSharp` 0.26.0 + `LLamaSharp.Backend.Cpu/Cuda12`）
+- **特点**：零网络开销，但 native DLL 与主进程共享 ALC，需独立 `PluginLoadContext` 隔离
+
+##### 模式 B：本地 HTTP（Ollama / llama-server）
+
+- 目标端点：`http://localhost:11434/v1/chat/completions`（Ollama）或 `http://localhost:8080/v1/chat/completions`（llama-server）
+- 复用 OpenAI 兼容协议，因此实现可与模式 C 共享 `OpenAiCompatibleEngine` 基类，仅 `BaseUrl` 不同
+- **优势**：
+  - 用户在自己机器上跑任意 GGUF 模型，主程序无需打包 native 依赖
+  - 模型热切换（`ollama pull` / `ollama run`）即生效，不需重启主程序
+  - 进程隔离：模型 crash 不拖垮主进程
+- **劣势**：
+  - 序列化开销 + HTTP RTT，单次延迟 +50~200ms
+  - Ollama 在 Qwen3.5 时代 [参数支持不全](https://www.thenextgentechinsider.com/pulse/developers-advised-to-use-llamacpp-vllm-sglang-for-qwen35-local-inference)（`presence_penalty` / `frequency_penalty` 静默忽略）
+- **定位**：开发/调试首选；桌面端用户"自带模型"场景；生产服务端不推荐（除非已部署独立推理集群）
+
+##### 模式 C：远程 API
+
+- 目标端点：`https://api.openai.com/v1` / Azure OpenAI / DeepSeek / 智谱 / 通义千问等兼容端点
+- 已实现：[OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs)（桌面端用）
+- **关键设计**：
+  - API key 走 `IConfiguration` + User Secrets / 环境变量，**不入仓**
+  - 多 provider 路由：按 `engineId` 选择不同 baseUrl + model 组合
+  - 计费感知：每次调用记 token 用量，便于后续接入会员额度（[inference-layer-design.md §2.5](./inference-layer-design.md)）
+- **定位**：Tier 2 详析、本地引擎降级链的最后一环、桌面端付费档默认
+
+##### 4.4.3.1 统一基类设计
+
+模式 B 与 C 共享 HTTP + OpenAI 兼容协议，可抽基类：
+
+```csharp
+public abstract class OpenAiCompatibleEngineBase : IInferenceEngine
+{
+    protected abstract HttpClient Client { get; }
+    protected abstract string ModelName { get; }
+
+    public async Task<GenerationResult> GenerateAsync(
+        string prompt, GenerateOptions options, CancellationToken ct)
+    {
+        var payload = new
+        {
+            model = ModelName,
+            messages = ParseChatMessages(prompt),  // 把 ChatML 拆成 messages 数组
+            max_tokens = options.MaxTokens,
+            temperature = options.Temperature ?? 0.7f,
+            top_p = options.TopP,
+            stream = false
+        };
+
+        var resp = await Client.PostAsJsonAsync("/v1/chat/completions", payload, ct);
+        // ... 解析 choices[0].message.content
+    }
+}
+
+public sealed class OllamaLocalEngine : OpenAiCompatibleEngineBase { /* BaseUrl=localhost:11434 */ }
+public sealed class LlamaServerLocalEngine : OpenAiCompatibleEngineBase { /* BaseUrl=localhost:8080 */ }
+public sealed class OpenAiRemoteEngine : OpenAiCompatibleEngineBase { /* BaseUrl=api.openai.com */ }
+public sealed class AzureOpenAiEngine : OpenAiCompatibleEngineBase { /* BaseUrl+deployment */ }
+```
+
+模式 A（进程内）因 native 依赖差异大，不抽公共基类，直接实现 `IInferenceEngine`。
+
+##### 4.4.3.2 候选引擎清单（修订）
+
+| EngineId | 模式 | 程序集 | 依赖 | 适用 tier |
+|----------|------|--------|------|-----------|
+| `onnx-genai-qwen2.5-1.5b` | A 进程内 | IChing.Lab.Inference（内置） | `Microsoft.ML.OnnxRuntimeGenAI` | 1 / 2 |
+| `llama-sharp-qwen3-4b` | A 进程内 | plugins/LLamaSharpEngine.dll | `LLamaSharp` + `LLamaSharp.Backend.Cpu` | 1 / 2 |
+| `ollama-local` | B 本地 HTTP | plugins/OllamaEngine.dll | HTTP（无需 native） | 1 / 2（调试/桌面自带模型） |
+| `llama-server-local` | B 本地 HTTP | plugins/LlamaServerEngine.dll | HTTP | 1 / 2（高级用户自建） |
+| `openai-remote` | C 远程 API | plugins/OpenAiRemoteEngine.dll | HTTP（已有 [OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs)） | 2（桌面端付费档） |
+| `azure-openai-remote` | C 远程 API | plugins/AzureOpenAiEngine.dll | HTTP | 2（企业版） |
+| `template-fallback` | — | IChing.Lab.Inference（内置） | 无 | 0 / 降级 |
 
 ---
 
@@ -353,9 +432,12 @@ foreach (var manifest in loader.Discover())
       { "id": "iching-tarot", "domain": "tarot", "default": true }
     ],
     "inferenceEngines": [
-      { "id": "onnx-genai-qwen2.5-1.5b", "default": true, "modelPath": "./models/qwen2.5-1.5b-genai" },
-      { "id": "llama-sharp-qwen3-4b", "modelPath": "./models/qwen3-4b-q4_k_s.gguf", "gpuLayerCount": 0 },
-      { "id": "openai-remote", "baseUrl": "https://api.openai.com/v1", "model": "gpt-4o-mini" }
+      { "id": "onnx-genai-qwen2.5-1.5b", "mode": "in-process", "default": true, "modelPath": "./models/qwen2.5-1.5b-genai" },
+      { "id": "llama-sharp-qwen3-4b",    "mode": "in-process", "modelPath": "./models/qwen3-4b-q4_k_s.gguf", "gpuLayerCount": 0 },
+      { "id": "ollama-local",            "mode": "local-http", "baseUrl": "http://localhost:11434/v1", "model": "qwen2.5:7b" },
+      { "id": "llama-server-local",      "mode": "local-http", "baseUrl": "http://localhost:8080/v1",  "model": "qwen3-4b-q4" },
+      { "id": "openai-remote",           "mode": "remote-api", "baseUrl": "https://api.openai.com/v1", "model": "gpt-4o-mini", "apiKeyKey": "OpenAI:ApiKey" },
+      { "id": "azure-openai-remote",     "mode": "remote-api", "baseUrl": "https://my-aoai.openai.azure.com", "model": "gpt-4o", "apiKeyKey": "Azure:ApiKey" }
     ],
     "promptBuilders": {
       "templateRoot": "./prompts",
@@ -364,7 +446,7 @@ foreach (var manifest in loader.Discover())
         { "domain": "tarot", "tier": 1, "templateId": "tarot-tier1-en", "needsTranslation": true }
       ]
     },
-    "fallbackChain": ["onnx-genai-qwen2.5-1.5b", "openai-remote", "template-fallback"],
+    "fallbackChain": ["onnx-genai-qwen2.5-1.5b", "ollama-local", "openai-remote", "template-fallback"],
     "externalAssemblies": [
       { "name": "LLamaSharpEngine", "path": "plugins/LLamaSharpEngine.dll" },
       { "name": "OpenAiRemoteEngine", "path": "plugins/OpenAiRemoteEngine.dll" }
@@ -384,8 +466,11 @@ foreach (var manifest in loader.Discover())
 | **P3** | 把 `BaziEngine` 等包装为 `IChartEngine` 实现，注册到 DI | 低，原 static 方法仍可调用 |
 | **P4** | Prompt 模板外置到 `prompts/*.txt`，引入 Scriban | 中，需迁移现有 3 个 PromptBuilder |
 | **P5** | 实现 `PluginLoader` + `PluginLoadContext`，DI 集成 | 中，native DLL 依赖冲突需测试 |
-| **P6** | 编写示例外部插件 `LLamaSharpEngine` | 高，GGUF 模型下载与 CUDA backend 选择需平台测试 |
+| **P6** | 编写进程内示例插件 `LLamaSharpEngine`（模式 A） | 高，GGUF 模型下载与 CUDA backend 选择需平台测试 |
+| **P6.1** | 编写 `OpenAiCompatibleEngineBase` + `OllamaLocalEngine` / `LlamaServerLocalEngine`（模式 B） | 低，纯 HTTP；可与 P6 并行 |
+| **P6.2** | 编写 `OpenAiRemoteEngine` / `AzureOpenAiEngine`（模式 C，整合 [OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs)） | 低，已有桌面端实现可复用 |
 | **P7** | 配置 schema + 热加载 + 卸载测试 | 中，GC 卸载时机需验证 |
+| **P8** | 降级链编排：模式 A → B → C → 模板，按 `fallbackChain` 配置 | 中，需健康检查（`/health`）支持 |
 
 每阶段保持 [inference-layer-design.md](./inference-layer-design.md) 的 Phase 路线不变；本插件化路线与之并行，不冲突。
 

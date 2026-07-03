@@ -24,10 +24,10 @@ SDK 锁定：`global.json` → .NET 10.0.301
 
 | 模块 | 实现 |
 |------|------|
-| 八字 | lunar-csharp + 真太阳时 + 大运 + 藏干/十神/流年 + 城市经度表 |
-| 六爻 | IChingLibrary.SixLines 纳甲/六亲/六神/伏神/神煞/卦性 |
+| 八字 | lunar-csharp + 真太阳时 + 大运 + 藏干/十神/流年流月 + 用神 + 城市经度表 |
+| 六爻 | IChingLibrary.SixLines 纳甲/六亲/六神/伏神/神煞/卦性（变卦完整重建） |
 | 塔罗 | 78 张牌 + Celtic Cross / Horseshoe + Layer1 叙事 |
-| 合盘 | 日主生克 + 五行互补 + 地支六合冲 |
+| 合盘 | 日主生克 + 纳音 + 用神互补 + 五行/地支 |
 | 黄历 | lunar-csharp 日宜忌/吉神凶煞 |
 | AI | Microsoft.ML.OnnxRuntimeGenAI + Qwen3-0.6B |
 

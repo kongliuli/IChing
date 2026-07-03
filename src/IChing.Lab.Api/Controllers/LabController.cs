@@ -137,7 +137,7 @@ public class LabController : ControllerBase
         var digest = BuildTarotRuleDigest(reading);
         var preview = new
         {
-            oneLiner = string.Join("；", reading.Positions.Select(p => $"[{p.PositionTitle}] {p.CardName}{(p.Reversed ? "逆位" : "正位")}：{p.Meaning}"))
+            oneLiner = string.Join("；", reading.Positions.Select(p => $"[{p.PositionTitleZh}] {p.CardNameZh}{(p.Reversed ? "逆位" : "正位")}：{p.Meaning}"))
         };
 
         if (tier == 0)
@@ -146,11 +146,11 @@ public class LabController : ControllerBase
         }
 
         var positions = reading.Positions
-            .Select(p => new TarotPositionPrompt(p.PositionTitle, p.PositionContext, p.CardName, p.Reversed, p.Meaning))
+            .Select(p => new TarotPositionPrompt(p.PositionTitleZh, p.PositionContext, p.CardNameZh, p.Reversed, p.Meaning))
             .ToList();
         var prompt = TarotPromptBuilder.BuildEnglishTier1(
             req.Question ?? "General reading",
-            reading.SpreadTitle,
+            reading.SpreadTitleZh,
             digest,
             positions,
             reading.Positions.Count >= 10 ? 500 : 280);

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IChing.Lab.Inference", "ICh
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IChing.Lab.PromptTest", "IChing.Lab.PromptTest\IChing.Lab.PromptTest.csproj", "{A1D9E8F2-3C4B-4A5E-9F01-2B8C7D6E5F40}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IChing.Desktop", "IChing.Desktop\IChing.Desktop.csproj", "{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +85,18 @@ Global
 		{A1D9E8F2-3C4B-4A5E-9F01-2B8C7D6E5F40}.Release|x64.Build.0 = Release|Any CPU
 		{A1D9E8F2-3C4B-4A5E-9F01-2B8C7D6E5F40}.Release|x86.ActiveCfg = Release|Any CPU
 		{A1D9E8F2-3C4B-4A5E-9F01-2B8C7D6E5F40}.Release|x86.Build.0 = Release|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Debug|x64.Build.0 = Debug|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Debug|x86.Build.0 = Debug|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Release|x64.ActiveCfg = Release|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Release|x64.Build.0 = Release|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Release|x86.ActiveCfg = Release|Any CPU
+		{54D70FFF-92C7-457D-B6F9-5AEDDBEFA93B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using IChing.Lab.Core.Bazi;
 using IChing.Lab.Inference.Prompts;
 using Microsoft.Extensions.Logging;
 using Microsoft.ML.OnnxRuntimeGenAI;
@@ -27,7 +28,7 @@ public sealed class ChartInterpretationService : IDisposable
 
     public InterpretResult Interpret(object chartJson, string? focus = null, int maxTokens = 256)
     {
-        var chart = JsonSerializer.Serialize(chartJson);
+        var chart = JsonSerializer.Serialize(CompactForPrompt(chartJson));
         var prompt = QwenChatTemplate.Wrap(
             "你是命理解读助手。以下命盘由系统计算，请勿修改干支数据。",
             $"""
@@ -45,6 +46,68 @@ public sealed class ChartInterpretationService : IDisposable
 
         return new InterpretResult(gen.Engine, gen.Text, false);
     }
+
+    private static object CompactForPrompt(object chartJson) =>
+        chartJson is BaziChart chart ? CompactBaziForPrompt(chart) : chartJson;
+
+    private static object CompactBaziForPrompt(BaziChart chart) => new
+    {
+        chart.Engine,
+        chart.WallClock,
+        chart.TrueSolarTime,
+        chart.Solar,
+        chart.Lunar,
+        chart.DayMaster,
+        pillars = new
+        {
+            year = CompactPillar(chart.YearPillar),
+            month = CompactPillar(chart.MonthPillar),
+            day = CompactPillar(chart.DayPillar),
+            hour = CompactPillar(chart.HourPillar)
+        },
+        chart.WuXingSummary,
+        chart.Yun,
+        daYun = chart.DaYun?.Take(5),
+        flowYear = chart.FlowYear is null ? null : new
+        {
+            chart.FlowYear.Year,
+            chart.FlowYear.GanZhi,
+            chart.FlowYear.Age,
+            chart.FlowYear.DaYunGanZhi,
+            selectedMonth = chart.FlowYear.SelectedMonth is null ? null : new
+            {
+                chart.FlowYear.SelectedMonth.Index,
+                chart.FlowYear.SelectedMonth.MonthInChinese,
+                chart.FlowYear.SelectedMonth.GanZhi,
+                chart.FlowYear.SelectedMonth.JieQiStart,
+                chart.FlowYear.SelectedMonth.StartSolar,
+                chart.FlowYear.SelectedMonth.JieQiEnd,
+                chart.FlowYear.SelectedMonth.EndSolar
+            },
+            chart.FlowYear.SelectedDay
+        },
+        yongShen = new
+        {
+            chart.YongShen.Strength,
+            geJu = chart.YongShen.GeJu.Pattern,
+            geJuBreak = chart.YongShen.GeJu.Break?.Summary,
+            chart.YongShen.PrimaryYongShen,
+            chart.YongShen.SecondaryYongShen,
+            chart.YongShen.FavoredElements,
+            chart.YongShen.Summary
+        }
+    };
+
+    private static object CompactPillar(BaziPillar p) => new
+    {
+        p.GanZhi,
+        p.Gan,
+        p.Zhi,
+        p.WuXing,
+        p.NaYin,
+        p.ShiShenGan,
+        p.HideGan
+    };
 
     public GenerationResult Generate(string prompt, int maxTokens = 512, string engine = "qwen2.5-1.5b-onnx-genai")
     {
@@ -172,8 +235,10 @@ public sealed class ChartInterpretationService : IDisposable
 
     private static InterpretResult TemplateFallback(object chartJson, string? focus, string reason)
     {
-        var text = $"[模板解读·{focus ?? "综合"}] 系统已记录命盘结构。当前 ONNX 模型未就绪（{reason}），请运行 scripts/download-qwen-15b-model.sh 后重试。";
-        return new InterpretResult("template-fallback", text, true);
+        var hint = reason.Contains("exceeds max length", StringComparison.OrdinalIgnoreCase)
+            ? "Model is loaded, but this prompt exceeded the context window; reduce flow-year/month/day detail and retry."
+            : "ONNX model is not ready; confirm model files exist and retry.";
+        return new InterpretResult("template-fallback", $"[template fallback · {focus ?? "general"}] {hint} ({reason})", true);
     }
 
     private void EnsureModel()

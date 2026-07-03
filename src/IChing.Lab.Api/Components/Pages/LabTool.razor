@@ -1,270 +1,453 @@
 @page "/lab-tool"
-@rendermode InteractiveServer
-@using System.Text.Encodings.Web
-@using System.Text.Json
-@using IChing.Lab.Core.Bazi
-@using IChing.Lab.Core.Calendar
-@using IChing.Lab.Core.Liuyao
 @using IChing.Lab.Core.Tarot
-@using IChing.Lab.Inference
-@inject ChartInterpretationService Interpretation
 
 <main class="shell">
-    <header>
-        <h1>IChing Lab Tool</h1>
-        <p>One page for backend smoke testing: bazi, hepan, liuyao, tarot, huangli, and model status.</p>
-    </header>
-
-    <section class="grid">
-        <form class="panel" @onsubmit:preventDefault>
-            <h2>Bazi</h2>
-            <div class="fields">
-                <label>Year <input type="number" @bind="bazi.Year" /></label>
-                <label>Month <input type="number" min="1" max="12" @bind="bazi.Month" /></label>
-                <label>Day <input type="number" min="1" max="31" @bind="bazi.Day" /></label>
-                <label>Hour <input type="number" min="0" max="23" @bind="bazi.Hour" /></label>
-                <label>Minute <input type="number" min="0" max="59" @bind="bazi.Minute" /></label>
-                <label>Gender <select @bind="bazi.Gender"><option value="">-</option><option value="1">1</option><option value="0">0</option></select></label>
-                <label>City <input @bind="bazi.City" /></label>
-                <label>Longitude <input type="number" step="0.01" @bind="bazi.Longitude" /></label>
-                <label>Flow year <input type="number" @bind="bazi.FlowYear" /></label>
-                <label>Flow month <input type="number" min="1" max="12" @bind="bazi.FlowMonth" /></label>
-                <label>Calendar month <input type="number" min="1" max="12" @bind="bazi.FlowCalendarMonth" /></label>
-                <label>Flow day <input type="number" min="1" max="31" @bind="bazi.FlowDay" /></label>
-                <label class="wide">Focus <input @bind="bazi.Focus" /></label>
+    <aside class="nav">
+        <div class="brand">
+            <span>易</span>
+            <div>
+                <strong>IChing Lab</strong>
+                <small>后台综合测算调试台</small>
             </div>
-            <div class="actions">
-                <button type="button" @onclick="RunBazi">Chart</button>
-                <button type="button" @onclick="RunBaziRead">Read</button>
-                <button type="button" @onclick="RunHePan">HePan</button>
-            </div>
-        </form>
-
-        <form class="panel" @onsubmit:preventDefault>
-            <h2>Other Tools</h2>
-            <div class="fields">
-                <label>Question <input @bind="question" /></label>
-                <label>Seed <input type="number" @bind="seed" /></label>
-                <label>Spread <select @bind="spreadId">@foreach (var spread in SpreadCatalog.List()) { <option value="@spread.Id">@spread.Id</option> }</select></label>
-                <label>Liuyao method <select @bind="liuyaoMethod"><option value="coin">coin</option><option value="time">time</option></select></label>
-                <label>At <input type="datetime-local" @bind="at" /></label>
-                <label>Huangli date <input type="date" @bind="huangliDate" /></label>
-            </div>
-            <div class="actions">
-                <button type="button" @onclick="RunLiuyao">Liuyao</button>
-                <button type="button" @onclick="RunTarot">Tarot</button>
-                <button type="button" @onclick="RunHuangLi">HuangLi</button>
-                <button type="button" @onclick="RunModelStatus">Model</button>
-            </div>
-        </form>
-    </section>
-
-    <section class="result">
-        <div class="resultBar">
-            <strong>@resultTitle</strong>
-            <button type="button" @onclick="Clear">Clear</button>
         </div>
-        <pre>@resultJson</pre>
+
+        <button type="button" class="navItem active" data-domain="bazi" onclick="setDomain('bazi')"><span>命</span><b>八字</b></button>
+        <button type="button" class="navItem" data-domain="liuyao" onclick="setDomain('liuyao')"><span>卦</span><b>六爻</b></button>
+        <button type="button" class="navItem" data-domain="tarot" onclick="setDomain('tarot')"><span>塔</span><b>塔罗</b></button>
+        <button type="button" class="navItem" data-domain="calendar" onclick="setDomain('calendar')"><span>历</span><b>黄历</b></button>
+        <button type="button" class="navItem" data-domain="model" onclick="setDomain('model')"><span>AI</span><b>模型</b></button>
+    </aside>
+
+    <section class="workspace">
+        <header class="hero">
+            <div>
+                <p id="domainKicker">命盘 / 合盘 / 解读</p>
+                <h1 id="domainTitle">八字</h1>
+            </div>
+            <label class="operation">
+                调试动作
+                <select id="operation" onchange="setOperation(this.value)"></select>
+            </label>
+        </header>
+
+        <section class="stage">
+            <form class="tool" onsubmit="return false;">
+                <div class="toolHead">
+                    <div>
+                        <h2 id="operationTitle">排盘</h2>
+                        <p id="operationDescription">直接调用 BaziEngine.Calculate。</p>
+                    </div>
+                    <button type="button" class="primary" onclick="runSelected()">运行</button>
+                </div>
+
+                <div class="formPanel" data-panel="bazi">
+                    <div class="fields">
+                        <label><span>年 <b class="tag required">必填</b></span><input id="baziYear" type="number" value="1990" /></label>
+                        <label><span>月 <b class="tag required">必填</b></span><input id="baziMonth" type="number" min="1" max="12" value="5" /></label>
+                        <label><span>日 <b class="tag required">必填</b></span><input id="baziDay" type="number" min="1" max="31" value="20" /></label>
+                        <label><span>时 <b class="tag required">必填</b></span><input id="baziHour" type="number" min="0" max="23" value="10" /></label>
+                        <label><span>分 <b class="tag optional">可选</b></span><input id="baziMinute" type="number" min="0" max="59" value="0" /></label>
+                        <label><span>性别 <b class="tag optional">可选</b></span><select id="baziGender"><option value="">-</option><option value="1" selected>男/顺逆参数 1</option><option value="0">女/顺逆参数 0</option></select></label>
+                        <label><span>城市 <b class="tag optional">可选</b></span><input id="baziCity" placeholder="上海" /></label>
+                        <label><span>经度 <b class="tag optional">可选</b></span><input id="baziLongitude" type="number" step="0.01" /></label>
+                        <label><span>流年 <b class="tag optional">可选</b></span><input id="baziFlowYear" type="number" value="2026" /></label>
+                        <label><span>流月 <b class="tag optional">可选</b></span><input id="baziFlowMonth" type="number" min="1" max="12" /></label>
+                        <label><span>公历月 <b class="tag optional">可选</b></span><input id="baziFlowCalendarMonth" type="number" min="1" max="12" /></label>
+                        <label><span>流日 <b class="tag optional">可选</b></span><input id="baziFlowDay" type="number" min="1" max="31" /></label>
+                        <label class="wide"><span>关注点 <b class="tag optional">可选</b></span><input id="focus" value="career" placeholder="事业 / 感情 / 综合" /></label>
+                    </div>
+                </div>
+
+                <div class="formPanel" data-panel="liuyao" hidden>
+                    <div class="fields">
+                        <label><span>起卦方式 <b class="tag required">必填</b></span><select id="liuyaoMethod"><option value="coin">铜钱法</option><option value="time">时间卦</option></select></label>
+                        <label><span>时间 <b class="tag required">必填</b></span><input id="at" type="datetime-local" /></label>
+                        <label><span>随机种子 <b class="tag optional">可选</b></span><input id="seed" type="number" value="42" /></label>
+                        <label class="wide"><span>问题 <b class="tag optional">可选</b></span><input id="question" value="career" placeholder="这件事的发展如何？" /></label>
+                    </div>
+                </div>
+
+                <div class="formPanel" data-panel="tarot" hidden>
+                    <div class="fields">
+                        <label><span>牌阵 <b class="tag required">必填</b></span><select id="spreadId" onchange="showSpreadIntro()">@foreach (var spread in SpreadCatalog.List()) { <option value="@spread.Id" data-title="@spread.TitleZh" data-description="@spread.Description" data-mode="@spread.DeckMode" data-count="@spread.CardCount">@spread.TitleZh</option> }</select></label>
+                        <label><span>随机种子 <b class="tag optional">可选</b></span><input id="tarotSeed" type="number" value="42" /></label>
+                        <label class="wide"><span>问题 <b class="tag optional">可选</b></span><input id="tarotQuestion" value="career" placeholder="career / relationship / general" /></label>
+                    </div>
+                </div>
+
+                <div class="formPanel" data-panel="calendar" hidden>
+                    <div class="fields compact">
+                        <label><span>日期 <b class="tag required">必填</b></span><input id="huangliDate" type="date" /></label>
+                    </div>
+                </div>
+
+                <div class="formPanel" data-panel="model" hidden>
+                    <div class="statusTile">
+                        <span>ONNX</span>
+                        <strong>点击运行查看加载状态</strong>
+                    </div>
+                </div>
+            </form>
+
+            <section class="result">
+                <div class="resultBar">
+                    <div>
+                        <small>输出</small>
+                        <strong id="resultTitle">等待运行</strong>
+                    </div>
+                    <div class="resultActions">
+                        <button type="button" id="interpretButton" class="interpret" onclick="runInterpret()" hidden>模型解读</button>
+                        <button type="button" onclick="clearResult()">清空</button>
+                    </div>
+                </div>
+                <div id="resultPretty" class="pretty empty">运行一次测算后，这里会显示适合阅读的结果。</div>
+                <details class="raw">
+                    <summary>原始 JSON</summary>
+                    <pre id="resultJson">{}</pre>
+                </details>
+            </section>
+        </section>
     </section>
 </main>
 
-@code {
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+<script>
+const domains = {
+    bazi: { title: "八字", kicker: "命盘 / 合盘", operations: [
+        ["chart", "排盘", "先排盘；结果出来后可再点击模型解读。"],
+        ["hepan", "双人合盘", "当前表单 + 固定样例对象做合盘对照。"]
+    ]},
+    liuyao: { title: "六爻", kicker: "铜钱 / 时间起卦", operations: [["cast", "起卦", "先起卦；结果出来后可再点击模型解读。"]]},
+    tarot: { title: "塔罗", kicker: "牌阵抽牌", operations: [["draw", "抽牌", "先抽牌；结果出来后可再点击模型解读。"]]},
+    calendar: { title: "黄历", kicker: "日课查询", operations: [["day", "查日课", "查询指定日期的宜忌、神煞和冲煞。"]]},
+    model: { title: "模型", kicker: "推理状态", operations: [["status", "加载状态", "查看本地模型是否已加载。"]]}
+};
+
+const huangliStarTips = {
+    天德: "吉神。主贵人扶助、解厄缓凶，适合修善、求助、议事。",
+    月德: "吉神。主和合、仁厚、逢凶化吉，常用于缓和日课凶性。",
+    天恩: "吉神。主恩泽、宽免、顺势，宜请托、修造、祈福。",
+    天喜: "吉神。主喜庆、人缘、婚恋与好消息。",
+    天医: "吉神。主医药、调养、疗愈，利求医问药。",
+    三合: "吉神。主合力、协作、成局，利合作与成事。",
+    六合: "吉神。主和合、沟通、契合，利交易、婚嫁、谈判。",
+    母仓: "吉神。主滋养、储备、保护，利纳财、储蓄、安顿。",
+    玉堂: "吉神。主文书、名望、贵气，利签署、拜访、求名。",
+    金匮: "吉神。主财库、收藏、稳固，利纳财与入仓。",
+    明堂: "吉神。主公开、清明、顺达，利见贵、办事。",
+    青龙: "吉神。主喜庆、财气、顺遂，利开启与求财。",
+    驿马: "动神。主出行、迁移、奔波、变化，利动不利静。",
+    桃花: "人缘神。主感情、审美、社交，也防情绪和关系牵扯。",
+    白虎: "凶神。主伤损、争执、血光、强硬压力，宜谨慎。",
+    朱雀: "口舌神。主文书、消息、言语，也防争吵与误会。",
+    玄武: "隐伏神。主暗事、拖延、暧昧、失物，宜防不明。",
+    勾陈: "滞重神。主田土、迟滞、牵连、旧事，宜稳不宜急。",
+    天刑: "凶神。主刑伤、规则、处罚、硬冲突，宜避风险。",
+    月破: "凶神。主破损、破局、不稳，重要事项宜避。",
+    岁破: "凶神。主冲犯太岁、动荡破耗，重大启动宜慎。",
+    大耗: "凶神。主耗财、损失、消耗，财务事项宜谨慎。",
+    劫煞: "凶神。主劫夺、突发阻滞、竞争损耗。",
+    灾煞: "凶神。主意外、病灾、阻碍，宜保守避险。",
+    五鬼: "凶神。主小人、疑虑、暗耗、反复。",
+    归忌: "忌神。主归返不顺、收尾受阻，出行归家类事项需慎。",
+    血支: "凶神。主血光、手术、伤损，动刀动土宜慎。",
+    血忌: "凶神。主血光禁忌，医疗、宰杀、动刀事项宜避。",
+    重日: "重复之象，主事情反复、重来；喜事未必忌，丧葬病讼宜慎。"
+};
+
+let activeDomain = "bazi";
+let activeOperation = "chart";
+let lastReading = null;
+const $ = id => document.getElementById(id);
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = id => $(id).value === "" ? null : Number($(id).value);
+const txt = id => $(id).value.trim() || null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    $("at").value = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    $("huangliDate").value = new Date().toISOString().slice(0, 10);
+    setDomain("bazi");
+});
+
+function setDomain(id) {
+    activeDomain = id;
+    lastReading = null;
+    $("interpretButton").hidden = true;
+    document.querySelectorAll(".navItem").forEach(x => x.classList.toggle("active", x.dataset.domain === id));
+    document.querySelectorAll(".formPanel").forEach(x => x.hidden = x.dataset.panel !== id);
+    $("domainTitle").textContent = domains[id].title;
+    $("domainKicker").textContent = domains[id].kicker;
+    $("operation").innerHTML = domains[id].operations.map(op => `<option value="${op[0]}">${op[1]}</option>`).join("");
+    setOperation(domains[id].operations[0][0]);
+    if (id === "tarot") showSpreadIntro();
+}
+
+function setOperation(id) {
+    activeOperation = id;
+    lastReading = null;
+    $("interpretButton").hidden = true;
+    const op = domains[activeDomain].operations.find(x => x[0] === id);
+    $("operationTitle").textContent = op[1];
+    $("operationDescription").textContent = op[2];
+}
+
+function showSpreadIntro() {
+    const option = $("spreadId").selectedOptions[0];
+    if (!option) return;
+    $("resultTitle").textContent = `${option.dataset.title} · 牌阵说明`;
+    $("interpretButton").hidden = true;
+    $("resultPretty").classList.remove("empty");
+    $("resultPretty").innerHTML = [
+        cards([["牌阵", option.dataset.title], ["用牌", option.dataset.mode], ["张数", option.dataset.count], ["用途", domains.tarot.kicker]]),
+        section("功能介绍", `<article class="narrative">${esc(option.dataset.description)}</article>`)
+    ].join("");
+}
+
+function baziPayload() {
+    const body = {
+        year: num("baziYear"), month: num("baziMonth"), day: num("baziDay"), hour: num("baziHour"),
+        minute: num("baziMinute") ?? 0, gender: num("baziGender"), city: txt("baziCity"),
+        longitude: num("baziLongitude"), flowYear: num("baziFlowYear"), flowMonth: num("baziFlowMonth"),
+        flowCalendarMonth: num("baziFlowCalendarMonth"), flowDay: num("baziFlowDay"), focus: txt("focus")
     };
+    Object.keys(body).forEach(k => body[k] === null && delete body[k]);
+    return body;
+}
 
-    private readonly BaziForm bazi = new();
-    private string question = "career";
-    private int? seed = 42;
-    private string spreadId = "past-present-future";
-    private string liuyaoMethod = "coin";
-    private DateTime at = DateTime.Now;
-    private DateTime huangliDate = DateTime.Today;
-    private string resultTitle = "Result";
-    private string resultJson = "{}";
-
-    private void RunBazi() => Show("Bazi", BaziEngine.Calculate(bazi.ToInput()));
-
-    private void RunBaziRead()
-    {
-        var chart = BaziEngine.Calculate(bazi.ToInput());
-        var result = Interpretation.Interpret(chart, bazi.Focus, 512);
-        Show("Bazi Read", new { chart, interpretation = result });
-    }
-
-    private void RunHePan()
-    {
-        var other = new BaziInput(1992, 8, 15, 14, Gender: 0);
-        Show("HePan", HePanService.Compare(BaziEngine.Calculate(bazi.ToInput()), BaziEngine.Calculate(other)));
-    }
-
-    private void RunLiuyao()
-    {
-        var time = new DateTimeOffset(at);
-        Show("Liuyao", liuyaoMethod == "time" ? LiuyaoNajiaService.Time(time) : LiuyaoNajiaService.Coin(time, seed));
-    }
-
-    private void RunTarot() => Show("Tarot", TarotEngine.Draw(spreadId, question, seed));
-
-    private void RunHuangLi() => Show("HuangLi", HuangLiService.GetDay(huangliDate.Year, huangliDate.Month, huangliDate.Day));
-
-    private void RunModelStatus() => Show("Model Status", new { loaded = Interpretation.IsModelLoaded });
-
-    private void Clear()
-    {
-        resultTitle = "Result";
-        resultJson = "{}";
-    }
-
-    private void Show(string title, object value)
-    {
-        resultTitle = title;
-        try
-        {
-            resultJson = JsonSerializer.Serialize(value, JsonOptions);
+async function runSelected() {
+    try {
+        if (activeDomain === "bazi" && activeOperation === "chart") return post("八字排盘", "/lab/bazi", baziPayload(), { canInterpret: "bazi" });
+        if (activeDomain === "bazi" && activeOperation === "hepan") {
+            return post("双人合盘", "/lab/bazi/hepan", { personA: baziPayload(), personB: { year: 1992, month: 8, day: 15, hour: 14, gender: 0 } });
         }
-        catch (Exception ex)
-        {
-            resultTitle = "Error";
-            resultJson = JsonSerializer.Serialize(new { error = ex.Message }, JsonOptions);
+        if (activeDomain === "liuyao") {
+            const at = encodeURIComponent(new Date($("at").value).toISOString());
+            const seed = txt("seed");
+            const url = $("liuyaoMethod").value === "time" ? `/lab/liuyao/time?at=${at}` : `/lab/liuyao/coin${seed ? `?seed=${seed}` : ""}`;
+            return post("六爻起卦", url, null, { canInterpret: "liuyao" });
         }
-    }
-
-    private sealed class BaziForm
-    {
-        public int Year { get; set; } = 1990;
-        public int Month { get; set; } = 5;
-        public int Day { get; set; } = 20;
-        public int Hour { get; set; } = 10;
-        public int Minute { get; set; }
-        public int? Gender { get; set; } = 1;
-        public string? City { get; set; }
-        public double? Longitude { get; set; }
-        public int? FlowYear { get; set; } = 2026;
-        public int? FlowMonth { get; set; }
-        public int? FlowCalendarMonth { get; set; }
-        public int? FlowDay { get; set; }
-        public string? Focus { get; set; } = "career";
-
-        public BaziInput ToInput() => new(
-            Year, Month, Day, Hour, Minute,
-            Gender: Gender,
-            City: string.IsNullOrWhiteSpace(City) ? null : City,
-            Longitude: Longitude,
-            FlowYear: FlowYear,
-            FlowMonth: FlowMonth,
-            FlowCalendarMonth: FlowCalendarMonth,
-            FlowDay: FlowDay);
+        if (activeDomain === "tarot") {
+            return post("塔罗抽牌", "/lab/tarot/draw", tarotPayload(), { canInterpret: "tarot" });
+        }
+        if (activeDomain === "calendar") {
+            const d = new Date($("huangliDate").value);
+            return getJson("黄历日课", `/lab/calendar/day?year=${d.getFullYear()}&month=${d.getMonth() + 1}&day=${d.getDate()}`);
+        }
+        return getJson("模型状态", "/lab/interpret/status");
+    } catch (error) {
+        show("运行失败", { error: error.message });
     }
 }
 
+function tarotPayload() {
+    return { spreadId: $("spreadId").value, question: txt("tarotQuestion"), seed: num("tarotSeed"), maxTokens: 128 };
+}
+
+function liuyaoReadPayload() {
+    return { method: $("liuyaoMethod").value, at: new Date($("at").value).toISOString(), seed: num("seed"), question: txt("question"), focus: txt("focus"), maxTokens: 128 };
+}
+
+async function runInterpret() {
+    if (!lastReading) return;
+    $("interpretButton").disabled = true;
+    $("interpretButton").textContent = "解读中...";
+    try {
+        if (lastReading === "bazi") return await post("八字模型解读", "/lab/bazi/read?tier=1", { ...baziPayload(), maxTokens: 128 }, { canInterpret: "bazi", narrative: true });
+        if (lastReading === "liuyao") return await post("六爻模型解读", "/lab/liuyao/read?tier=1", liuyaoReadPayload(), { canInterpret: "liuyao", narrative: true });
+        if (lastReading === "tarot") return await post("塔罗模型解读", "/lab/tarot/read?tier=1", tarotPayload(), { canInterpret: "tarot", narrative: true });
+    } finally {
+        $("interpretButton").disabled = false;
+        $("interpretButton").textContent = "模型解读";
+    }
+}
+
+async function post(title, url, body, options = {}) {
+    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : null });
+    await finish(title, response, options);
+}
+
+async function getJson(title, url, options = {}) {
+    await finish(title, await fetch(url), options);
+}
+
+async function finish(title, response, options) {
+    const value = await response.json();
+    if (!response.ok) throw new Error(value.error || response.statusText);
+    if (options.canInterpret) lastReading = options.canInterpret;
+    $("interpretButton").hidden = !options.canInterpret;
+    show(title, value, options);
+}
+
+function show(title, value, options = {}) {
+    $("resultTitle").textContent = title;
+    $("resultJson").textContent = JSON.stringify(value, null, 2);
+    $("resultPretty").classList.remove("empty");
+    $("resultPretty").innerHTML = renderPretty(activeDomain, value, options);
+}
+
+function clearResult() {
+    lastReading = null;
+    $("interpretButton").hidden = true;
+    $("resultTitle").textContent = "等待运行";
+    $("resultJson").textContent = "{}";
+    $("resultPretty").className = "pretty empty";
+    $("resultPretty").textContent = "运行一次测算后，这里会显示适合阅读的结果。";
+}
+
+function renderPretty(domain, data, options) {
+    if (options.narrative || data.narrative || data.interpretation) return renderNarrative(data);
+    if (domain === "bazi") return renderBazi(data);
+    if (domain === "liuyao") return renderLiuyao(data);
+    if (domain === "tarot") return renderTarot(data);
+    if (domain === "calendar") return renderCalendar(data);
+    return cards([["Loaded", data.loaded ? "已加载" : "未加载 / fallback"]]);
+}
+
+function renderNarrative(data) {
+    const text = data.narrative?.text || data.interpretation?.text || data.text || data.tier0Preview?.oneLiner || "模型未返回正文。";
+    const en = data.narrative?.textEn || data.interpretation?.textEn || data.textEn;
+    const chart = data.chart ? renderPretty(data.domain || activeDomain, data.chart, {}) : "";
+    return `${section("模型解读", `<article class="narrative">${esc(text).replace(/\n/g, "<br>")}</article>${en ? `<article class="narrative secondary">${esc(en).replace(/\n/g, "<br>")}</article>` : ""}`)}${chart}`;
+}
+
+function renderBazi(chart) {
+    return [
+        cards([["日主", chart.dayMaster], ["公历", chart.solar], ["农历", chart.lunar], ["真太阳时", chart.trueSolarTime || "未校正"]]),
+        section("四柱", `<div class="pillars">${pillar("年柱", chart.yearPillar)}${pillar("月柱", chart.monthPillar)}${pillar("日柱", chart.dayPillar)}${pillar("时柱", chart.hourPillar)}</div>`),
+        section("五行", chips(Object.entries(chart.wuXingSummary?.counts || {}).map(([k, v]) => `${k} ${v}`))),
+        chart.yongShen ? section("格局用神", `<p>${esc(chart.yongShen.summary || chart.yongShen.geJu?.pattern || "已生成")}</p>`) : ""
+    ].join("");
+}
+
+function pillar(title, p) {
+    return `<div class="pillar"><small>${title}</small><strong>${esc(p?.ganZhi)}</strong><span>${esc(p?.wuXing)} · ${esc(p?.naYin)}</span></div>`;
+}
+
+function renderLiuyao(x) {
+    const moving = (x.lines || []).filter(l => l.isChanging).map(l => `${l.index}爻`).join("、") || "无";
+    return [
+        cards([["本卦", x.originalHexagram], ["变卦", x.changedHexagram || "无"], ["卦身", x.hexagramBody || "无"], ["动爻", moving]]),
+        section("六爻", `<div class="lines">${(x.lines || []).slice().reverse().map(l => `<div><b>${l.index}爻</b><span><i title="${esc(l.yinYangDescription || "")}">${esc(l.yinYang || "-")}</i><i title="${esc(l.sixKinDescription || "")}">${esc(l.sixKin || "-")}</i>${esc(l.stemBranch || "")}</span><em>${esc(l.role || "")}${l.isChanging ? " · 动爻" : ""}</em></div>`).join("")}</div>`)
+    ].join("");
+}
+
+function renderTarot(x) {
+    return [
+        cards([["牌阵", x.spreadTitleZh || x.spreadTitle], ["用牌", x.majorOnly ? "仅大阿卡纳" : "全牌 78 张"], ["问题", x.question || "未填写"], ["张数", x.positions?.length || 0]]),
+        section("牌位", `<div class="cardsGrid tarotCards">${(x.positions || []).map(p => `<div class="cardRead tarotCard">${p.imageUrl ? `<img src="${esc(p.imageUrl)}" alt="${esc(p.cardNameZh || p.cardName)}" loading="lazy" onerror="this.hidden=true">` : ""}<small>${esc(p.positionTitleZh || p.positionTitle)}</small><strong>${esc(p.cardNameZh || p.cardName)}${p.reversed ? " · 逆位" : ""}</strong><p>${esc(p.meaning)}</p></div>`).join("")}</div>`)
+    ].join("");
+}
+
+function renderCalendar(x) {
+    return [
+        cards([["公历", x.solar], ["农历", x.lunar], ["星期", x.weekDay], ["冲煞", `${x.chong || ""} ${x.sha || ""}`]]),
+        section("宜", chips(x.yi || [])),
+        section("忌", chips(x.ji || [], "bad")),
+        section("神煞", starChips([...(x.jiShen || []), ...(x.xiongSha || [])]))
+    ].join("");
+}
+
+function cards(items) {
+    return `<div class="summaryCards">${items.map(([k, v]) => `<div><small>${esc(k)}</small><strong>${esc(v ?? "-")}</strong></div>`).join("")}</div>`;
+}
+
+function section(title, body) {
+    return `<section class="prettySection"><h3>${esc(title)}</h3>${body}</section>`;
+}
+
+function chips(items, tone = "") {
+    return `<div class="chips">${items.map(x => `<span class="${tone}">${esc(x)}</span>`).join("")}</div>`;
+}
+
+function starChips(items) {
+    return `<div class="chips">${items.map(x => `<span title="${esc(hintStar(x))}">${esc(x)}</span>`).join("")}</div>`;
+}
+
+function hintStar(name) {
+    return huangliStarTips[name] || "黄历神煞：辅助判断日课吉凶的传统参考项，需结合宜忌、冲煞、事项类型一起看。";
+}
+</script>
+
 <style>
-    .shell {
-        max-width: 1280px;
-        margin: 0 auto;
-        padding: 24px;
+    .shell { min-height: 100vh; display: grid; grid-template-columns: 260px 1fr; background: linear-gradient(90deg, rgba(142, 30, 42, .07), transparent 38%), #eef1f4; color: #172026; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; }
+    .nav { padding: 22px; background: #172026; color: #f7f2e8; }
+    .brand { display: flex; gap: 12px; align-items: center; margin-bottom: 26px; }
+    .brand > span, .navItem span { display: grid; place-items: center; border-radius: 8px; }
+    .brand > span { width: 46px; height: 46px; background: #b33a3f; color: #fff; font-size: 24px; font-weight: 700; }
+    .brand strong, .brand small, .resultBar strong, .resultBar small { display: block; }
+    .brand small { margin-top: 3px; color: #b8c4c8; }
+    .navItem { width: 100%; display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 10px; margin-bottom: 8px; border: 1px solid transparent; border-radius: 8px; padding: 11px; background: transparent; color: #d9e3e6; text-align: left; }
+    .navItem span { width: 30px; height: 30px; background: rgba(255,255,255,.08); color: #f1c453; }
+    .navItem.active { border-color: rgba(241,196,83,.45); background: #243039; color: #fff; }
+    .workspace { padding: 28px; }
+    .hero, .tool, .result { border: 1px solid #dbe1e6; border-radius: 8px; background: #fff; box-shadow: 0 14px 34px rgba(20, 31, 39, .07); }
+    .hero { display: flex; justify-content: space-between; align-items: end; gap: 18px; min-height: 126px; padding: 28px; }
+    h1, h2, h3, p { margin: 0; }
+    .hero p, .tool p, .resultBar small { color: #66747c; }
+    h1 { margin-top: 8px; font-size: 42px; line-height: 1.05; letter-spacing: 0; }
+    h2 { font-size: 22px; letter-spacing: 0; }
+    .operation { min-width: min(320px, 100%); display: grid; gap: 8px; color: #4a5962; font-weight: 600; }
+    .stage { display: grid; grid-template-columns: minmax(340px, 520px) 1fr; gap: 18px; margin-top: 18px; align-items: start; }
+    .tool { padding: 20px; }
+    .toolHead, .resultBar { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 16px; }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .fields.compact { grid-template-columns: minmax(0, 1fr); }
+    label { display: grid; gap: 6px; color: #43505a; font-size: 13px; font-weight: 600; }
+    label > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .wide { grid-column: 1 / -1; }
+    .tag { border-radius: 999px; padding: 2px 7px; font-size: 11px; line-height: 1.5; font-weight: 700; }
+    .tag.required { background: #fde8e8; color: #a5282e; }
+    .tag.optional { background: #edf1f4; color: #64737c; }
+    input, select { width: 100%; min-width: 0; box-sizing: border-box; border: 1px solid #c9d1d8; border-radius: 8px; padding: 10px 11px; background: #f9fafb; color: #172026; }
+    input:focus, select:focus { outline: 2px solid rgba(179, 58, 63, .25); border-color: #b33a3f; background: #fff; }
+    button { cursor: pointer; font: inherit; }
+    .primary, .resultBar button { border: 0; border-radius: 8px; padding: 10px 15px; background: #b33a3f; color: #fff; font-weight: 700; white-space: nowrap; }
+    .resultBar button { background: #25313b; }
+    .resultBar .interpret { background: #b33a3f; }
+    .resultActions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: end; }
+    .result { overflow: hidden; }
+    .resultBar { margin: 0; padding: 16px 18px; border-bottom: 1px solid #dbe1e6; }
+    .pretty { min-height: 360px; max-height: calc(100vh - 320px); overflow: auto; padding: 18px; background: #fbfcfd; }
+    .pretty.empty { display: grid; place-items: center; color: #697780; }
+    .summaryCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .summaryCards div, .pillar, .cardRead, .lines div { border: 1px solid #dde5ea; border-radius: 8px; background: #fff; padding: 12px; }
+    .summaryCards small, .pillar small, .cardRead small { display: block; color: #687780; margin-bottom: 5px; }
+    .summaryCards strong, .pillar strong, .cardRead strong { color: #172026; }
+    .prettySection { margin-top: 14px; }
+    .prettySection h3 { margin-bottom: 10px; font-size: 15px; color: #34434c; }
+    .pillars, .cardsGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .tarotCards { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .tarotCard { display: grid; align-content: start; }
+    .tarotCard img { width: min(100%, 170px); aspect-ratio: 9 / 16; object-fit: cover; justify-self: center; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 10px 22px rgba(23, 32, 38, .14); background: #eef1f4; }
+    .pillar span, .lines em { display: block; margin-top: 6px; color: #65727a; font-style: normal; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips span { border-radius: 999px; padding: 6px 10px; background: #eef3f6; color: #34434c; }
+    .chips span[title], .lines i[title] { cursor: help; }
+    .chips span.bad { background: #fdeeee; color: #9d2d32; }
+    .lines { display: grid; gap: 8px; }
+    .lines div { display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center; }
+    .lines span { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .lines i { display: inline-block; border-radius: 999px; padding: 3px 8px; background: #eef3f6; color: #34434c; font-style: normal; font-weight: 700; }
+    .cardRead p { margin-top: 8px; color: #53636d; line-height: 1.5; }
+    .narrative { border-left: 4px solid #b33a3f; background: #fff; padding: 14px 16px; line-height: 1.7; border-radius: 0 8px 8px 0; }
+    .narrative.secondary { margin-top: 10px; border-left-color: #73808a; color: #4f5f69; }
+    .raw { border-top: 1px solid #dbe1e6; background: #101820; color: #dbe8ef; }
+    .raw summary { cursor: pointer; padding: 12px 18px; color: #f1c453; }
+    pre { max-height: 420px; overflow: auto; margin: 0; padding: 18px; font-size: 13px; line-height: 1.55; }
+    .statusTile { display: grid; gap: 8px; padding: 22px; border-radius: 8px; background: #f0f5f2; border: 1px solid #cfded5; }
+
+    @@media (max-width: 920px) {
+        .shell { grid-template-columns: 1fr; }
+        .nav { display: flex; gap: 10px; overflow-x: auto; padding: 14px; }
+        .brand { min-width: 220px; margin: 0; }
+        .navItem { min-width: 120px; margin: 0; }
+        .stage { grid-template-columns: 1fr; }
+        .hero { align-items: stretch; }
     }
 
-    header {
-        margin-bottom: 18px;
-    }
-
-    h1, h2, p {
-        margin: 0;
-    }
-
-    h1 {
-        font-size: 28px;
-    }
-
-    h2 {
-        font-size: 16px;
-        margin-bottom: 12px;
-    }
-
-    p {
-        margin-top: 6px;
-        color: #5b6770;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-        gap: 16px;
-        align-items: start;
-    }
-
-    .panel, .result {
-        border: 1px solid #d9dee3;
-        border-radius: 8px;
-        background: #fff;
-        padding: 16px;
-    }
-
-    .fields {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
-    }
-
-    label {
-        display: grid;
-        gap: 4px;
-        color: #43505a;
-        font-size: 13px;
-    }
-
-    .wide {
-        grid-column: 1 / -1;
-    }
-
-    input, select {
-        min-width: 0;
-        border: 1px solid #c9d0d6;
-        border-radius: 6px;
-        padding: 8px 9px;
-        background: #fff;
-        color: #172026;
-    }
-
-    .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 14px;
-    }
-
-    button {
-        border: 1px solid #25313b;
-        border-radius: 6px;
-        padding: 8px 12px;
-        background: #25313b;
-        color: #fff;
-    }
-
-    .result {
-        margin-top: 16px;
-    }
-
-    .resultBar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
-    }
-
-    pre {
-        min-height: 360px;
-        overflow: auto;
-        margin: 0;
-        border-radius: 6px;
-        background: #111820;
-        color: #dbe7ef;
-        padding: 14px;
-        font-size: 13px;
-        line-height: 1.5;
+    @@media (max-width: 560px) {
+        .workspace { padding: 14px; }
+        .fields, .lines div { grid-template-columns: 1fr; }
+        .toolHead, .resultBar { align-items: stretch; flex-direction: column; }
+        h1 { font-size: 32px; }
     }
 </style>

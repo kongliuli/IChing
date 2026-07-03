@@ -134,6 +134,8 @@ public class LiuyaoNajiaTests
         Assert.Equal(6, result.Lines.Count);
         Assert.Contains(result.Lines, l => l.StemBranch is not null);
         Assert.Contains(result.Lines, l => l.SixKin is not null);
+        Assert.All(result.Lines, l => Assert.Contains("爻", l.YinYangDescription));
+        Assert.Contains(result.Lines, l => l.SixKinDescription is not null);
     }
 
     [Fact]
@@ -178,8 +180,33 @@ public class TarotDeckTests
     {
         var spreads = SpreadCatalog.List();
         Assert.True(spreads.Count >= 8);
-        Assert.Contains(spreads, s => s.Id == "relationship" && s.CardCount == 5);
+        Assert.Contains(spreads, s => s.Id == "relationship" && s.CardCount == 5 && s.TitleZh == "关系牌阵");
         Assert.All(spreads, s => Assert.False(string.IsNullOrWhiteSpace(s.Description)));
+        Assert.All(spreads, s => Assert.False(string.IsNullOrWhiteSpace(s.TitleZh)));
+    }
+
+    [Fact]
+    public void ChineseNames_And_MajorOnlySpreads_AreApplied()
+    {
+        var single = TarotEngine.Draw("single-card", "test", 1);
+        Assert.True(single.MajorOnly);
+        Assert.All(single.Positions, p => Assert.DoesNotContain(" of ", p.CardNameZh));
+        Assert.All(single.Positions, p => Assert.False(string.IsNullOrWhiteSpace(p.PositionTitleZh)));
+
+        var mindBodySpirit = TarotEngine.Draw("mind-body-spirit", "test", 2);
+        Assert.True(mindBodySpirit.MajorOnly);
+        Assert.All(mindBodySpirit.Positions, p => Assert.DoesNotContain(" of ", p.CardNameZh));
+
+        var fullDeck = TarotEngine.Draw("past-present-future", "test", 1);
+        Assert.False(fullDeck.MajorOnly);
+        Assert.Contains(fullDeck.Positions, p => p.CardNameZh.Contains("权杖") ||
+                                               p.CardNameZh.Contains("圣杯") ||
+                                               p.CardNameZh.Contains("宝剑") ||
+                                               p.CardNameZh.Contains("星币"));
+        Assert.All(fullDeck.Positions, p => Assert.StartsWith("/tarot/rws/", p.ImageUrl));
+        Assert.Contains(TarotDeck.All, c => c.Name == "Page of Pentacles" &&
+                                            c.NameZh == "星币侍从" &&
+                                            c.ImageUrl == "/tarot/rws/page-of-pentacles.jpeg");
     }
 
     [Fact]

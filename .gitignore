@@ -1,5 +1,6 @@
 target/
 .idea/
+.vs/
 *.iml
 .DS_Store
 bin/

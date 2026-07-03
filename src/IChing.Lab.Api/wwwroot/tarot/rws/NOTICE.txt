@@ -1,0 +1,7 @@
+Rider-Waite-Smith tarot card images
+
+Source: Wikimedia Commons, Category:Rider-Waite tarot deck (Roses & Lilies)
+Original deck: 1909 Waite-Smith Tarot, illustrated by Pamela Colman Smith.
+Commons metadata for the target card files marks them as Public domain / CC-PD-Mark.
+
+Run scripts/download-rws-tarot-assets.ps1 to download the 78 local display images into this directory.

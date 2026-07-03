@@ -138,7 +138,7 @@ public static class LiuyaoNajiaService
             var hiddenInfo = HiddenDeityInfo.FromLine(line);
             hidden = new HiddenDeityDetail(
                 hiddenInfo.StemBranch.ToString(),
-                hiddenInfo.SixKin.Label);
+                SixKinZh(hiddenInfo.SixKin.Label) ?? "");
         }
 
         IReadOnlyList<string>? lineStars = null;
@@ -147,22 +147,112 @@ public static class LiuyaoNajiaService
             var stars = symbolicStars.GetStarsForBranch(lineStemBranch!.Branch).ToList();
             if (stars.Count > 0)
             {
-                lineStars = stars.Select(s => s.Label).ToList();
+                lineStars = stars.Select(s => StarZh(s.Label)).ToList();
             }
         }
 
+        var yinYang = YinYangZh(line.YinYang.Label);
+        var sixKin = line.TryGetSixKin(out var kin) ? SixKinZh(kin?.Label) : null;
+
         return new LiuyaoLineDetail(
             Index: idx + 1,
-            Position: line.LinePosition.Label,
-            YinYang: line.YinYang.Label,
+            Position: PositionZh(line.LinePosition.Label),
+            YinYang: yinYang,
+            YinYangDescription: DescribeYinYang(yinYang, changing),
             StemBranch: line.TryGetStemBranch(out var stemBranch) ? stemBranch?.ToString() : null,
-            SixKin: line.TryGetSixKin(out var kin) ? kin?.Label : null,
-            SixSpirit: line.SixSpirit?.Label,
-            Role: line.Position?.Label,
+            SixKin: sixKin,
+            SixKinDescription: DescribeSixKin(sixKin),
+            SixSpirit: SixSpiritZh(line.SixSpirit?.Label),
+            Role: RoleZh(line.Position?.Label),
             IsChanging: changing,
             HiddenDeity: hidden,
             SymbolicStars: lineStars);
     }
+
+    private static string DescribeYinYang(string label, bool changing)
+    {
+        var baseText = label.Contains('阳')
+            ? "阳爻，主外显、主动、推进、刚健。"
+            : "阴爻，主内敛、承载、蓄势、柔顺。";
+        return changing ? $"{baseText}此爻发动，需重点看它对本卦、变卦和用神的牵动。" : baseText;
+    }
+
+    private static string YinYangZh(string? label) => label switch
+    {
+        "Yang" => "阳爻",
+        "Yin" => "阴爻",
+        _ => label ?? ""
+    };
+
+    private static string? DescribeSixKin(string? label) => label switch
+    {
+        "父母" => "父母爻：文书、证件、消息、长辈、房屋、学习与庇护。",
+        "兄弟" => "兄弟爻：同辈、竞争、消耗、分财、朋友与阻力。",
+        "子孙" => "子孙爻：成果、下属、孩子、放松、解忧，也可克制官鬼。",
+        "妻财" => "妻财爻：钱财、资源、客户、现实收益；男测感情也常取为对象。",
+        "官鬼" => "官鬼爻：事业、职位、压力、规则、疾病、风险与约束。",
+        _ => null
+    };
+
+    private static string? SixKinZh(string? label) => label switch
+    {
+        "Parent" => "父母",
+        "Sibling" => "兄弟",
+        "Offspring" => "子孙",
+        "WifeWealth" or "Wealth" => "妻财",
+        "Officer" or "OfficerGhost" => "官鬼",
+        _ => label
+    };
+
+    private static string? SixSpiritZh(string? label) => label switch
+    {
+        "AzureDragon" => "青龙",
+        "VermilionBird" => "朱雀",
+        "HookChen" => "勾陈",
+        "CoiledSnake" => "螣蛇",
+        "WhiteTiger" => "白虎",
+        "BlackTortoise" => "玄武",
+        _ => label
+    };
+
+    private static string? RoleZh(string? label) => label switch
+    {
+        "Worldly" => "世",
+        "Corresponding" => "应",
+        _ => label
+    };
+
+    private static string PositionZh(string label) => label switch
+    {
+        "First" => "初爻",
+        "Second" => "二爻",
+        "Third" => "三爻",
+        "Fourth" => "四爻",
+        "Fifth" => "五爻",
+        "Sixth" => "上爻",
+        _ => label
+    };
+
+    private static string StarZh(string label) => label switch
+    {
+        "Nobleman" => "贵人",
+        "SalarySpirit" => "禄神",
+        "CultureFlourish" => "文昌",
+        "PostHorse" => "驿马",
+        "PeachBlossom" => "桃花",
+        "YangBlade" => "羊刃",
+        "GeneralsStar" => "将星",
+        "Canopy" => "华盖",
+        "StarOfStrategy" => "谋星",
+        "DisasterMalignity" => "灾煞",
+        "RobberyMalignity" => "劫煞",
+        "DeathSpirit" => "亡神",
+        "CelestialPhysician" => "天医",
+        "HeavenlyJoy" => "天喜",
+        "MarriageBed" => "婚床",
+        "BridalChamber" => "洞房",
+        _ => label
+    };
 }
 
 public record HiddenDeityDetail(string StemBranch, string SixKin);
@@ -173,8 +263,10 @@ public record LiuyaoLineDetail(
     int Index,
     string Position,
     string YinYang,
+    string YinYangDescription,
     string? StemBranch,
     string? SixKin,
+    string? SixKinDescription,
     string? SixSpirit,
     string? Role,
     bool IsChanging,

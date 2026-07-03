@@ -6,12 +6,12 @@ public static class TarotNarrative
     public static TarotNarrativeResult Build(TarotReading reading)
     {
         var sections = reading.Positions
-            .Select(p => $"{p.PositionTitle}：{p.CardName}{(p.Reversed ? "（逆位）" : "（正位）")} — {p.Meaning}")
+            .Select(p => $"{p.PositionTitleZh}：{p.CardNameZh}{(p.Reversed ? "（逆位）" : "（正位）")} - {p.Meaning}")
             .ToList();
 
         var headline = reading.Question is { Length: > 0 } q
-            ? $"关于「{q}」的{reading.SpreadTitle}解读"
-            : $"{reading.SpreadTitle}解读";
+            ? $"关于「{q}」的{reading.SpreadTitleZh}解读"
+            : $"{reading.SpreadTitleZh}解读";
 
         var summary = reading.Positions.Count switch
         {
@@ -33,7 +33,7 @@ public static class TarotNarrative
         var present = reading.Positions.LastOrDefault();
         return present is null
             ? "牌阵信息不足。"
-            : $"当前核心牌为{present.CardName}，提示：{present.Meaning}";
+            : $"当前核心牌为{present.CardNameZh}，提示：{present.Meaning}";
     }
 
     private static string BuildCelticSummary(TarotReading reading)
@@ -41,7 +41,7 @@ public static class TarotNarrative
         var present = reading.Positions[0];
         var challenge = reading.Positions[1];
         var outcome = reading.Positions[^1];
-        return $"处境由{present.CardName}主导，挑战为{challenge.CardName}，最终走向指向{outcome.CardName}。";
+        return $"处境由{present.CardNameZh}主导，挑战为{challenge.CardNameZh}，最终走向指向{outcome.CardNameZh}。";
     }
 
     private static string BuildHorseshoeSummary(TarotReading reading)
@@ -50,7 +50,7 @@ public static class TarotNarrative
         var present = reading.Positions[1];
         var future = reading.Positions[2];
         var advice = reading.Positions[5];
-        return $"过去{past.CardName}影响当下{present.CardName}，趋势{future.CardName}；建议关注{advice.CardName}。";
+        return $"过去{past.CardNameZh}影响当下{present.CardNameZh}，趋势{future.CardNameZh}；建议关注{advice.CardNameZh}。";
     }
 }
 

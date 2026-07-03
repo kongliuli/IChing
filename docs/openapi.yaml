@@ -1,0 +1,208 @@
+openapi: 3.0.3
+info:
+  title: IChing MVP API
+  version: 1.0.0
+  description: MVP backend - user, bazi, order, admin
+
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: user
+  - name: bazi
+  - name: order
+  - name: admin
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /api/user/register:
+    post:
+      tags: [user]
+      summary: Register with phone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, password]
+              properties:
+                phone: { type: string }
+                password: { type: string }
+                nickname: { type: string }
+      responses:
+        '200': { description: OK }
+
+  /api/user/login:
+    post:
+      tags: [user]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, password]
+              properties:
+                phone: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: JWT token }
+
+  /api/user/profile:
+    get:
+      tags: [user]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Profile }
+    put:
+      tags: [user]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nickname: { type: string }
+                birthday: { type: string, format: date }
+                birthHour: { type: integer }
+                gender: { type: integer }
+                province: { type: string }
+                city: { type: string }
+      responses:
+        '200': { description: Updated }
+
+  /api/bazi/calculate:
+    post:
+      tags: [bazi]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [birthday, birthHour, gender]
+              properties:
+                title: { type: string }
+                birthday: { type: string, format: date }
+                birthHour: { type: integer }
+                gender: { type: integer }
+                province: { type: string }
+                city: { type: string }
+      responses:
+        '200': { description: Basic chart result }
+
+  /api/bazi/history:
+    get:
+      tags: [bazi]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: User paipan list }
+
+  /api/bazi/{paipanId}:
+    get:
+      tags: [bazi]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: paipanId
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Detail }
+        '402': { description: Deep report locked }
+
+  /api/order/create:
+    post:
+      tags: [order]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productType]
+              properties:
+                productType: { type: integer, description: '1=deep_report 2=membership' }
+                paipanId: { type: integer }
+      responses:
+        '200': { description: Order created }
+
+  /api/order/pay:
+    post:
+      tags: [order]
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderNo]
+              properties:
+                orderNo: { type: string }
+      responses:
+        '200': { description: Mock payment success }
+
+  /api/order/{orderNo}:
+    get:
+      tags: [order]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: orderNo
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Order status }
+
+  /admin/users:
+    get:
+      tags: [admin]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: User list }
+
+  /admin/orders:
+    get:
+      tags: [admin]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Order list }
+
+  /admin/paipans:
+    get:
+      tags: [admin]
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Paipan list }
+
+  /admin/users/{userId}/member:
+    put:
+      tags: [admin]
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                memberLevel: { type: integer }
+                expireTime: { type: string, format: date-time }
+      responses:
+        '200': { description: Member updated }

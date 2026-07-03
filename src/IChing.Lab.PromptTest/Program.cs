@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Inference;
+using IChing.Lab.Inference.Engines;
 using Microsoft.Extensions.Logging;
 
 var options = ParseArgs(args);
@@ -18,7 +20,12 @@ if (fixtures.Count == 0)
 }
 
 using var loggerFactory = LoggerFactory.Create(b => b.AddConsole().SetMinimumLevel(LogLevel.Information));
-var service = new ChartInterpretationService(options.ModelPath, loggerFactory.CreateLogger<ChartInterpretationService>());
+IInferenceEngine[] engines =
+[
+    new OnnxGenAiEngine(options.ModelPath, loggerFactory.CreateLogger<OnnxGenAiEngine>()),
+    new TemplateFallbackEngine()
+];
+var service = new ChartInterpretationOrchestrator(engines, loggerFactory.CreateLogger<ChartInterpretationOrchestrator>());
 
 var exitCode = 0;
 foreach (var path in fixtures)

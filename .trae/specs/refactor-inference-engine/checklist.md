@@ -1,0 +1,10 @@
+- [x] OnnxGenAiEngine 实现 IInferenceEngine，EngineId="onnx-genai-qwen2.5-1.5b"
+- [x] TemplateFallbackEngine 实现 IInferenceEngine，EngineId="template-fallback"，IsReady 恒为 true
+- [x] ChartInterpretationOrchestrator 不含任何 Model/Tokenizer 加载代码
+- [x] Orchestrator 注入 IEnumerable<IInferenceEngine>，按 EngineId 选择
+- [x] 塔罗英译中两 pass 流程保留，textEn + textZh 均输出
+- [x] ChartInterpretationService 标记 [Obsolete]
+- [x] LabController 注入 ChartInterpretationOrchestrator
+- [x] dotnet test 全绿，无回归
+- [x] PromptTest --dry-run 仍输出完整 Prompt
+- [x] /lab/tarot/read?tier=1 响应 JSON 与改造前字段一致

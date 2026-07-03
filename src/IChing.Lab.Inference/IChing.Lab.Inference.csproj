@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
   </ItemGroup>
 

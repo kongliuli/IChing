@@ -12,9 +12,9 @@ namespace IChing.Lab.Api.Controllers;
 [Route("lab")]
 public class LabController : ControllerBase
 {
-    private readonly ChartInterpretationService _interpretation;
+    private readonly ChartInterpretationOrchestrator _interpretation;
 
-    public LabController(ChartInterpretationService interpretation)
+    public LabController(ChartInterpretationOrchestrator interpretation)
     {
         _interpretation = interpretation;
     }

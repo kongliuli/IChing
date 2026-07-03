@@ -1,5 +1,7 @@
+using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Api.Components;
 using IChing.Lab.Inference;
+using IChing.Lab.Inference.Engines;
 using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,8 +22,10 @@ builder.Services.AddDataProtection()
 var modelPath = ResolveModelPath(
     builder.Configuration["Inference:ModelPath"] ?? "./models/qwen3-0.6b-genai",
     builder.Environment.ContentRootPath);
-builder.Services.AddSingleton(sp =>
-    new ChartInterpretationService(modelPath, sp.GetRequiredService<ILogger<ChartInterpretationService>>()));
+builder.Services.AddSingleton<IInferenceEngine>(sp =>
+    new OnnxGenAiEngine(modelPath, sp.GetRequiredService<ILogger<OnnxGenAiEngine>>()));
+builder.Services.AddSingleton<IInferenceEngine, TemplateFallbackEngine>();
+builder.Services.AddSingleton<ChartInterpretationOrchestrator>();
 
 var app = builder.Build();
 

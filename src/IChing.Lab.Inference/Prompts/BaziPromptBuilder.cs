@@ -9,7 +9,7 @@ public static class BaziPromptBuilder
     {
         const string system = """
             你是八字解读助手。四柱与大运由系统计算，请勿修改干支。
-            不要编造未提供的流年细节。
+            不要编造未提供的流年、年份、应期或具体日期。
             """;
 
         var user = $"""
@@ -20,7 +20,7 @@ public static class BaziPromptBuilder
             命盘：
             {JsonSerializer.Serialize(chart, new JsonSerializerOptions { WriteIndented = true })}
 
-            请用简体中文写一段不超过 {wordMax} 字简析。
+            请用简体中文写一段不超过 {wordMax} 字简析。若命盘未提供流年字段，不要提及任何具体年份。
             """;
 
         return QwenChatTemplate.Wrap(system, user);

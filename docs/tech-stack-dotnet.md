@@ -35,13 +35,13 @@ SDK 锁定：`global.json` → .NET 10.0.301
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/lab/bazi` | 四柱、藏干十神、`city`/`longitude` 真太阳时、`gender` 大运、`flowYear` 流年 |
+| POST | `/lab/bazi` | 四柱、藏干十神、用神、`city`/`longitude` 真太阳时、`gender` 大运、`flowYear`+`flowMonth` 流年流月 |
 | POST | `/lab/bazi/interpret` | 排盘 + ONNX 解读流水线 |
-| POST | `/lab/bazi/hepan` | 双人合盘 |
+| POST | `/lab/bazi/hepan` | 双人合盘（纳音、用神互补） |
 | GET | `/lab/bazi/cities` | 城市经度表 |
 | POST | `/lab/interpret` | 命盘 JSON → 短解读 |
 | GET | `/lab/interpret/status` | ONNX 模型加载状态 |
-| POST | `/lab/liuyao/coin` | 铜钱法 + 纳甲/伏神/神煞 |
+| POST | `/lab/liuyao/coin` | 铜钱法 + 纳甲/伏神/神煞（变卦 `changed` 完整明细） |
 | POST | `/lab/liuyao/time` | 时间卦 + 纳甲/伏神/神煞 |
 | POST | `/lab/tarot/draw` | 抽牌（`celtic-cross` / `horseshoe`） |
 | POST | `/lab/tarot/interpret` | 抽牌 + Layer1 叙事 |

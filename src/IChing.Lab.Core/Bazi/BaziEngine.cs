@@ -41,11 +41,11 @@ public static class BaziEngine
 
             if (input.FlowYear is int fy)
             {
-                flowYear = ResolveFlowYear(periods, fy);
+                flowYear = ResolveFlowYear(periods, fy, input.FlowMonth);
             }
         }
 
-        return new BaziChart(
+        var chart = new BaziChart(
             Engine: "lunar-csharp-1.6.8",
             WallClock: wallClock.ToString("yyyy-MM-dd HH:mm:ss"),
             TrueSolarTime: longitude is null ? null : corrected.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -69,8 +69,10 @@ public static class BaziEngine
             WuXingSummary: SummarizeWuXing(eight),
             Yun: yunInfo,
             DaYun: daYun,
-            FlowYear: flowYear
-        );
+            FlowYear: flowYear,
+            YongShen: null!);
+
+        return chart with { YongShen = YongShenAnalyzer.Analyze(chart) };
     }
 
     private static BaziPillar MapPillar(
@@ -92,7 +94,8 @@ public static class BaziEngine
         return new WuXingSummary(counts, dominant);
     }
 
-    private static FlowYearInfo? ResolveFlowYear(Lunar.EightChar.DaYun[] periods, int year)
+    private static FlowYearInfo? ResolveFlowYear(
+        Lunar.EightChar.DaYun[] periods, int year, int? flowMonth)
     {
         foreach (var period in periods)
         {
@@ -108,6 +111,18 @@ public static class BaziEngine
                 continue;
             }
 
+            var months = match.GetLiuYue()
+                .Select(m => new FlowMonthInfo(
+                    m.Index, m.MonthInChinese, m.GanZhi, m.Xun, m.XunKong))
+                .ToList();
+
+            FlowMonthInfo? selected = null;
+            if (flowMonth is int fm)
+            {
+                selected = months.FirstOrDefault(m => m.Index == fm - 1)
+                           ?? months.FirstOrDefault(m => m.Index == fm);
+            }
+
             return new FlowYearInfo(
                 year,
                 match.GanZhi,
@@ -115,7 +130,9 @@ public static class BaziEngine
                 period.GanZhi,
                 period.Index,
                 match.Xun,
-                match.XunKong);
+                match.XunKong,
+                months,
+                selected);
         }
 
         return null;
@@ -129,7 +146,8 @@ public record BaziInput(
     string? City = null,
     int? Gender = null,
     int Sect = 1,
-    int? FlowYear = null);
+    int? FlowYear = null,
+    int? FlowMonth = null);
 
 public record YunInfo(
     int StartYear, int StartMonth, int StartDay, int StartHour,
@@ -152,6 +170,13 @@ public record WuXingSummary(
     IReadOnlyDictionary<string, int> Counts,
     string Dominant);
 
+public record FlowMonthInfo(
+    int Index,
+    string MonthInChinese,
+    string GanZhi,
+    string Xun,
+    string XunKong);
+
 public record FlowYearInfo(
     int Year,
     string GanZhi,
@@ -159,7 +184,9 @@ public record FlowYearInfo(
     string DaYunGanZhi,
     int DaYunIndex,
     string Xun,
-    string XunKong);
+    string XunKong,
+    IReadOnlyList<FlowMonthInfo> Months,
+    FlowMonthInfo? SelectedMonth);
 
 public record BaziChart(
     string Engine,
@@ -177,5 +204,5 @@ public record BaziChart(
     WuXingSummary WuXingSummary,
     YunInfo? Yun,
     IReadOnlyList<DaYunPeriod>? DaYun,
-    FlowYearInfo? FlowYear
-);
+    FlowYearInfo? FlowYear,
+    YongShenProfile YongShen);

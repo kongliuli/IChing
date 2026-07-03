@@ -88,11 +88,11 @@ public class LabController : ControllerBase
 
     private static BaziInput MapBaziInput(BaziRequest req) =>
         new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
-            req.Longitude, req.City, req.Gender, req.Sect, req.FlowYear);
+            req.Longitude, req.City, req.Gender, req.Sect, req.FlowYear, req.FlowMonth);
 
     private static BaziInput MapBaziInput(BaziInterpretRequest req) =>
         new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
-            req.Longitude, req.City, req.Gender, req.Sect, req.FlowYear);
+            req.Longitude, req.City, req.Gender, req.Sect, req.FlowYear, req.FlowMonth);
 }
 
 public record BaziRequest(
@@ -102,7 +102,8 @@ public record BaziRequest(
     string? City = null,
     int? Gender = null,
     int Sect = 1,
-    int? FlowYear = null);
+    int? FlowYear = null,
+    int? FlowMonth = null);
 
 public record BaziInterpretRequest(
     int Year, int Month, int Day, int Hour,
@@ -112,6 +113,7 @@ public record BaziInterpretRequest(
     int? Gender = null,
     int Sect = 1,
     int? FlowYear = null,
+    int? FlowMonth = null,
     string? Focus = null,
     int? MaxTokens = null);
 

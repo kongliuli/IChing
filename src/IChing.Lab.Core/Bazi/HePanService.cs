@@ -11,13 +11,6 @@ public static class HePanService
         ["壬"] = "水", ["癸"] = "水"
     };
 
-    private static readonly Dictionary<string, string> ZhiWuXing = new()
-    {
-        ["子"] = "水", ["丑"] = "土", ["寅"] = "木", ["卯"] = "木",
-        ["辰"] = "土", ["巳"] = "火", ["午"] = "火", ["未"] = "土",
-        ["申"] = "金", ["酉"] = "金", ["戌"] = "土", ["亥"] = "水"
-    };
-
     private static readonly Dictionary<string, string> Generates = new()
     {
         ["木"] = "火", ["火"] = "土", ["土"] = "金", ["金"] = "水", ["水"] = "木"
@@ -30,27 +23,34 @@ public static class HePanService
 
     public static HePanResult Compare(BaziChart a, BaziChart b)
     {
-        var dayRelation = DescribeRelation(a.DayMaster, b.DayMaster);
+        var dayRelation = DescribeGanRelation(a.DayMaster, b.DayMaster);
         var elementOverlap = CountElementOverlap(a.WuXingSummary.Counts, b.WuXingSummary.Counts);
         var complement = DescribeComplement(a.WuXingSummary, b.WuXingSummary);
         var zhiPairs = CheckZhiPairs(a, b);
-        var score = Score(dayRelation, elementOverlap, complement, zhiPairs);
+        var dayNaYin = NaYinHelper.DescribeRelation(a.DayPillar.NaYin, b.DayPillar.NaYin);
+        var yearNaYin = NaYinHelper.DescribeRelation(a.YearPillar.NaYin, b.YearPillar.NaYin);
+        var yongShenComplement = DescribeYongShenComplement(a, b);
+        var score = Score(dayRelation, elementOverlap, complement, zhiPairs, dayNaYin, yongShenComplement);
 
         return new HePanResult(
             PersonA: Summarize(a),
             PersonB: Summarize(b),
             DayMasterRelation: dayRelation,
+            DayNaYinRelation: dayNaYin,
+            YearNaYinRelation: yearNaYin,
             ElementOverlap: elementOverlap,
             ElementComplement: complement,
+            YongShenComplement: yongShenComplement,
             ZhiPairs: zhiPairs,
             Score: score,
-            Summary: BuildSummary(a.DayMaster, b.DayMaster, dayRelation, score, zhiPairs));
+            Summary: BuildSummary(a, b, dayRelation, dayNaYin, yongShenComplement, score, zhiPairs));
     }
 
     private static PersonSummary Summarize(BaziChart c) =>
-        new(c.DayMaster, c.DayPillar.GanZhi, c.WuXingSummary.Dominant);
+        new(c.DayMaster, c.DayPillar.GanZhi, c.DayPillar.NaYin,
+            c.WuXingSummary.Dominant, c.YongShen.Strength, c.YongShen.FavoredElements);
 
-    private static string DescribeRelation(string ganA, string ganB)
+    private static string DescribeGanRelation(string ganA, string ganB)
     {
         if (!GanWuXing.TryGetValue(ganA, out var wxA) || !GanWuXing.TryGetValue(ganB, out var wxB))
         {
@@ -84,6 +84,24 @@ public static class HePanService
 
         return "中性";
     }
+
+    private static string DescribeYongShenComplement(BaziChart a, BaziChart b)
+    {
+        var aGetsFromB = a.YongShen.FavoredElements.Count(e => ElementStrength(b, e) >= 2);
+        var bGetsFromA = b.YongShen.FavoredElements.Count(e => ElementStrength(a, e) >= 2);
+        var total = aGetsFromB + bGetsFromA;
+
+        return total switch
+        {
+            >= 3 => $"用神互补明显（双向共 {total} 项）",
+            2 => "用神部分互补",
+            1 => "用神单向补益",
+            _ => "用神互补有限"
+        };
+    }
+
+    private static int ElementStrength(BaziChart chart, string element) =>
+        chart.WuXingSummary.Counts.GetValueOrDefault(element);
 
     private static int CountElementOverlap(
         IReadOnlyDictionary<string, int> a,
@@ -165,7 +183,9 @@ public static class HePanService
         _ => false
     };
 
-    private static int Score(string dayRelation, int overlap, string complement, IReadOnlyList<string> zhiPairs)
+    private static int Score(
+        string dayRelation, int overlap, string complement,
+        IReadOnlyList<string> zhiPairs, string dayNaYin, string yongShenComplement)
     {
         var score = 50;
         if (dayRelation.Contains("相生"))
@@ -191,27 +211,59 @@ public static class HePanService
             score += 5;
         }
 
+        if (dayNaYin.Contains("相生"))
+        {
+            score += 6;
+        }
+        else if (dayNaYin.Contains("相克"))
+        {
+            score -= 4;
+        }
+
+        if (yongShenComplement.Contains("明显"))
+        {
+            score += 12;
+        }
+        else if (yongShenComplement.Contains("部分"))
+        {
+            score += 6;
+        }
+        else if (yongShenComplement.Contains("单向"))
+        {
+            score += 3;
+        }
+
         score += zhiPairs.Count(t => t.Contains("六合")) * 5;
         score -= zhiPairs.Count(t => t.Contains("相冲")) * 4;
         return Math.Clamp(score, 0, 100);
     }
 
     private static string BuildSummary(
-        string dmA, string dmB, string relation, int score, IReadOnlyList<string> zhiPairs)
+        BaziChart a, BaziChart b, string relation, string dayNaYin,
+        string yongShen, int score, IReadOnlyList<string> zhiPairs)
     {
         var zhiNote = zhiPairs.Count > 0 ? $"地支见{string.Join("、", zhiPairs)}。" : "";
-        return $"日主{dmA}与{dmB}，{relation}。合盘指数 {score}/100。{zhiNote}";
+        return $"日主{a.DayMaster}与{b.DayMaster}，{relation}；日柱纳音{dayNaYin}；{yongShen}。合盘指数 {score}/100。{zhiNote}";
     }
 }
 
-public record PersonSummary(string DayMaster, string DayPillar, string DominantElement);
+public record PersonSummary(
+    string DayMaster,
+    string DayPillar,
+    string DayNaYin,
+    string DominantElement,
+    string Strength,
+    IReadOnlyList<string> FavoredElements);
 
 public record HePanResult(
     PersonSummary PersonA,
     PersonSummary PersonB,
     string DayMasterRelation,
+    string DayNaYinRelation,
+    string YearNaYinRelation,
     int ElementOverlap,
     string ElementComplement,
+    string YongShenComplement,
     IReadOnlyList<string> ZhiPairs,
     int Score,
     string Summary);

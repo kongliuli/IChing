@@ -42,24 +42,42 @@ public class BaziTrueSolarTimeTests
     }
 
     [Fact]
-    public void FlowYear_ReturnsLiuNian()
+    public void FlowYear_ReturnsLiuNianAndMonths()
     {
         var chart = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1, FlowYear: 2026));
         Assert.NotNull(chart.FlowYear);
         Assert.Equal(2026, chart.FlowYear!.Year);
-        Assert.NotEmpty(chart.FlowYear.GanZhi);
+        Assert.Equal(12, chart.FlowYear.Months.Count);
+    }
+
+    [Fact]
+    public void FlowMonth_SelectsMonth()
+    {
+        var chart = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1, FlowYear: 2026, FlowMonth: 7));
+        Assert.NotNull(chart.FlowYear?.SelectedMonth);
+        Assert.NotEmpty(chart.FlowYear!.SelectedMonth!.GanZhi);
+    }
+
+    [Fact]
+    public void YongShen_IsPopulated()
+    {
+        var chart = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1));
+        Assert.NotEmpty(chart.YongShen.Strength);
+        Assert.NotEmpty(chart.YongShen.FavoredElements);
     }
 }
 
 public class HePanTests
 {
     [Fact]
-    public void Compare_ReturnsScore()
+    public void Compare_ReturnsScoreWithNaYinAndYongShen()
     {
         var a = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1));
         var b = BaziEngine.Calculate(new BaziInput(1992, 8, 15, 14, Gender: 0));
         var result = HePanService.Compare(a, b);
         Assert.InRange(result.Score, 0, 100);
+        Assert.NotEmpty(result.DayNaYinRelation);
+        Assert.NotEmpty(result.YongShenComplement);
         Assert.NotEmpty(result.Summary);
     }
 }
@@ -77,10 +95,21 @@ public class LiuyaoNajiaTests
     }
 
     [Fact]
-    public void Coin_IncludesSymbolicStars()
+    public void Coin_WithChangingLines_HasFullChangedDetail()
     {
-        var result = LiuyaoNajiaService.Coin(DateTimeOffset.Now, 99);
-        Assert.NotEmpty(result.SymbolicStars);
+        LiuyaoNajiaResult? found = null;
+        for (var seed = 0; seed < 200 && found?.Changed is null; seed++)
+        {
+            var result = LiuyaoNajiaService.Coin(DateTimeOffset.Now, seed);
+            if (result.Changed is not null)
+            {
+                found = result;
+            }
+        }
+
+        Assert.NotNull(found?.Changed);
+        Assert.NotEmpty(found.Changed.SymbolicStars);
+        Assert.Equal(6, found.Changed.Lines.Count);
     }
 }
 

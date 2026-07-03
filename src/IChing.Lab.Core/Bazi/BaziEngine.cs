@@ -113,15 +113,23 @@ public static class BaziEngine
             }
 
             var months = match.GetLiuYue()
-                .Select(m => new FlowMonthInfo(
-                    m.Index, m.MonthInChinese, m.GanZhi, m.Xun, m.XunKong))
+                .Select(m => FlowJieQiHelper.EnrichMonth(
+                    year,
+                    new FlowMonthInfo(
+                        m.Index, m.MonthInChinese, m.GanZhi, m.Xun, m.XunKong,
+                        null, null, null, null, null),
+                    includeDays: false))
                 .ToList();
 
             FlowMonthInfo? selected = null;
             if (flowMonth is int fm)
             {
-                selected = months.FirstOrDefault(m => m.Index == fm - 1)
-                           ?? months.FirstOrDefault(m => m.Index == fm);
+                var idx = fm - 1;
+                if (idx >= 0 && idx < months.Count)
+                {
+                    selected = FlowJieQiHelper.EnrichMonth(year, months[idx], includeDays: true);
+                    months[idx] = selected;
+                }
             }
 
             var xiaoYun = period.GetXiaoYun(10)
@@ -198,7 +206,12 @@ public record FlowMonthInfo(
     string MonthInChinese,
     string GanZhi,
     string Xun,
-    string XunKong);
+    string XunKong,
+    string? JieQiStart,
+    string? StartSolar,
+    string? JieQiEnd,
+    string? EndSolar,
+    IReadOnlyList<FlowDayInfo>? FlowDays);
 
 public record XiaoYunInfo(
     int Year,

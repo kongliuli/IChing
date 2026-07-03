@@ -38,17 +38,18 @@ public static class YongShenAnalyzer
         var dmWx = GanWuXing[chart.DayMaster];
         var strength = JudgeStrength(dmWx, ZhiWuXing[chart.MonthPillar.Zhi]);
         var geJu = GeJuAnalyzer.Analyze(chart, strength);
+        var geJuBreak = GeJuPoGeDetector.Detect(chart, geJu, strength);
         var shiShenCounts = CountShiShenCategories(chart);
 
         return new YongShenProfile(
             strength,
-            geJu,
+            geJu with { Break = geJuBreak },
             geJu.PrimaryYongShen,
             geJu.SecondaryYongShen,
             geJu.FavoredCategories,
             geJu.FavoredElements,
             shiShenCounts,
-            $"{geJu.Summary}；主用神{geJu.PrimaryYongShen}" +
+            $"{geJu.Summary}；{geJuBreak.Summary}；主用神{geJu.PrimaryYongShen}" +
             (geJu.SecondaryYongShen is null ? "" : $"，辅用神{geJu.SecondaryYongShen}"));
     }
 

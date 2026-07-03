@@ -121,4 +121,5 @@ public record GeJuInfo(
     string? SecondaryYongShen,
     IReadOnlyList<string> FavoredCategories,
     IReadOnlyList<string> FavoredElements,
-    string Summary);
+    string Summary,
+    GeJuBreakResult? Break = null);

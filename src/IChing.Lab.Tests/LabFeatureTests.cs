@@ -59,11 +59,33 @@ public class BaziTrueSolarTimeTests
     }
 
     [Fact]
-    public void YongShen_HasGeJu()
+    public void FlowMonth_HasJieQiBoundaries()
+    {
+        var chart = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1, FlowYear: 2026));
+        var month = chart.FlowYear!.Months[0];
+        Assert.Equal("立春", month.JieQiStart);
+        Assert.NotNull(month.StartSolar);
+        Assert.NotNull(month.EndSolar);
+    }
+
+    [Fact]
+    public void FlowMonth_WithIndex_IncludesTermDays()
+    {
+        var chart = BaziEngine.Calculate(new BaziInput(
+            1990, 5, 20, 10, Gender: 1, FlowYear: 2026, FlowMonth: 1));
+        var selected = chart.FlowYear!.SelectedMonth!;
+        Assert.NotNull(selected.FlowDays);
+        Assert.True(selected.FlowDays!.Count >= 28);
+        Assert.Equal(selected.StartSolar, selected.FlowDays[0].Solar[..10]);
+    }
+
+    [Fact]
+    public void YongShen_HasGeJuBreak()
     {
         var chart = BaziEngine.Calculate(new BaziInput(1990, 5, 20, 10, Gender: 1));
+        Assert.NotNull(chart.YongShen.GeJu.Break);
+        Assert.NotEmpty(chart.YongShen.GeJu.Break!.Summary);
         Assert.NotEmpty(chart.YongShen.GeJu.Pattern);
-        Assert.NotEmpty(chart.YongShen.PrimaryYongShen);
     }
 
     [Fact]

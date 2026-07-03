@@ -20,13 +20,13 @@ bash scripts/download-qwen-model.sh ./models/qwen3-0.6b-genai
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/lab/bazi` | 八字四柱 + 藏干十神 + 用神 + 真太阳时 + 大运 + 流年流月 |
+| POST | `/lab/bazi` | 八字四柱 + 格局用神/破格 + 流年流月（节气起止+流日）+ 小运 |
 | POST | `/lab/bazi/interpret` | 排盘 + ONNX 解读一步完成 |
 | POST | `/lab/bazi/hepan` | 双人合盘（纳音、用神互补） |
 | GET | `/lab/bazi/cities` | 城市经度查找表 |
 | POST | `/lab/interpret` | 命盘 JSON → ONNX 短解读 |
 | GET | `/lab/interpret/status` | 模型是否已加载 |
-| POST | `/lab/liuyao/coin` | 六爻铜钱法 + 纳甲六亲伏神神煞（含变卦完整神煞） |
+| POST | `/lab/liuyao/coin` | 六爻铜钱法 + 纳甲六亲伏神神煞 + 变卦世应六亲对照 |
 | POST | `/lab/liuyao/time` | 六爻时间卦 + 纳甲 |
 | POST | `/lab/tarot/draw` | 塔罗抽牌（78 张 + Celtic Cross / Horseshoe） |
 | POST | `/lab/tarot/interpret` | 抽牌 + Layer1 叙事摘要 |

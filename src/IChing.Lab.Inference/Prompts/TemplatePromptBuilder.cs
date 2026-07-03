@@ -36,15 +36,87 @@ public sealed class TemplatePromptBuilder : IPromptBuilder
 
     public PromptBuildResult Build(PromptContext ctx)
     {
+        // 多模块组合：ModuleFocuses 含 2 个及以上模块时，分模块生成片段再用 combined 模板拼装。
+        if (ctx.ModuleFocuses is { Count: > 1 })
+        {
+            return BuildCombined(ctx);
+        }
         var script = BuildScriptObject(ctx);
-        var rendered = RenderWithFallback(script);
+        var rendered = RenderWithFallback(script, ctx);
         return new PromptBuildResult(rendered, EngineHint: null, NeedsTranslationPass: _needsTranslationPass);
     }
 
-    /// <summary>渲染模板：先用外部文件模板，解析失败则回退到内嵌默认，绝不抛异常。</summary>
-    private string RenderWithFallback(ScriptObject script)
+    /// <summary>
+    /// 当 ModuleFocuses.Count > 1 时，分别用各模块模板生成片段，再用 {domain}-tier{N}-combined.txt 拼装。
+    /// 组合模板内 {{ module_snippets.{module} }} 占位被片段替换。
+    /// 组合模板缺失时回退到单模块模板（取首个模块）。
+    /// </summary>
+    internal PromptBuildResult BuildCombined(PromptContext ctx)
     {
-        var text = _registry.GetTemplate(TemplateId);
+        var modules = ctx.ModuleFocuses!;
+        var engineVariant = ctx.Engine?.TemplateHint;
+        var snippets = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        // 逐模块渲染片段：用单模块上下文取对应模块模板并渲染。
+        foreach (var m in modules)
+        {
+            var moduleCtx = ctx with { ModuleFocuses = new[] { m } };
+            var moduleScript = BuildScriptObject(moduleCtx);
+            moduleScript["module_focuses"] = new[] { m };
+            var moduleText = _registry.GetTemplateWithFallback(Domain, Tier, engineVariant, m);
+            var rendered = TryRender(moduleText, moduleScript, out _);
+            snippets[m] = rendered?.TrimEnd() ?? string.Empty;
+        }
+
+        var combinedId = $"{Domain}-tier{Tier}-combined";
+        var combinedText = _registry.GetTemplate(combinedId);
+        if (string.IsNullOrEmpty(combinedText))
+        {
+            // 组合模板缺失：回退到首个模块的单模块模板。
+            var firstModule = modules[0];
+            var fallbackText = _registry.GetTemplateWithFallback(Domain, Tier, engineVariant, firstModule);
+            var fallbackScript = BuildScriptObject(ctx with { ModuleFocuses = new[] { firstModule } });
+            var fallbackRendered = TryRender(fallbackText, fallbackScript, out _);
+            return new PromptBuildResult(
+                (fallbackRendered ?? string.Empty).TrimEnd(),
+                EngineHint: null,
+                NeedsTranslationPass: _needsTranslationPass);
+        }
+
+        // 用组合模板拼装：将各模块片段注入 module_snippets.{module} 占位。
+        var combinedScript = BuildScriptObject(ctx);
+        var snippetScript = new ScriptObject();
+        foreach (var kv in snippets)
+        {
+            snippetScript[kv.Key] = kv.Value;
+        }
+        combinedScript["module_snippets"] = snippetScript;
+        var combinedRendered = TryRender(combinedText, combinedScript, out _);
+        return new PromptBuildResult(
+            (combinedRendered ?? string.Empty).TrimEnd(),
+            EngineHint: null,
+            NeedsTranslationPass: _needsTranslationPass);
+    }
+
+    /// <summary>
+    /// 渲染模板：先用算法感知的三级回退选取模板（ctx.Engine 非空时），否则降级到原 GetTemplate(TemplateId)。
+    /// 选取的模板解析失败时回退到内嵌默认，绝不抛异常。
+    /// </summary>
+    private string RenderWithFallback(ScriptObject script, PromptContext ctx)
+    {
+        // ctx.Engine 非空：走算法感知三级回退；module 仅在 ModuleFocuses 恰好 1 个时取首项。
+        string text;
+        if (ctx.Engine is not null)
+        {
+            var module = ctx.ModuleFocuses is { Count: 1 } ? ctx.ModuleFocuses[0] : null;
+            text = _registry.GetTemplateWithFallback(Domain, Tier, ctx.Engine.TemplateHint, module);
+        }
+        else
+        {
+            // 旧调用方（未传 Engine）：保持改造前行为，按 TemplateId 直接取模板。
+            text = _registry.GetTemplate(TemplateId);
+        }
+
         var rendered = TryRender(text, script, out _);
         if (rendered is not null)
         {
@@ -94,6 +166,12 @@ public sealed class TemplatePromptBuilder : IPromptBuilder
         var focus = ctx.Focus ?? "综合";
         script["focus"] = focus;
         script["question"] = ctx.Question ?? string.Empty;
+
+        // 算法感知变量：注入引擎元数据，供模板按算法来源组织回答；旧调用方（Engine=null）取空值。
+        script["engine_variant"] = ctx.Engine?.TemplateHint ?? string.Empty;
+        script["module_focuses"] = ctx.ModuleFocuses ?? Array.Empty<string>();
+        script["engine_source"] = ctx.Engine?.Source ?? string.Empty;
+        script["engine_algorithm_basis"] = ctx.Engine?.AlgorithmBasis ?? string.Empty;
 
         switch (Domain, TemplateId)
         {

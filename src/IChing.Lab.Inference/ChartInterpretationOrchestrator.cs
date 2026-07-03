@@ -26,19 +26,39 @@ public sealed class ChartInterpretationOrchestrator
     private readonly IReadOnlyDictionary<string, IPromptBuilder> _promptBuilders;
     private readonly ILogger<ChartInterpretationOrchestrator> _logger;
     private readonly IConfiguration _configuration;
+    // 排盘引擎集合（按 EngineId 索引），供算法感知的模板选择解析 EngineMetadata / ModuleFocus。
+    // 默认空集合：旧调用方/测试不注入排盘引擎时，ResolveEngineMetadata 返回 null，行为与改造前一致。
+    private readonly IReadOnlyDictionary<string, IChartEngine> _chartEngines;
 
     public ChartInterpretationOrchestrator(
         IEnumerable<IInferenceEngine> engines,
         IEnumerable<IPromptBuilder> promptBuilders,
         IConfiguration configuration,
-        ILogger<ChartInterpretationOrchestrator> logger)
+        ILogger<ChartInterpretationOrchestrator> logger,
+        IEnumerable<IChartEngine>? chartEngines = null)
     {
         _engines = engines.ToDictionary(e => e.EngineId);
         // 按 TemplateId 索引 PromptBuilder，供 RunFixture / 翻译 pass 按 domain+tier+templateId 选取。
         _promptBuilders = promptBuilders.ToDictionary(b => b.TemplateId);
         _configuration = configuration;
         _logger = logger;
+        _chartEngines = (chartEngines ?? Enumerable.Empty<IChartEngine>())
+            .ToDictionary(e => e.EngineId);
     }
+
+    /// <summary>
+    /// 按 EngineId 解析排盘引擎元数据；未注册返回 null。
+    /// 供调用方在构造 PromptContext 时填充 <see cref="PromptContext.Engine"/> 字段，驱动算法感知的模板选择。
+    /// </summary>
+    public EngineMetadata? ResolveEngineMetadata(string engineId) =>
+        _chartEngines.TryGetValue(engineId, out var engine) ? engine.Metadata : null;
+
+    /// <summary>
+    /// 按 EngineId 解析排盘引擎的模块面向列表；未注册返回空数组。
+    /// 供调用方填充 <see cref="PromptContext.ModuleFocuses"/>，驱动多模块组合 prompt 拼装。
+    /// </summary>
+    public IReadOnlyList<string> ResolveModuleFocuses(string engineId) =>
+        _chartEngines.TryGetValue(engineId, out var engine) ? engine.Metadata.ModuleFocus : Array.Empty<string>();
 
     /// <summary>按 templateId 选取已注册的 IPromptBuilder；未注册返回 null。</summary>
     public IPromptBuilder? SelectPromptBuilder(string templateId) =>

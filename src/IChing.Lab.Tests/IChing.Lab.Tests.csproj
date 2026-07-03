@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
@@ -22,6 +24,7 @@
   <ItemGroup>
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
     <ProjectReference Include="..\IChing.Lab.Inference\IChing.Lab.Inference.csproj" />
+    <ProjectReference Include="..\IChing.Lab.PluginLoader\IChing.Lab.PluginLoader.csproj" />
   </ItemGroup>
 
 </Project>

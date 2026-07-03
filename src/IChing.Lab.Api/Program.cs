@@ -5,6 +5,7 @@ using IChing.Lab.Core.Engines;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
 using IChing.Lab.Inference.Prompts;
+using IChing.Lab.PluginLoader;
 using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,6 +53,21 @@ builder.Services.AddSingleton<IChartEngine, BaziChartEngine>();
 builder.Services.AddSingleton<IChartEngine, LiuyaoChartEngine>();
 builder.Services.AddSingleton<IChartEngine, TarotChartEngine>();
 builder.Services.AddSingleton<IChartEngine, CalendarEngine>();
+
+// 加载外部插件（在 Build 之前将插件服务注册到 DI）。
+// 共享接口 IPluginModule/IPluginManifest 落到 default ALC，保证主程序与插件类型同一；
+// 任一插件加载失败仅记录日志并跳过，不影响主程序启动。
+using var pluginLoggerFactory = LoggerFactory.Create(b =>
+{
+    b.AddConfiguration(builder.Configuration.GetSection("Logging"));
+    b.AddConsole();
+});
+var pluginLoader = new PluginLoader(
+    builder.Configuration,
+    pluginLoggerFactory.CreateLogger<PluginLoader>(),
+    builder.Environment.ContentRootPath);
+pluginLoader.DiscoverAndRegister(builder.Services);
+builder.Services.AddSingleton(pluginLoader);
 
 var app = builder.Build();
 

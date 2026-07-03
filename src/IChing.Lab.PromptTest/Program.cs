@@ -5,6 +5,7 @@ using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
 using IChing.Lab.Inference.Prompts;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 var options = ParseArgs(args);
@@ -40,7 +41,10 @@ IPromptBuilder[] promptBuilders =
     new TemplatePromptBuilder(registry, "tarot", 1, "tarot-translate-to-zh")
 ];
 var promptBuilderIndex = promptBuilders.ToDictionary(b => b.TemplateId);
-var service = new ChartInterpretationOrchestrator(engines, promptBuilders, loggerFactory.CreateLogger<ChartInterpretationOrchestrator>());
+// PromptTest 控制台宿主不加载 appsettings，使用空配置：降级链回退到默认 [onnx-genai-..., template-fallback]。
+IConfiguration configuration = new ConfigurationBuilder().Build();
+var service = new ChartInterpretationOrchestrator(
+    engines, promptBuilders, configuration, loggerFactory.CreateLogger<ChartInterpretationOrchestrator>());
 
 var exitCode = 0;
 foreach (var path in fixtures)

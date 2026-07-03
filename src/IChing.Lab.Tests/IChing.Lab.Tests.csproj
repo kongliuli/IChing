@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IChing.Lab.Api\IChing.Lab.Api.csproj" />
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
     <ProjectReference Include="..\IChing.Lab.Inference\IChing.Lab.Inference.csproj" />
     <ProjectReference Include="..\IChing.Lab.PluginLoader\IChing.Lab.PluginLoader.csproj" />

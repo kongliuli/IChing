@@ -16,6 +16,13 @@ public sealed class TarotChartEngine : IChartEngine
 
     public string EngineId => "iching-tarot-built-in";
 
+    public EngineMetadata Metadata { get; } = new(
+        Source: "builtin",
+        Version: "1.0",
+        AlgorithmBasis: "内置 78 张 RWS + Celtic Cross/Horseshoe",
+        TemplateHint: "builtin",
+        ModuleFocus: ["draw", "narrative"]);
+
     /// <summary>从参数字典读取牌阵/问题/种子，委托给原静态方法 TarotEngine.Draw。</summary>
     public object Calculate(ChartRequest request)
     {

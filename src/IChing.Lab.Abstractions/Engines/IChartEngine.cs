@@ -14,6 +14,11 @@ public interface IChartEngine
     string EngineId { get; }
 
     /// <summary>
+    /// 引擎元数据，描述底层算法来源、版本与算法依据，供 prompt 模板选择与运维诊断使用。
+    /// </summary>
+    EngineMetadata Metadata { get; }
+
+    /// <summary>
     /// 根据请求执行排盘计算并返回排盘结果对象。
     /// </summary>
     /// <param name="request">排盘请求，包含领域标识与参数字典。</param>

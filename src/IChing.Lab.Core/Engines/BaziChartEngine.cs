@@ -16,6 +16,13 @@ public sealed class BaziChartEngine : IChartEngine
 
     public string EngineId => "lunar-csharp-1.6.8";
 
+    public EngineMetadata Metadata { get; } = new(
+        Source: "lunar-csharp",
+        Version: "1.6.8",
+        AlgorithmBasis: "6tail lunar-csharp 0001-9999 年",
+        TemplateHint: "lunar",
+        ModuleFocus: ["geju", "yongshen", "liunian"]);
+
     /// <summary>从参数字典反序列化 BaziInput，委托给原静态方法 BaziEngine.Calculate 计算排盘。</summary>
     public object Calculate(ChartRequest request)
     {

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- 示例插件：不把引用程序集（含 Abstractions）复制到输出，避免在 plugins/ 出现重复副本；
+         共享接口由主程序的 default ALC 提供，保证主程序与插件类型同一。 -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+    <ProjectReference Include="..\ChartBridge\ChartBridge.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
+  </ItemGroup>
+
+</Project>

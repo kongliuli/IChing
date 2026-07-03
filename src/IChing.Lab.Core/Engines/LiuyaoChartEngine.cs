@@ -17,6 +17,13 @@ public sealed class LiuyaoChartEngine : IChartEngine
 
     public string EngineId => "iching-sixlines-2.0.3";
 
+    public EngineMetadata Metadata { get; } = new(
+        Source: "IChingLibrary.SixLines",
+        Version: "2.0.3",
+        AlgorithmBasis: "京房纳甲+世应+六亲+六神+16神煞",
+        TemplateHint: "sixlines",
+        ModuleFocus: ["najia", "shensha"]);
+
     /// <summary>根据 Args["method"] 选择起卦方式，委托给原静态方法 LiuyaoNajiaService.Coin / Time。</summary>
     public object Calculate(ChartRequest request)
     {

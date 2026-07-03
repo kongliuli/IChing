@@ -16,6 +16,13 @@ public sealed class CalendarEngine : IChartEngine
 
     public string EngineId => "lunar-csharp-1.6.8";
 
+    public EngineMetadata Metadata { get; } = new(
+        Source: "lunar-csharp",
+        Version: "1.6.8",
+        AlgorithmBasis: "基于 lunar-csharp 黄历",
+        TemplateHint: "lunar",
+        ModuleFocus: ["huangli", "jieqi"]);
+
     /// <summary>从参数字典读取年月日，委托给原静态方法 HuangLiService.GetDay。</summary>
     public object Calculate(ChartRequest request)
     {

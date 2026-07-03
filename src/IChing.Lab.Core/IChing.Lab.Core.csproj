@@ -11,4 +11,8 @@
     <PackageReference Include="lunar-csharp" Version="1.6.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

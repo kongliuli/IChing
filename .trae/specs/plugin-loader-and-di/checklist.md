@@ -1,0 +1,14 @@
+- [ ] IChing.Lab.PluginLoader 项目创建并加入 sln
+- [ ] PluginLoadContext 继承 AssemblyLoadContext，isCollectible=true
+- [ ] PluginLoadContext 使用 AssemblyDependencyResolver 解析依赖
+- [ ] PluginLoader.Discover() 扫描 plugins/*.dll
+- [ ] PluginLoader.LoadAssembly 每个插件独立 ALC
+- [ ] IPluginManifest.RequiredApiVersion 与 AbstractionsVersion 兼容性校验
+- [ ] 不兼容的插件被跳过，日志记录 warning
+- [ ] IPluginModule.Register(IServiceCollection) 被调用
+- [ ] Unload() + GC 后 WeakReference.IsAlive=false
+- [ ] appsettings.json 含 plugins:externalAssemblies 配置段
+- [ ] plugins/ 目录存在（.gitkeep）
+- [ ] plugins/ 不存在时主程序正常启动
+- [ ] samples/SamplePlugin mock 插件可被加载并注册服务
+- [ ] dotnet test 全绿

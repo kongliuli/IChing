@@ -1,0 +1,20 @@
+- [ ] samples/LLamaSharpEngine 项目独立可编译
+- [ ] samples/OpenAiCompatibleEngine 项目独立可编译
+- [ ] LLamaSharpEngine 实现 IInferenceEngine，EngineId="llama-sharp-qwen3-4b"
+- [ ] OpenAiCompatibleEngineBase abstract 基类已定义
+- [ ] OllamaLocalEngine 继承基类，EngineId="ollama-local"
+- [ ] LlamaServerLocalEngine 继承基类，EngineId="llama-server-local"
+- [ ] OpenAiRemoteEngine 继承基类，EngineId="openai-remote"
+- [ ] AzureOpenAiEngine 继承基类，EngineId="azure-openai-remote"
+- [ ] API key 从 IConfiguration 读取，不入仓
+- [ ] git grep 无明文 sk- 开头的 key
+- [ ] ChartInterpretationOrchestrator 按 plugins:fallbackChain 顺序降级
+- [ ] 引擎不可用时自动降级到下一引擎
+- [ ] 全部引擎不可用时使用 template-fallback，isFallback=true
+- [ ] GET /health/engines 返回所有引擎状态
+- [ ] appsettings.json 含完整 plugins 配置段
+- [ ] samples DLL 拷贝到 plugins/ 后被主程序加载
+- [ ] Ollama 本地服务在线时 /lab/bazi/read 返回解读
+- [ ] Ollama 离线时降级到 template-fallback
+- [ ] OpenAI 远程调用成功（需 User Secrets 配置 key）
+- [ ] dotnet test 全绿

@@ -1,0 +1,9 @@
+- [x] BaziChartEngine 实现 IChartEngine，Domain="bazi"
+- [x] LiuyaoChartEngine 实现 IChartEngine，Domain="liuyao"
+- [x] TarotChartEngine 实现 IChartEngine，Domain="tarot"
+- [x] CalendarEngine 实现 IChartEngine，Domain="calendar"
+- [x] 4 个包装类均委托给原 static 方法，未复制算法逻辑
+- [x] Program.cs 注册 4 个 IChartEngine 到 DI
+- [x] GET /lab/engines 端点返回 4 条记录（domain + engineId）
+- [x] 原 BaziEngine / LiuyaoNajiaService / TarotEngine / HuangLiService 的 static 签名未改动
+- [x] dotnet test 全绿

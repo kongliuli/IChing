@@ -81,7 +81,7 @@ app.MapPost("/calendar", async (HttpRequest request) =>
     }
 
     var routed = chartRouter.Calculate("calendar", body.Args, ["lunar-csharp-1.6.8"]);
-    return Results.Json(routed.Result, SidecarJson.Web);
+    return Results.Json(new { engine = new { paipan = routed.EngineId }, day = routed.Result }, SidecarJson.Web);
 });
 
 Console.WriteLine($"IChing.ChartSidecar preset={preset.Name} ports=[{string.Join(',', preset.Ports)}]");

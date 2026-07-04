@@ -28,6 +28,8 @@ public partial class DrawPage : ContentPage
         {
             SpreadPicker.SelectedIndex = 0;
         }
+
+        OnSpreadChanged(null, EventArgs.Empty);
     }
 
     private void OnSpreadChanged(object? sender, EventArgs e)

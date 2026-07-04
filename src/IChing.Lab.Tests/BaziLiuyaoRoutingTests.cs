@@ -152,9 +152,43 @@ public class BaziLiuyaoRoutingTests
             });
 
             Assert.True(response.IsSuccessStatusCode);
-            var day = await response.Content.ReadFromJsonAsync<HuangLiDay>();
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            Assert.True(doc.RootElement.TryGetProperty("day", out var dayEl));
+            var day = JsonSerializer.Deserialize<HuangLiDay>(dayEl.GetRawText(), new JsonSerializerOptions(JsonSerializerDefaults.Web));
             Assert.NotNull(day);
             Assert.False(string.IsNullOrWhiteSpace(day!.Solar));
+        }
+        catch (HttpRequestException)
+        {
+            // sidecar 未启动时跳过
+        }
+        catch (TaskCanceledException)
+        {
+            // sidecar 未启动时跳过
+        }
+    }
+
+    [Fact]
+    public async Task Sidecar_LiuyaoEndpoint_WhenRunning_ReturnsHexagram()
+    {
+        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        try
+        {
+            using var health = await client.GetAsync("http://127.0.0.1:5001/health");
+            if (!health.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            using var response = await client.PostAsJsonAsync("http://127.0.0.1:5001/liuyao", new
+            {
+                args = new { method = "coin", seed = 7 }
+            });
+
+            Assert.True(response.IsSuccessStatusCode);
+            var chart = await response.Content.ReadFromJsonAsync<LiuyaoNajiaResult>();
+            Assert.NotNull(chart);
+            Assert.False(string.IsNullOrWhiteSpace(chart!.OriginalHexagram));
         }
         catch (HttpRequestException)
         {

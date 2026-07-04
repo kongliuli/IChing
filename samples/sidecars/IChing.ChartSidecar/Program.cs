@@ -1,5 +1,4 @@
 using System.Text.Json;
-using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Core.Engines;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Engines.Tarot;
@@ -15,10 +14,12 @@ builder.WebHost.ConfigureKestrel(options =>
 });
 
 var app = builder.Build();
-var bazi = new BaziChartEngine();
-var liuyao = new LiuyaoChartEngine();
-var calendar = new CalendarEngine();
-var tarotRouter = new ChartEngineRouter([new TarotChartEngine()]);
+var chartRouter = new ChartEngineRouter([
+    new BaziChartEngine(),
+    new LiuyaoChartEngine(),
+    new TarotChartEngine(),
+    new CalendarEngine()
+]);
 var tarotChain = new[] { "iching-tarot-built-in" };
 
 app.MapGet("/health", () => Results.Ok(new
@@ -28,7 +29,8 @@ app.MapGet("/health", () => Results.Ok(new
     preset = preset.Name,
     ports = preset.Ports,
     routes = new[] { "POST /bazi", "POST /liuyao", "POST /tarot", "POST /calendar" },
-    tarotPipeline = "TarotDrawPipeline"
+    tarotPipeline = "TarotDrawPipeline",
+    engines = chartRouter.All.Select(e => new { e.Domain, e.EngineId }).ToArray()
 }));
 
 app.MapPost("/bazi", async (HttpRequest request) =>
@@ -39,8 +41,8 @@ app.MapPost("/bazi", async (HttpRequest request) =>
         return Results.BadRequest(new { error = "missing args" });
     }
 
-    var chart = bazi.Calculate(new ChartRequest("bazi", body.Args));
-    return Results.Json(chart, SidecarJson.Web);
+    var routed = chartRouter.Calculate("bazi", body.Args, ["lunar-csharp-1.6.8"]);
+    return Results.Json(routed.Result, SidecarJson.Web);
 });
 
 app.MapPost("/liuyao", async (HttpRequest request) =>
@@ -51,8 +53,8 @@ app.MapPost("/liuyao", async (HttpRequest request) =>
         return Results.BadRequest(new { error = "missing args" });
     }
 
-    var chart = liuyao.Calculate(new ChartRequest("liuyao", body.Args));
-    return Results.Json(chart, SidecarJson.Web);
+    var routed = chartRouter.Calculate("liuyao", body.Args, ["iching-sixlines-2.0.3"]);
+    return Results.Json(routed.Result, SidecarJson.Web);
 });
 
 app.MapPost("/tarot", async (HttpRequest request) =>
@@ -66,7 +68,7 @@ app.MapPost("/tarot", async (HttpRequest request) =>
     var spreadId = SidecarArgs.GetString(body.Args, "spreadId");
     var question = SidecarArgs.GetString(body.Args, "question");
     var seed = SidecarArgs.GetInt(body.Args, "seed");
-    var (reading, engineId) = TarotDrawPipeline.Draw(tarotRouter, tarotChain, spreadId, question, seed);
+    var (reading, engineId) = TarotDrawPipeline.Draw(chartRouter, tarotChain, spreadId, question, seed);
     return Results.Json(new { engine = new { paipan = engineId }, reading }, SidecarJson.Web);
 });
 
@@ -78,8 +80,8 @@ app.MapPost("/calendar", async (HttpRequest request) =>
         return Results.BadRequest(new { error = "missing args" });
     }
 
-    var day = calendar.Calculate(new ChartRequest("calendar", body.Args));
-    return Results.Json(day, SidecarJson.Web);
+    var routed = chartRouter.Calculate("calendar", body.Args, ["lunar-csharp-1.6.8"]);
+    return Results.Json(routed.Result, SidecarJson.Web);
 });
 
 Console.WriteLine($"IChing.ChartSidecar preset={preset.Name} ports=[{string.Join(',', preset.Ports)}]");

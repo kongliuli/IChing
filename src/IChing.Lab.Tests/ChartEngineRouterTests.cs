@@ -3,6 +3,7 @@ using IChing.Lab.Core.Engines;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Engines.Tarot;
+using Microsoft.Extensions.Configuration;
 
 namespace IChing.Lab.Tests;
 
@@ -37,6 +38,23 @@ public class ChartEngineRouterTests
         Assert.Equal("iching-tarot-built-in", engineId);
         Assert.Single(reading.Positions);
         Assert.Contains(reading.Positions, p => TarotDeckData.FindByNameIgnoreCase(p.CardName) is not null);
+    }
+
+    [Fact]
+    public void ResolveEngineChain_ReadsDefaultAndFallbackFromConfig()
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["plugins:chartEngines:0:domain"] = "tarot",
+                ["plugins:chartEngines:0:default"] = "iching-tarot-built-in",
+                ["plugins:chartEngines:0:fallback:0"] = "tarot-deckaura-data"
+            })
+            .Build();
+
+        var chain = ChartEngineRouter.ResolveEngineChain(config, "tarot", "builtin-fallback");
+        Assert.Equal("iching-tarot-built-in", chain[0]);
+        Assert.Contains("tarot-deckaura-data", chain);
     }
 
     [Fact]

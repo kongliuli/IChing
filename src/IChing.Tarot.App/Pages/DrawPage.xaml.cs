@@ -226,8 +226,13 @@ public partial class DrawPage : ContentPage
         HistoryCollection.ItemsSource = recent;
     }
 
-    private void OnClearHistoryClicked(object? sender, EventArgs e)
+    private async void OnClearHistoryClicked(object? sender, EventArgs e)
     {
+        if (!await DisplayAlertAsync("清空历史", "确定删除全部抽牌记录？", "清空", "取消"))
+        {
+            return;
+        }
+
         App.History.Clear();
         UpdateHistoryPanel();
     }

@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Text.Json;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Engines;
 using IChing.Lab.Core.Liuyao;
@@ -86,6 +87,41 @@ public class BaziLiuyaoRoutingTests
             var chart = await response.Content.ReadFromJsonAsync<BaziChart>();
             Assert.NotNull(chart);
             Assert.False(string.IsNullOrWhiteSpace(chart!.DayPillar.GanZhi));
+        }
+        catch (HttpRequestException)
+        {
+            // sidecar 未启动时跳过
+        }
+        catch (TaskCanceledException)
+        {
+            // sidecar 未启动时跳过
+        }
+    }
+
+    [Fact]
+    public async Task Sidecar_TarotEndpoint_WhenRunning_ReturnsEnrichedReading()
+    {
+        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        try
+        {
+            using var health = await client.GetAsync("http://127.0.0.1:5001/health");
+            if (!health.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            using var response = await client.PostAsJsonAsync("http://127.0.0.1:5001/tarot", new
+            {
+                args = new { spreadId = "single-card", question = "test", seed = 42 }
+            });
+
+            Assert.True(response.IsSuccessStatusCode);
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            Assert.True(doc.RootElement.TryGetProperty("reading", out var reading));
+            Assert.True(reading.TryGetProperty("positions", out var positions));
+            Assert.True(positions.GetArrayLength() > 0);
+            Assert.True(doc.RootElement.TryGetProperty("engine", out var engine));
+            Assert.Equal("iching-tarot-built-in", engine.GetProperty("paipan").GetString());
         }
         catch (HttpRequestException)
         {

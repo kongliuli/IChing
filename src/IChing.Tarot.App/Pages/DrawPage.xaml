@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:IChing.Tarot.App.Models"
+             xmlns:services="clr-namespace:IChing.Tarot.App.Services"
              x:Class="IChing.Tarot.App.Pages.DrawPage"
              Title="星轨塔罗"
              Background="{StaticResource PageGradient}">
@@ -268,15 +269,16 @@
                     Padding="16"
                     StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="最近抽牌"
+                    <Label Text="最近抽牌（点击复现）"
                            FontAttributes="Bold"
                            TextColor="{StaticResource Gold}" />
                     <CollectionView x:Name="HistoryCollection"
-                                    SelectionMode="None"
+                                    SelectionMode="Single"
+                                    SelectionChanged="OnHistorySelected"
                                     HeightRequest="120">
                         <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Label Text="{Binding .}"
+                            <DataTemplate x:DataType="services:HistoryEntry">
+                                <Label Text="{Binding DisplayLine}"
                                        FontSize="12"
                                        TextColor="{StaticResource TextSecondary}"
                                        Margin="0,0,0,6" />

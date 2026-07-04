@@ -71,7 +71,7 @@ public partial class DrawPage : ContentPage
         var result = App.Tarot.Draw(spread.Id, QuestionEntry.Text, seed);
         _currentReading = result.Reading;
         _engineId = result.EngineId;
-        ShowReading(_currentReading);
+        await ShowReadingAsync(_currentReading);
         App.History.Add(_currentReading, _engineId);
         UpdateHistoryPanel();
         InterpretationPanel.IsVisible = false;
@@ -83,9 +83,10 @@ public partial class DrawPage : ContentPage
 
     private void OnRedrawClicked(object? sender, EventArgs e) => OnDrawClicked(sender, e);
 
-    private void ShowReading(TarotReading reading)
+    private async Task ShowReadingAsync(TarotReading reading)
     {
         ReadingPanel.IsVisible = true;
+        ReadingPanel.Opacity = 0;
         ReadingTitleLabel.Text = reading.Question is { Length: > 0 } q
             ? $"「{q}」· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
@@ -102,6 +103,36 @@ public partial class DrawPage : ContentPage
             IsReversed = p.Reversed,
             CardImage = TarotCardVisual.TryImage(p.CardName)
         }).ToList();
+
+        await ReadingPanel.FadeTo(1, 280);
+    }
+
+    private async void OnHistorySelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.FirstOrDefault() is not HistoryEntry entry)
+        {
+            return;
+        }
+
+        HistoryCollection.SelectedItem = null;
+
+        var spreadIdx = _spreads.FindIndex(s => s.Id == entry.SpreadId);
+        if (spreadIdx >= 0)
+        {
+            SpreadPicker.SelectedIndex = spreadIdx;
+        }
+
+        QuestionEntry.Text = entry.Question ?? string.Empty;
+        SeedEntry.Text = entry.Seed?.ToString() ?? string.Empty;
+
+        var result = App.Tarot.Draw(entry.SpreadId, entry.Question, entry.Seed);
+        _currentReading = result.Reading;
+        _engineId = result.EngineId;
+        InterpretationPanel.IsVisible = false;
+        InterpretButton.IsEnabled = true;
+        EmptyStatePanel.IsVisible = false;
+        await ShowReadingAsync(_currentReading);
+        await MainScroll.ScrollToAsync(ReadingPanel, ScrollToPosition.Start, true);
     }
 
     private async void OnInterpretClicked(object? sender, EventArgs e)
@@ -163,11 +194,6 @@ public partial class DrawPage : ContentPage
     {
         var recent = App.History.GetRecent();
         HistoryPanel.IsVisible = recent.Count > 0;
-        HistoryCollection.ItemsSource = recent.Select(h =>
-            $"{h.At.LocalDateTime:MM-dd HH:mm} · {h.SpreadTitle} · {h.CardCount}张" +
-            (h.Question is { Length: > 0 } q ? $" · {Truncate(q, 20)}" : string.Empty)).ToList();
+        HistoryCollection.ItemsSource = recent;
     }
-
-    private static string Truncate(string s, int max) =>
-        s.Length <= max ? s : s[..max] + "…";
 }

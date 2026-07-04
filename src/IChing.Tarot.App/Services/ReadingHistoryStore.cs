@@ -32,6 +32,8 @@ public sealed class ReadingHistoryStore
 
     public IReadOnlyList<HistoryEntry> GetRecent() => Load();
 
+    public void Clear() => Preferences.Default.Remove(PrefKey);
+
     private static List<HistoryEntry> Load()
     {
         var json = Preferences.Default.Get(PrefKey, string.Empty);

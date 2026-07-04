@@ -270,9 +270,22 @@
                     Padding="16"
                     StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="最近抽牌（点击复现）"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource Gold}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               Text="最近抽牌（点击复现）"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Gold}" />
+                        <Button Grid.Column="1"
+                                Text="清空"
+                                FontSize="11"
+                                Padding="8,2"
+                                CornerRadius="8"
+                                Clicked="OnClearHistoryClicked"
+                                TextColor="{StaticResource Muted}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{StaticResource GoldDim}"
+                                BorderWidth="1" />
+                    </Grid>
                     <CollectionView x:Name="HistoryCollection"
                                     SelectionMode="Single"
                                     SelectionChanged="OnHistorySelected"

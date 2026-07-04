@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using IChing.Lab.Core.Bazi;
+using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Engines;
 using IChing.Lab.Core.Liuyao;
 using IChing.Lab.Core.Services;
@@ -122,6 +123,38 @@ public class BaziLiuyaoRoutingTests
             Assert.True(positions.GetArrayLength() > 0);
             Assert.True(doc.RootElement.TryGetProperty("engine", out var engine));
             Assert.Equal("iching-tarot-built-in", engine.GetProperty("paipan").GetString());
+        }
+        catch (HttpRequestException)
+        {
+            // sidecar 未启动时跳过
+        }
+        catch (TaskCanceledException)
+        {
+            // sidecar 未启动时跳过
+        }
+    }
+
+    [Fact]
+    public async Task Sidecar_CalendarEndpoint_WhenRunning_ReturnsHuangLiDay()
+    {
+        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        try
+        {
+            using var health = await client.GetAsync("http://127.0.0.1:5001/health");
+            if (!health.IsSuccessStatusCode)
+            {
+                return;
+            }
+
+            using var response = await client.PostAsJsonAsync("http://127.0.0.1:5001/calendar", new
+            {
+                args = new { year = 2026, month = 1, day = 1, sect = 1 }
+            });
+
+            Assert.True(response.IsSuccessStatusCode);
+            var day = await response.Content.ReadFromJsonAsync<HuangLiDay>();
+            Assert.NotNull(day);
+            Assert.False(string.IsNullOrWhiteSpace(day!.Solar));
         }
         catch (HttpRequestException)
         {

@@ -210,4 +210,10 @@ public partial class DrawPage : ContentPage
         HistoryPanel.IsVisible = recent.Count > 0;
         HistoryCollection.ItemsSource = recent;
     }
+
+    private void OnClearHistoryClicked(object? sender, EventArgs e)
+    {
+        App.History.Clear();
+        UpdateHistoryPanel();
+    }
 }

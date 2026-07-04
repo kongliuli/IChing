@@ -13,7 +13,9 @@ internal static class EmbeddedPromptDefaults
         ["bazi-tier1-default"] = BaziTier1Default,
         ["liuyao-tier1-default"] = LiuyaoTier1Default,
         ["tarot-tier1-en"] = TarotTier1En,
-        ["tarot-translate-to-zh"] = TarotTranslateToZh
+        ["tarot-translate-to-zh"] = TarotTranslateToZh,
+        ["tarot-tier1-deckaura-default"] = TarotTier1DeckauraDefault,
+        ["tarot-tier2-celtic-cross"] = TarotTier2CelticCross
     };
 
     /// <summary>按 templateId 取内嵌默认模板文本；未知 templateId 返回 null。</summary>
@@ -79,6 +81,56 @@ Write a {{ word_limit }}-word reading that follows the spread's narrative arc.
 Use one section per listed position and keep card names only in section headings.
 
 <|im_start|>assistant
+""";
+
+    private const string TarotTier1DeckauraDefault = """
+You are a tarot reading assistant. This reading uses the Deckaura 78-card dataset (12 dimensions per card).
+
+[Focus] {{ focus }}
+[Question] {{ question }}
+[Spread]
+{{ spread_title }}
+
+[Positions]
+{{ positions_block }}
+
+[Rule Digest]
+{{ rule_digest }}
+
+[Algorithm Basis] {{ engine_algorithm_basis }}
+
+Please organize your response as follows:
+1. Overall energy of the spread
+2. Position-by-position interpretation (use upright/reversed meanings from the dataset)
+3. Card interactions (elemental/numerological patterns from the rule digest)
+4. Synthesis and advice (under {{ word_limit }} words)
+""";
+
+    private const string TarotTier2CelticCross = """
+You are a tarot reading assistant specializing in Celtic Cross spreads (10 positions).
+The spread below was drawn by the system using the Deckaura 78-card dataset.
+Do NOT change card names, positions, or upright/reversed states.
+Do NOT invent cards that are not listed.
+
+[Question] {{ question }}
+[Spread] {{ spread_title }}
+
+[Positions]
+{{ positions_block }}
+
+[Rule Digest]
+{{ rule_digest }}
+
+[Algorithm Basis] {{ engine_algorithm_basis }}
+
+Write a detailed Chinese reading (about {{ word_limit }} words) structured as:
+1. Cross overview — present situation vs challenge dynamic
+2. Staff (vertical axis) — distant past, recent past, crown/hope, foundation, near future
+3. Staff (horizontal) — self/approach, environment, hopes & fears, outcome
+4. Elemental balance and card interactions from the rule digest
+5. Actionable advice and timing hints (no fabricated dates)
+
+Use clear section headings. Keep each listed card name only in its position heading.
 """;
 
     private const string TarotTranslateToZh = """

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>IChing.ChartSidecar</RootNamespace>
+    <Description>HTTP sidecar 样板：实现 ChartBridge 协议，供桥接插件本地联调</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\IChing.Lab.Core\IChing.Lab.Core.csproj" />
+    <ProjectReference Include="..\..\TarotEngines\TarotEngines.csproj" />
+  </ItemGroup>
+
+</Project>

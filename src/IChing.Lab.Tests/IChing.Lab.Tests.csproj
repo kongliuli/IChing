@@ -31,6 +31,17 @@
     <ProjectReference Include="..\..\samples\LiuyaoEngines\LiuyaoEngines.csproj" />
     <ProjectReference Include="..\..\samples\BaziEngines\BaziEngines.csproj" />
     <ProjectReference Include="..\..\samples\CalendarEngines\CalendarEngines.csproj" />
+    <ProjectReference Include="..\..\samples\SamplePlugin\SamplePlugin.csproj" />
   </ItemGroup>
+
+  <Target Name="EnsureSamplePlugin" BeforeTargets="Build">
+    <PropertyGroup>
+      <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..\'))</RepoRoot>
+      <SamplePluginDll>$(RepoRoot)plugins\SamplePlugin.dll</SamplePluginDll>
+      <SamplePluginProj>$(RepoRoot)samples\SamplePlugin\SamplePlugin.csproj</SamplePluginProj>
+    </PropertyGroup>
+    <Exec Condition="!Exists('$(SamplePluginDll)')"
+          Command="dotnet build &quot;$(SamplePluginProj)&quot; -c $(Configuration) -o &quot;$(RepoRoot)plugins&quot;" />
+  </Target>
 
 </Project>

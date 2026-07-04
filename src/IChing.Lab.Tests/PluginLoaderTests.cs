@@ -47,7 +47,8 @@ public class PluginLoaderTests
         var candidates = new List<string>
         {
             Path.Combine(Environment.CurrentDirectory, "plugins", "SamplePlugin.dll"),
-            Path.Combine(Environment.CurrentDirectory, "samples", "SamplePlugin", "bin", "Debug", "net10.0", "SamplePlugin.dll")
+            Path.Combine(Environment.CurrentDirectory, "samples", "SamplePlugin", "bin", "Debug", "net10.0", "SamplePlugin.dll"),
+            Path.Combine(Environment.CurrentDirectory, "samples", "SamplePlugin", "bin", "Release", "net10.0", "SamplePlugin.dll")
         };
 
         // 从测试输出目录向上查找仓库根（含 src/IChing.Lab.sln），再拼接候选路径。
@@ -57,7 +58,9 @@ public class PluginLoaderTests
             if (File.Exists(Path.Combine(dir.FullName, "src", "IChing.Lab.sln")))
             {
                 candidates.Add(Path.Combine(dir.FullName, "plugins", "SamplePlugin.dll"));
+                candidates.Add(Path.Combine(dir.FullName, "src", "IChing.Lab.Api", "plugins", "SamplePlugin.dll"));
                 candidates.Add(Path.Combine(dir.FullName, "samples", "SamplePlugin", "bin", "Debug", "net10.0", "SamplePlugin.dll"));
+                candidates.Add(Path.Combine(dir.FullName, "samples", "SamplePlugin", "bin", "Release", "net10.0", "SamplePlugin.dll"));
                 break;
             }
             dir = dir.Parent;

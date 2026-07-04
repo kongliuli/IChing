@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="IChing.Tarot.App.Pages.SettingsPage"
+             Title="设置"
+             Background="{StaticResource PageGradient}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20,28" Spacing="18">
+            <Label Text="解读 API 设置"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Gold}" />
+            <Label Text="API Key 仅保存在本机。抽牌与 Deckaura 牌义在本地运行，解读时才联网。"
+                   TextColor="{StaticResource TextSecondary}"
+                   LineBreakMode="WordWrap" />
+
+            <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
+                    Background="{StaticResource Surface}" Padding="16"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="服务商预设" TextColor="{StaticResource TextSecondary}" FontSize="13" />
+                    <Picker x:Name="ProviderPicker"
+                            Title="选择服务商"
+                            SelectedIndexChanged="OnProviderChanged"
+                            TextColor="{StaticResource TextPrimary}"
+                            BackgroundColor="{StaticResource SurfaceAlt}">
+                        <Picker.Items>
+                            <x:String>DeepSeek</x:String>
+                            <x:String>OpenAI</x:String>
+                            <x:String>自定义</x:String>
+                        </Picker.Items>
+                    </Picker>
+
+                    <Label Text="API Base URL" TextColor="{StaticResource TextSecondary}" FontSize="13" />
+                    <Entry x:Name="BaseUrlEntry"
+                           TextColor="{StaticResource TextPrimary}"
+                           BackgroundColor="{StaticResource SurfaceAlt}" />
+
+                    <Label Text="模型名称" TextColor="{StaticResource TextSecondary}" FontSize="13" />
+                    <Entry x:Name="ModelEntry"
+                           TextColor="{StaticResource TextPrimary}"
+                           BackgroundColor="{StaticResource SurfaceAlt}" />
+
+                    <Label Text="API Key" TextColor="{StaticResource TextSecondary}" FontSize="13" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry x:Name="ApiKeyEntry"
+                               Grid.Column="0"
+                               IsPassword="True"
+                               Placeholder="sk-..."
+                               PlaceholderColor="{StaticResource Muted}"
+                               TextColor="{StaticResource TextPrimary}"
+                               BackgroundColor="{StaticResource SurfaceAlt}" />
+                        <Button Grid.Column="1"
+                                x:Name="ToggleKeyButton"
+                                Text="显示"
+                                FontSize="12"
+                                Padding="12,8"
+                                CornerRadius="8"
+                                Clicked="OnToggleKeyClicked"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="{StaticResource SurfaceAlt}"
+                                BorderColor="{StaticResource GoldDim}"
+                                BorderWidth="1" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="保存设置"
+                                Clicked="OnSaveClicked"
+                                TextColor="#1A1208"
+                                FontAttributes="Bold"
+                                Background="{StaticResource GoldButtonGradient}"
+                                CornerRadius="24"
+                                Padding="14,12" />
+                        <Button Grid.Column="1"
+                                Text="测试连接"
+                                Clicked="OnTestClicked"
+                                x:Name="TestButton"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="{StaticResource SurfaceAlt}"
+                                BorderColor="{StaticResource GoldDim}"
+                                BorderWidth="1"
+                                CornerRadius="24"
+                                Padding="14,12" />
+                    </Grid>
+
+                    <ActivityIndicator x:Name="TestIndicator"
+                                       IsRunning="False"
+                                       IsVisible="False"
+                                       Color="{StaticResource Gold}" />
+
+                    <Label x:Name="StatusLabel"
+                           FontSize="13"
+                           TextColor="{StaticResource Muted}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
+

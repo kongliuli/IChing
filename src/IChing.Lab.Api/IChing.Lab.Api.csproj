@@ -15,6 +15,10 @@
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
     <ProjectReference Include="..\IChing.Lab.Inference\IChing.Lab.Inference.csproj" />
     <ProjectReference Include="..\IChing.Lab.PluginLoader\IChing.Lab.PluginLoader.csproj" />
+    <ProjectReference Include="..\..\samples\BaziEngines\BaziEngines.csproj" />
+    <ProjectReference Include="..\..\samples\LiuyaoEngines\LiuyaoEngines.csproj" />
+    <ProjectReference Include="..\..\samples\TarotEngines\TarotEngines.csproj" />
+    <ProjectReference Include="..\..\samples\CalendarEngines\CalendarEngines.csproj" />
   </ItemGroup>
 
   <!-- 将仓库根 prompts/ 下的模板文件复制到输出目录的 prompts/，供运行时热加载；加载失败时回退到内嵌默认。 -->

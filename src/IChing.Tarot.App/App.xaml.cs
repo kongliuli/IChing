@@ -1,0 +1,21 @@
+﻿using IChing.Tarot.App.Services;
+
+namespace IChing.Tarot.App;
+
+public partial class App : Application
+{
+    public static AppSettings Settings { get; } = new();
+    public static TarotDrawService Tarot { get; } = new();
+    public static RemoteInterpretationService Interpretation { get; } = new();
+    public static ReadingHistoryStore History { get; } = new();
+
+    public App()
+    {
+        InitializeComponent();
+    }
+
+    protected override Window CreateWindow(IActivationState? activationState)
+    {
+        return new Window(new AppShell());
+    }
+}

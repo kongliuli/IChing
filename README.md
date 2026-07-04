@@ -65,7 +65,29 @@ curl -X POST http://localhost:5xxx/lab/bazi/interpret \
   -d '{"year":1990,"month":5,"day":20,"hour":12,"gender":1,"focus":"事业"}'
 ```
 
-## 模块
+## Sidecar 样板
+
+```bash
+# 启动 HTTP sidecar（5001 八字 + 5004 六爻，供桥接插件联调）
+scripts/run-chart-sidecar.cmd
+```
+
+详见 [samples/sidecars/IChing.ChartSidecar/README.md](samples/sidecars/IChing.ChartSidecar/README.md)
+
+## 星轨塔罗（MAUI 单机）
+
+```bash
+# Windows
+scripts/run-tarot-app.cmd
+# 或
+cd src/IChing.Tarot.App
+dotnet run -f net10.0-windows10.0.19041.0
+```
+
+- **抽牌**：本地 `IChing.Lab.Core` + Deckaura 牌义 enrich（无需联网）
+- **解读**：设置页填入 API Key（DeepSeek / OpenAI 兼容），调用远程 chat/completions
+- **插件**：与 Lab 共用 `samples/TarotEngines` 项目，供其他单机客户端引用
+
 
 | 项目 | 说明 |
 |------|------|

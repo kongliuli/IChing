@@ -2,6 +2,7 @@ using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Api.Controllers;
+using IChing.Lab.Core.Services;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
 using Microsoft.AspNetCore.Mvc;
@@ -143,8 +144,10 @@ public class OrchestratorFallbackTests
         var orchestrator = new ChartInterpretationOrchestrator(
             inferenceEngines, Enumerable.Empty<IPromptBuilder>(), config, OrchestratorLogger);
 
+        var chartRouter = new ChartEngineRouter(Enumerable.Empty<IChartEngine>());
         var controller = new LabController(
             orchestrator,
+            chartRouter,
             Enumerable.Empty<IChartEngine>(),
             Enumerable.Empty<IPromptBuilder>(),
             inferenceEngines,
@@ -171,8 +174,10 @@ public class OrchestratorFallbackTests
         var orchestrator = new ChartInterpretationOrchestrator(
             Enumerable.Empty<IInferenceEngine>(), Enumerable.Empty<IPromptBuilder>(), config, OrchestratorLogger);
 
+        var chartRouter = new ChartEngineRouter(Enumerable.Empty<IChartEngine>());
         var controller = new LabController(
             orchestrator,
+            chartRouter,
             Enumerable.Empty<IChartEngine>(),
             Enumerable.Empty<IPromptBuilder>(),
             Enumerable.Empty<IInferenceEngine>(),

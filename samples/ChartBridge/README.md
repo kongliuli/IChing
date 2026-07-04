@@ -7,6 +7,8 @@
 
 桥接只产 chart JSON，不产解读文本，不接 LLM/RAG 层。
 
+**本地联调样板**：[`samples/sidecars/IChing.ChartSidecar`](../sidecars/IChing.ChartSidecar/README.md) — `scripts/run-chart-sidecar.cmd`
+
 ## Sidecar HTTP 协议
 
 ### 探活

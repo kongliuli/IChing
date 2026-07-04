@@ -1,10 +1,13 @@
+using System.Text.Json;
 using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Liuyao;
+using IChing.Lab.Core.Services;
 using IChing.Lab.Core.Tarot;
+using IChing.Lab.Engines.Tarot;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Prompts;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +19,10 @@ namespace IChing.Lab.Api.Controllers;
 [Route("lab")]
 public class LabController : ControllerBase
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     private readonly ChartInterpretationOrchestrator _interpretation;
+    private readonly ChartEngineRouter _chartRouter;
     private readonly IEnumerable<IChartEngine> _engines;
     private readonly IEnumerable<IInferenceEngine> _inferenceEngines;
     private readonly IReadOnlyDictionary<string, IPromptBuilder> _promptBuilders;
@@ -24,12 +30,14 @@ public class LabController : ControllerBase
 
     public LabController(
         ChartInterpretationOrchestrator interpretation,
+        ChartEngineRouter chartRouter,
         IEnumerable<IChartEngine> engines,
         IEnumerable<IPromptBuilder> promptBuilders,
         IEnumerable<IInferenceEngine> inferenceEngines,
         IConfiguration configuration)
     {
         _interpretation = interpretation;
+        _chartRouter = chartRouter;
         _engines = engines;
         _inferenceEngines = inferenceEngines;
         _promptBuilders = promptBuilders.ToDictionary(b => b.TemplateId);
@@ -78,6 +86,43 @@ public class LabController : ControllerBase
         return Ok(payload);
     }
 
+    /// <summary>排盘引擎探活：对各引擎执行最小 Calculate，返回 ready 状态。</summary>
+    [HttpGet("/health/chart-engines")]
+    public IActionResult HealthChartEngines()
+    {
+        var payload = _engines.Select(e => new ChartEngineHealthStatus(
+            e.Domain,
+            e.EngineId,
+            ProbeChartEngineReady(e),
+            e.EngineId == ResolveChartEngine(_configuration, e.Domain))).ToList();
+        return Ok(payload);
+    }
+
+    private static bool ProbeChartEngineReady(IChartEngine engine)
+    {
+        var args = engine.Domain switch
+        {
+            "bazi" => new Dictionary<string, object?>
+            {
+                ["year"] = 1990, ["month"] = 5, ["day"] = 20, ["hour"] = 10, ["gender"] = 1
+            },
+            "liuyao" => new Dictionary<string, object?> { ["method"] = "coin", ["seed"] = 1 },
+            "tarot" => new Dictionary<string, object?> { ["spreadId"] = "single-card", ["seed"] = 1 },
+            "calendar" => new Dictionary<string, object?> { ["year"] = 2026, ["month"] = 1, ["day"] = 1 },
+            _ => new Dictionary<string, object?>()
+        };
+
+        try
+        {
+            var result = engine.Calculate(new ChartRequest(engine.Domain, args));
+            return !ChartEngineRouter.IsErrorResult(result);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     /// <summary>
     /// 解析默认引擎标识：优先读 <c>plugins:inferenceEngines</c> 中 <c>default=true</c> 的项，
     /// 其次读 <c>plugins:defaultEngine</c>；均未配置返回 null（所有引擎 isDefault=false）。
@@ -116,8 +161,9 @@ public class LabController : ControllerBase
     [HttpPost("bazi")]
     public IActionResult Bazi([FromBody] BaziRequest req)
     {
-        var chart = BaziEngine.Calculate(MapBaziInput(req));
-        return Ok(chart);
+        var input = MapBaziInput(req);
+        var (chart, engineId) = CalculateBazi(input);
+        return Ok(new { chart, engine = new { paipan = engineId } });
     }
 
     [HttpPost("bazi/read")]
@@ -128,12 +174,13 @@ public class LabController : ControllerBase
             return BadRequest(new { error = "tier must be 0, 1, or 2" });
         }
 
-        var chart = BaziEngine.Calculate(MapBaziInput(req));
+        var input = MapBaziInput(req);
+        var (chart, engineId) = CalculateBazi(input);
         var preview = new { oneLiner = $"日柱 {chart.DayPillar.GanZhi}，月柱 {chart.MonthPillar.GanZhi}；先看四柱、大运与关注点「{req.Focus ?? "综合"}」。" };
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("bazi", tier, chart, null, preview, null, ResolveChartEngine(_configuration, "bazi")));
+            return Ok(ReadEnvelope("bazi", tier, chart, null, preview, null, engineId));
         }
 
         var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 512);
@@ -142,23 +189,30 @@ public class LabController : ControllerBase
             text = result.Text,
             textEn = result.TextEn,
             isFallback = result.IsFallback
-        }, ResolveChartEngine(_configuration, "bazi")));
+        }, engineId));
     }
 
     [HttpPost("bazi/interpret")]
     public IActionResult BaziInterpret([FromBody] BaziInterpretRequest req)
     {
-        var chart = BaziEngine.Calculate(MapBaziInput(req));
+        var input = MapBaziInput(req);
+        var (chart, engineId) = CalculateBazi(input);
         var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 256);
-        return Ok(new { chart, interpretation = result });
+        return Ok(new { chart, interpretation = result, engine = new { paipan = engineId } });
     }
 
     [HttpPost("bazi/hepan")]
     public IActionResult HePan([FromBody] HePanRequest req)
     {
-        var a = BaziEngine.Calculate(MapBaziInput(req.PersonA));
-        var b = BaziEngine.Calculate(MapBaziInput(req.PersonB));
-        return Ok(HePanService.Compare(a, b));
+        var inputA = MapBaziInput(req.PersonA);
+        var inputB = MapBaziInput(req.PersonB);
+        var (a, engineA) = CalculateBazi(inputA);
+        var (b, engineB) = CalculateBazi(inputB);
+        return Ok(new
+        {
+            comparison = HePanService.Compare(a, b),
+            engine = new { paipanA = engineA, paipanB = engineB }
+        });
     }
 
     [HttpGet("bazi/cities")]
@@ -176,24 +230,29 @@ public class LabController : ControllerBase
         Ok(new { loaded = _interpretation.IsModelLoaded });
 
     [HttpPost("liuyao/coin")]
-    public IActionResult LiuyaoCoin([FromQuery] int? seed) =>
-        Ok(LiuyaoNajiaService.Coin(DateTimeOffset.Now, seed));
+    public IActionResult LiuyaoCoin([FromQuery] int? seed)
+    {
+        var (chart, engineId) = CalculateLiuyao("coin", DateTimeOffset.Now, seed);
+        return Ok(new { chart, engine = new { paipan = engineId } });
+    }
 
     [HttpPost("liuyao/time")]
-    public IActionResult LiuyaoTime([FromQuery] DateTime? at) =>
-        Ok(LiuyaoNajiaService.Time(at ?? DateTimeOffset.Now.DateTime));
+    public IActionResult LiuyaoTime([FromQuery] DateTime? at)
+    {
+        var when = at.HasValue ? new DateTimeOffset(at.Value) : DateTimeOffset.Now;
+        var (chart, engineId) = CalculateLiuyao("time", when, null);
+        return Ok(new { chart, engine = new { paipan = engineId } });
+    }
 
     [HttpPost("liuyao/read")]
-    public IActionResult LiuyaoRead([FromQuery] int tier, [FromBody] LiuyaoReadRequest req)
+    public async Task<IActionResult> LiuyaoRead([FromQuery] int tier, [FromBody] LiuyaoReadRequest req)
     {
         if (!ValidTier(tier))
         {
             return BadRequest(new { error = "tier must be 0, 1, or 2" });
         }
 
-        var chart = req.Method == "time"
-            ? LiuyaoNajiaService.Time(req.At ?? DateTimeOffset.Now)
-            : LiuyaoNajiaService.Coin(req.At ?? DateTimeOffset.Now, req.Seed);
+        var (chart, engineId) = CalculateLiuyao(req.Method, req.At ?? DateTimeOffset.Now, req.Seed);
         var digest = BuildLiuyaoRuleDigest(chart, req.Question, req.Focus);
         var preview = new
         {
@@ -202,7 +261,7 @@ public class LabController : ControllerBase
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, null, ResolveChartEngine(_configuration, "liuyao")));
+            return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, null, engineId));
         }
 
         var liuyaoBuilder = ResolvePromptBuilder("liuyao-tier1-default");
@@ -211,31 +270,38 @@ public class LabController : ControllerBase
             RuleDigest: digest,
             Question: req.Question ?? "综合",
             Focus: req.Focus,
-            MaxTokens: req.MaxTokens ?? 512);
+            MaxTokens: req.MaxTokens ?? 512,
+            Engine: _interpretation.ResolveEngineMetadata(engineId));
         var prompt = liuyaoBuilder.Build(liuyaoCtx).PromptText;
-        var gen = _interpretation.Generate(prompt, req.MaxTokens ?? 512);
+        var gen = await _interpretation.GenerateWithFallbackAsync(
+            prompt,
+            new GenerateOptions(MaxTokens: req.MaxTokens ?? 512),
+            CancellationToken.None);
         return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, new
         {
             text = gen.IsFallback ? preview.oneLiner : gen.Text,
             isFallback = gen.IsFallback,
             fallbackReason = gen.FallbackReason
-        }, ResolveChartEngine(_configuration, "liuyao")));
+        }, engineId));
     }
 
     [HttpPost("tarot/draw")]
-    public IActionResult TarotDraw([FromBody] TarotDrawRequest req) =>
-        Ok(TarotEngine.Draw(req.SpreadId ?? "past-present-future", req.Question, req.Seed));
+    public IActionResult TarotDraw([FromBody] TarotDrawRequest req)
+    {
+        var (reading, engineId) = DrawTarotReading(req.SpreadId, req.Question, req.Seed);
+        return Ok(new { reading, engine = new { paipan = engineId } });
+    }
 
     [HttpPost("tarot/read")]
-    public IActionResult TarotRead([FromQuery] int tier, [FromBody] TarotReadRequest req)
+    public async Task<IActionResult> TarotRead([FromQuery] int tier, [FromBody] TarotReadRequest req)
     {
         if (!ValidTier(tier))
         {
             return BadRequest(new { error = "tier must be 0, 1, or 2" });
         }
 
-        var reading = TarotEngine.Draw(req.SpreadId ?? "past-present-future", req.Question, req.Seed);
-        var digest = BuildTarotRuleDigest(reading);
+        var (reading, engineId) = DrawTarotReading(req.SpreadId, req.Question, req.Seed);
+        var digest = TarotReadingEnricher.BuildEnrichedRuleDigest(reading);
         var preview = new
         {
             oneLiner = string.Join("；", reading.Positions.Select(p => $"[{p.PositionTitleZh}] {p.CardNameZh}{(p.Reversed ? "逆位" : "正位")}：{p.Meaning}"))
@@ -243,38 +309,63 @@ public class LabController : ControllerBase
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, null, ResolveChartEngine(_configuration, "tarot")));
+            return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, null, engineId));
         }
 
         var positions = reading.Positions
             .Select(p => new TarotPositionPrompt(p.PositionTitleZh, p.PositionContext, p.CardNameZh, p.Reversed, p.Meaning))
             .ToList();
-        var wordLimit = reading.Positions.Count >= 10 ? 500 : 280;
-        var tarotBuilder = ResolvePromptBuilder("tarot-tier1-en");
+        var (templateId, useTranslatePass, wordLimit, maxTokens) =
+            ResolveTarotPrompt(engineId, tier, reading.SpreadId);
+        var tarotBuilder = ResolvePromptBuilder(templateId);
         var tarotCtx = new PromptContext(
             Chart: new TarotPromptInput(reading.SpreadTitleZh, positions, wordLimit),
             RuleDigest: digest,
             Question: req.Question ?? "General reading",
             Focus: null,
-            MaxTokens: req.MaxTokens ?? 512);
+            MaxTokens: req.MaxTokens ?? maxTokens,
+            Engine: _interpretation.ResolveEngineMetadata(engineId));
         var prompt = tarotBuilder.Build(tarotCtx).PromptText;
-        var result = _interpretation.InterpretTarotEnglishThenChinese(prompt, req.MaxTokens ?? 512, req.MaxTokens ?? 512);
 
-        return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, new
+        object narrative;
+        var tokenBudget = req.MaxTokens ?? maxTokens;
+        if (useTranslatePass)
         {
-            text = string.IsNullOrWhiteSpace(result.TextZh) ? preview.oneLiner : result.TextZh,
-            textEn = result.TextEn,
-            isFallback = result.IsFallback,
-            fallbackReason = result.FallbackReason
-        }, ResolveChartEngine(_configuration, "tarot")));
+            var result = _interpretation.InterpretTarotEnglishThenChinese(prompt, tokenBudget, tokenBudget);
+            narrative = new
+            {
+                text = string.IsNullOrWhiteSpace(result.TextZh) ? preview.oneLiner : result.TextZh,
+                textEn = result.TextEn,
+                isFallback = result.IsFallback,
+                fallbackReason = result.FallbackReason,
+                promptTemplate = templateId
+            };
+        }
+        else
+        {
+            var gen = await _interpretation.GenerateWithFallbackAsync(
+                prompt,
+                new GenerateOptions(MaxTokens: tokenBudget),
+                CancellationToken.None);
+            narrative = new
+            {
+                text = string.IsNullOrWhiteSpace(gen.Text) ? preview.oneLiner : gen.Text,
+                textEn = (string?)null,
+                isFallback = gen.IsFallback,
+                fallbackReason = gen.FallbackReason,
+                promptTemplate = templateId
+            };
+        }
+
+        return Ok(ReadEnvelope("tarot", tier, reading, digest, preview, narrative, engineId));
     }
 
     [HttpPost("tarot/interpret")]
     public IActionResult TarotInterpret([FromBody] TarotDrawRequest req)
     {
-        var reading = TarotEngine.Draw(req.SpreadId ?? "past-present-future", req.Question, req.Seed);
+        var (reading, engineId) = DrawTarotReading(req.SpreadId, req.Question, req.Seed);
         var narrative = TarotNarrative.Build(reading);
-        return Ok(new { reading, narrative });
+        return Ok(new { reading, narrative, engine = new { paipan = engineId } });
     }
 
     [HttpGet("tarot/spreads")]
@@ -285,8 +376,11 @@ public class LabController : ControllerBase
         [FromQuery] int year,
         [FromQuery] int month,
         [FromQuery] int day,
-        [FromQuery] int sect = 1) =>
-        Ok(HuangLiService.GetDay(year, month, day, sect));
+        [FromQuery] int sect = 1)
+    {
+        var (huangLi, engineId) = CalculateCalendar(year, month, day, sect);
+        return Ok(new { day = huangLi, engine = new { paipan = engineId } });
+    }
 
     private static bool ValidTier(int tier) => tier is >= 0 and <= 2;
 
@@ -321,20 +415,79 @@ public class LabController : ControllerBase
         };
     }
 
-    private static object BuildTarotRuleDigest(TarotReading reading)
+    private (BaziChart Chart, string EngineId) CalculateBazi(BaziInput input)
     {
-        var names = reading.Positions.Select(p => p.CardName).ToList();
-        return new
-        {
-            majorCount = names.Count(n => !n.Contains(" of ")),
-            total = names.Count,
-            wands = names.Count(n => n.EndsWith("of Wands")),
-            cups = names.Count(n => n.EndsWith("of Cups")),
-            swords = names.Count(n => n.EndsWith("of Swords")),
-            pentacles = names.Count(n => n.EndsWith("of Pentacles")),
-            reversedCount = reading.Positions.Count(p => p.Reversed)
-        };
+        var chain = ChartEngineRouter.ResolveEngineChain(_configuration, "bazi", "lunar-csharp-1.6.8");
+        var routed = _chartRouter.Calculate("bazi", ToArgs(input), chain);
+        return (ChartResultMapper.AsBaziChart(routed.Result, input), routed.EngineId);
     }
+
+    private (LiuyaoNajiaResult Chart, string EngineId) CalculateLiuyao(
+        string? method,
+        DateTimeOffset at,
+        int? seed)
+    {
+        var args = new Dictionary<string, object?>
+        {
+            ["method"] = method ?? "coin",
+            ["at"] = at,
+            ["seed"] = seed
+        };
+        var chain = ChartEngineRouter.ResolveEngineChain(_configuration, "liuyao", "iching-sixlines-2.0.3");
+        var routed = _chartRouter.Calculate("liuyao", args, chain);
+        return (ChartResultMapper.AsLiuyaoChart(routed.Result, method, at, seed), routed.EngineId);
+    }
+
+    private (HuangLiDay Day, string EngineId) CalculateCalendar(int year, int month, int day, int sect)
+    {
+        var args = new Dictionary<string, object?>
+        {
+            ["year"] = year,
+            ["month"] = month,
+            ["day"] = day,
+            ["sect"] = sect
+        };
+        var chain = ChartEngineRouter.ResolveEngineChain(_configuration, "calendar", "lunar-csharp-1.6.8");
+        var routed = _chartRouter.Calculate("calendar", args, chain);
+        return (ChartResultMapper.AsCalendarDay(routed.Result, year, month, day, sect), routed.EngineId);
+    }
+
+    private static Dictionary<string, object?> ToArgs<T>(T input)
+    {
+        var json = JsonSerializer.Serialize(input, JsonOptions);
+        return JsonSerializer.Deserialize<Dictionary<string, object?>>(json)
+            ?? new Dictionary<string, object?>();
+    }
+
+    private (TarotReading Reading, string EngineId) DrawTarotReading(string? spreadId, string? question, int? seed)
+    {
+        var chain = ChartEngineRouter.ResolveEngineChain(_configuration, "tarot", "iching-tarot-built-in");
+        return TarotDrawPipeline.Draw(_chartRouter, chain, spreadId, question, seed);
+    }
+
+    private static (string TemplateId, bool UseTranslatePass, int WordLimit, int MaxTokens) ResolveTarotPrompt(
+        string engineId,
+        int tier,
+        string spreadId)
+    {
+        if (tier == 2 && string.Equals(spreadId, "celtic-cross", StringComparison.OrdinalIgnoreCase))
+        {
+            return ("tarot-tier2-celtic-cross", false, 900, 1200);
+        }
+
+        if (engineId.StartsWith("tarot-deckaura", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(engineId, "iching-tarot-built-in", StringComparison.OrdinalIgnoreCase))
+        {
+            var wordLimit = tier == 2 ? 700 : 400;
+            return ("tarot-tier1-deckaura-default", false, wordLimit, tier == 2 ? 900 : 512);
+        }
+
+        var limit = tier == 2 ? 800 : (spreadId == "celtic-cross" ? 500 : 280);
+        return ("tarot-tier1-en", true, limit, tier == 2 ? 1024 : 512);
+    }
+
+    private static object BuildTarotRuleDigest(TarotReading reading) =>
+        TarotReadingEnricher.BuildEnrichedRuleDigest(reading);
 
     private static BaziInput MapBaziInput(BaziRequest req) =>
         new(req.Year, req.Month, req.Day, req.Hour, req.Minute, req.Second,
@@ -412,3 +565,5 @@ public record TarotReadRequest(string? SpreadId, string? Question, int? Seed, in
 /// 解读引擎健康状态项，序列化为 <c>{ engineId, isReady, isDefault }</c>。
 /// </summary>
 public record EngineHealthStatus(string EngineId, bool IsReady, bool IsDefault);
+
+public record ChartEngineHealthStatus(string Domain, string EngineId, bool IsReady, bool IsDefault);

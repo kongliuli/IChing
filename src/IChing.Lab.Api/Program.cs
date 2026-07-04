@@ -2,6 +2,11 @@ using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Api.Components;
 using IChing.Lab.Core.Engines;
+using IChing.Lab.Core.Services;
+using IChing.Lab.Engines.Bazi;
+using IChing.Lab.Engines.Calendar;
+using IChing.Lab.Engines.Liuyao;
+using IChing.Lab.Engines.Tarot;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
 using IChing.Lab.Inference.Prompts;
@@ -47,12 +52,23 @@ builder.Services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
     sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 1, "tarot-tier1-en"));
 builder.Services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
     sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 1, "tarot-translate-to-zh"));
+builder.Services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
+    sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 1, "tarot-tier1-deckaura-default"));
+builder.Services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
+    sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 2, "tarot-tier2-celtic-cross"));
 
 // 注册排盘引擎包装类到 DI 容器（同 domain 可注册多个实现，按 EngineId 区分）
 builder.Services.AddSingleton<IChartEngine, BaziChartEngine>();
 builder.Services.AddSingleton<IChartEngine, LiuyaoChartEngine>();
 builder.Services.AddSingleton<IChartEngine, TarotChartEngine>();
 builder.Services.AddSingleton<IChartEngine, CalendarEngine>();
+
+// 四域排盘插件（供 Lab API 与单机客户端共用同一套 IChartEngine 实现）
+new BaziEnginesModule().Register(builder.Services);
+new LiuyaoEnginesModule().Register(builder.Services);
+new TarotEnginesModule().Register(builder.Services);
+new CalendarEnginesModule().Register(builder.Services);
+builder.Services.AddSingleton(sp => new ChartEngineRouter(sp.GetServices<IChartEngine>()));
 
 // 加载外部插件（在 Build 之前将插件服务注册到 DI）。
 // 共享接口 IPluginModule/IPluginManifest 落到 default ALC，保证主程序与插件类型同一；

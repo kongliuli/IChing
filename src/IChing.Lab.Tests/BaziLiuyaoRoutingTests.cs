@@ -85,7 +85,9 @@ public class BaziLiuyaoRoutingTests
             });
 
             Assert.True(response.IsSuccessStatusCode);
-            var chart = await response.Content.ReadFromJsonAsync<BaziChart>();
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            Assert.True(doc.RootElement.TryGetProperty("chart", out var chartEl));
+            var chart = JsonSerializer.Deserialize<BaziChart>(chartEl.GetRawText(), new JsonSerializerOptions(JsonSerializerDefaults.Web));
             Assert.NotNull(chart);
             Assert.False(string.IsNullOrWhiteSpace(chart!.DayPillar.GanZhi));
         }
@@ -186,7 +188,9 @@ public class BaziLiuyaoRoutingTests
             });
 
             Assert.True(response.IsSuccessStatusCode);
-            var chart = await response.Content.ReadFromJsonAsync<LiuyaoNajiaResult>();
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+            Assert.True(doc.RootElement.TryGetProperty("chart", out var chartEl));
+            var chart = JsonSerializer.Deserialize<LiuyaoNajiaResult>(chartEl.GetRawText(), new JsonSerializerOptions(JsonSerializerDefaults.Web));
             Assert.NotNull(chart);
             Assert.False(string.IsNullOrWhiteSpace(chart!.OriginalHexagram));
         }

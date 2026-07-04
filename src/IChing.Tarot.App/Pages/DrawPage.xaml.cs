@@ -167,6 +167,8 @@ public partial class DrawPage : ContentPage
         }
 
         InterpretButton.IsEnabled = false;
+        var interpretLabel = InterpretButton.Text;
+        InterpretButton.Text = "解读中…";
         LoadingIndicator.IsVisible = true;
         LoadingIndicator.IsRunning = true;
 
@@ -192,6 +194,7 @@ public partial class DrawPage : ContentPage
         {
             LoadingIndicator.IsRunning = false;
             LoadingIndicator.IsVisible = false;
+            InterpretButton.Text = interpretLabel;
             InterpretButton.IsEnabled = true;
         }
     }

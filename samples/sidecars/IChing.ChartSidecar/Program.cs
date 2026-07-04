@@ -42,7 +42,7 @@ app.MapPost("/bazi", async (HttpRequest request) =>
     }
 
     var routed = chartRouter.Calculate("bazi", body.Args, ["lunar-csharp-1.6.8"]);
-    return Results.Json(routed.Result, SidecarJson.Web);
+    return Results.Json(new { engine = new { paipan = routed.EngineId }, chart = routed.Result }, SidecarJson.Web);
 });
 
 app.MapPost("/liuyao", async (HttpRequest request) =>
@@ -54,7 +54,7 @@ app.MapPost("/liuyao", async (HttpRequest request) =>
     }
 
     var routed = chartRouter.Calculate("liuyao", body.Args, ["iching-sixlines-2.0.3"]);
-    return Results.Json(routed.Result, SidecarJson.Web);
+    return Results.Json(new { engine = new { paipan = routed.EngineId }, chart = routed.Result }, SidecarJson.Web);
 });
 
 app.MapPost("/tarot", async (HttpRequest request) =>

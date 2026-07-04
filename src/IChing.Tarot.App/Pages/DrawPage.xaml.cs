@@ -1,7 +1,7 @@
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Engines.Tarot;
-using IChing.Tarot.App.Models;
 using IChing.Tarot.App.Services;
+using IChing.Tarot.App.Views;
 
 namespace IChing.Tarot.App.Pages;
 
@@ -104,24 +104,31 @@ public partial class DrawPage : ContentPage
     {
         ReadingPanel.IsVisible = true;
         ReadingPanel.Opacity = 0;
+        ReadingPanel.Scale = 0.94;
         ReadingTitleLabel.Text = reading.Question is { Length: > 0 } q
             ? $"「{q}」· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
         ReadingMetaLabel.Text =
             $"引擎 {_engineId} · seed={reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · Deckaura {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
 
-        CardsCollection.ItemsSource = reading.Positions.Select(p => new CardDisplayItem
-        {
-            PositionTitle = p.PositionTitleZh,
-            CardLine = $"{p.CardNameZh}（{p.CardName}）· {(p.Reversed ? "逆位" : "正位")}",
-            Meaning = p.Meaning,
-            SuitAccent = TarotCardVisual.SuitAccent(p.CardName),
-            Abbrev = TarotCardVisual.Abbrev(p.CardNameZh),
-            IsReversed = p.Reversed,
-            CardImage = TarotCardVisual.TryImage(p.CardName)
-        }).ToList();
+        var cards = CardDisplayMapper.FromReading(reading);
+        var isCeltic = reading.SpreadId == "celtic-cross";
+        CelticCrossHost.IsVisible = isCeltic;
+        CardsCollection.IsVisible = !isCeltic;
 
-        await ReadingPanel.FadeTo(1, 280);
+        if (isCeltic)
+        {
+            CelticCrossLayout.Render(CelticCrossHost, cards);
+        }
+        else
+        {
+            CelticCrossHost.Children.Clear();
+            CardsCollection.ItemsSource = cards;
+        }
+
+        await Task.WhenAll(
+            ReadingPanel.FadeTo(1, 320),
+            ReadingPanel.ScaleTo(1, 320, Easing.CubicOut));
     }
 
     private async void OnHistorySelected(object? sender, SelectionChangedEventArgs e)
@@ -132,24 +139,13 @@ public partial class DrawPage : ContentPage
         }
 
         HistoryCollection.SelectedItem = null;
-
-        var spreadIdx = _spreads.FindIndex(s => s.Id == entry.SpreadId);
-        if (spreadIdx >= 0)
+        var index = App.History.GetRecent().ToList().IndexOf(entry);
+        if (index < 0)
         {
-            SpreadPicker.SelectedIndex = spreadIdx;
+            return;
         }
 
-        QuestionEntry.Text = entry.Question ?? string.Empty;
-        SeedEntry.Text = entry.Seed?.ToString() ?? string.Empty;
-
-        var result = App.Tarot.Draw(entry.SpreadId, entry.Question, entry.Seed);
-        _currentReading = result.Reading;
-        _engineId = result.EngineId;
-        InterpretationPanel.IsVisible = false;
-        InterpretButton.IsEnabled = true;
-        EmptyStatePanel.IsVisible = false;
-        await ShowReadingAsync(_currentReading);
-        await MainScroll.ScrollToAsync(ReadingPanel, ScrollToPosition.Start, true);
+        await Shell.Current.GoToAsync($"history-detail?index={index}");
     }
 
     private async void OnInterpretClicked(object? sender, EventArgs e)

@@ -139,6 +139,13 @@
                                 BorderWidth="1" />
                     </Grid>
 
+                    <Grid x:Name="CelticCrossHost"
+                          IsVisible="False"
+                          ColumnDefinitions="*,*,*"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnSpacing="8"
+                          RowSpacing="8" />
+
                     <CollectionView x:Name="CardsCollection" SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:CardDisplayItem">
@@ -286,7 +293,7 @@
                 <VerticalStackLayout Spacing="8">
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Grid.Column="0"
-                               Text="最近抽牌（点击复现）"
+                               Text="最近抽牌（点击查看详情）"
                                FontAttributes="Bold"
                                TextColor="{StaticResource Gold}" />
                         <Button Grid.Column="1"

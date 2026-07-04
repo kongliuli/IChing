@@ -3,12 +3,12 @@ using IChing.Lab.Core.Tarot;
 
 namespace IChing.Tarot.App.Services;
 
-/// <summary>本地抽牌历史（Preferences，最多 10 条）。</summary>
+/// <summary>本地抽牌历史（Preferences，最多 10 条，含完整牌阵 JSON）。</summary>
 public sealed class ReadingHistoryStore
 {
-    private const string PrefKey = "tarot_reading_history_v2";
-    private const int MaxEntries = 10;
+    private const string PrefKey = "tarot_reading_history_v3";
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private const int MaxEntries = 10;
 
     public void Add(TarotReading reading, string engineId)
     {
@@ -20,7 +20,8 @@ public sealed class ReadingHistoryStore
             reading.Question,
             reading.Seed,
             engineId,
-            reading.Positions.Count));
+            reading.Positions.Count,
+            JsonSerializer.Serialize(reading, JsonOptions)));
 
         if (entries.Count > MaxEntries)
         {
@@ -31,6 +32,12 @@ public sealed class ReadingHistoryStore
     }
 
     public IReadOnlyList<HistoryEntry> GetRecent() => Load();
+
+    public HistoryEntry? GetAt(int index)
+    {
+        var entries = Load();
+        return index >= 0 && index < entries.Count ? entries[index] : null;
+    }
 
     public void Clear() => Preferences.Default.Remove(PrefKey);
 
@@ -53,11 +60,22 @@ public sealed record HistoryEntry(
     string? Question,
     int? Seed,
     string EngineId,
-    int CardCount)
+    int CardCount,
+    string ReadingJson)
 {
     public string DisplayLine =>
         $"{At.LocalDateTime:MM-dd HH:mm} · {SpreadTitle} · {CardCount}张" +
         (Question is { Length: > 0 } q ? $" · {Truncate(q, 20)}" : string.Empty);
+
+    public TarotReading? TryGetReading()
+    {
+        if (string.IsNullOrWhiteSpace(ReadingJson))
+        {
+            return null;
+        }
+
+        return JsonSerializer.Deserialize<TarotReading>(ReadingJson, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+    }
 
     private static string Truncate(string s, int max) =>
         s.Length <= max ? s : s[..max] + "…";

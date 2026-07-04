@@ -5,7 +5,7 @@ target/
 .DS_Store
 bin/
 obj/
-models/
+/models/
 .tmp-build/
 *.user
 **/App_Data/DataProtectionKeys/

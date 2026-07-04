@@ -1,4 +1,5 @@
 using IChing.Lab.Core.Tarot;
+using IChing.Lab.Engines.Tarot;
 using IChing.Tarot.App.Models;
 using IChing.Tarot.App.Services;
 
@@ -105,7 +106,7 @@ public partial class DrawPage : ContentPage
             ? $"「{q}」· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
         ReadingMetaLabel.Text =
-            $"引擎 {_engineId} · seed={reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · Deckaura 牌义";
+            $"引擎 {_engineId} · seed={reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · Deckaura {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
 
         CardsCollection.ItemsSource = reading.Positions.Select(p => new CardDisplayItem
         {
@@ -202,6 +203,20 @@ public partial class DrawPage : ContentPage
 
         await Clipboard.Default.SetTextAsync(InterpretationLabel.Text);
         await DisplayAlertAsync("已复制", "解读内容已复制到剪贴板。", "好的");
+    }
+
+    private async void OnCopySpreadClicked(object? sender, EventArgs e)
+    {
+        if (_currentReading is null)
+        {
+            return;
+        }
+
+        var lines = _currentReading.Positions.Select(p =>
+            $"[{p.PositionTitleZh}] {p.CardNameZh} · {(p.Reversed ? "逆位" : "正位")}\n{p.Meaning}");
+        var text = string.Join("\n\n", lines);
+        await Clipboard.Default.SetTextAsync(text);
+        await DisplayAlertAsync("已复制", "牌阵内容已复制到剪贴板。", "好的");
     }
 
     private void UpdateHistoryPanel()

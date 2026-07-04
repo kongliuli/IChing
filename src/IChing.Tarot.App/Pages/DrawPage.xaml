@@ -121,9 +121,23 @@
                            FontSize="20"
                            FontAttributes="Bold"
                            TextColor="{StaticResource PurpleLight}" />
-                    <Label x:Name="ReadingMetaLabel"
-                           FontSize="12"
-                           TextColor="{StaticResource TextSecondary}" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label x:Name="ReadingMetaLabel"
+                               Grid.Column="0"
+                               FontSize="12"
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource TextSecondary}" />
+                        <Button Grid.Column="1"
+                                Text="复制牌阵"
+                                FontSize="11"
+                                Padding="8,4"
+                                CornerRadius="10"
+                                Clicked="OnCopySpreadClicked"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{StaticResource GoldDim}"
+                                BorderWidth="1" />
+                    </Grid>
 
                     <CollectionView x:Name="CardsCollection" SelectionMode="None">
                         <CollectionView.ItemTemplate>

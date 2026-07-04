@@ -40,6 +40,15 @@ public class ChartEngineRouterTests
     }
 
     [Fact]
+    public void DeckauraCoverage_PercentMatchesEnrichedDeck()
+    {
+        var reading = TarotEngine.Draw("past-present-future", "coverage", 3);
+        var enriched = TarotReadingEnricher.EnrichWithDeckaura(reading);
+        var coverage = TarotReadingEnricher.DeckauraCoveragePercent(enriched);
+        Assert.Equal(100d, coverage);
+    }
+
+    [Fact]
     public void Calculate_SkipsBridgeError_FallsBackToBuiltin()
     {
         var router = new ChartEngineRouter([new TarotChartEngine(), new TarotDeckauraDataEngine()]);

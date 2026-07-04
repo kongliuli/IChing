@@ -25,6 +25,18 @@ public static class TarotReadingEnricher
         return position with { Meaning = meaning };
     }
 
+    /// <summary>Deckaura 牌义命中率（0–100）。</summary>
+    public static double DeckauraCoveragePercent(TarotReading reading)
+    {
+        if (reading.Positions.Count == 0)
+        {
+            return 0;
+        }
+
+        var hits = reading.Positions.Count(p => TarotDeckData.FindByNameIgnoreCase(p.CardName) is not null);
+        return Math.Round(hits * 100d / reading.Positions.Count, 1);
+    }
+
     /// <summary>为 Prompt 规则摘要附加 Deckaura 12 维统计。</summary>
     public static object BuildEnrichedRuleDigest(TarotReading reading)
     {

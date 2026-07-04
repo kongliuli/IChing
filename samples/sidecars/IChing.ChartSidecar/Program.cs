@@ -27,7 +27,8 @@ app.MapGet("/health", () => Results.Ok(new
     sidecar = "iching-chart-sidecar",
     preset = preset.Name,
     ports = preset.Ports,
-    routes = new[] { "POST /bazi", "POST /liuyao", "POST /tarot", "POST /calendar" }
+    routes = new[] { "POST /bazi", "POST /liuyao", "POST /tarot", "POST /calendar" },
+    tarotPipeline = "TarotDrawPipeline"
 }));
 
 app.MapPost("/bazi", async (HttpRequest request) =>

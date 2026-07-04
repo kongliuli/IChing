@@ -39,7 +39,8 @@ dotnet run --project IChing.Lab.PromptTest -- --model ../models/qwen2.5-1.5b-gen
 | POST | `/lab/tarot/draw` | 塔罗抽牌（78 张 + Celtic Cross / Horseshoe） |
 | POST | `/lab/tarot/interpret` | 抽牌 + Layer1 叙事摘要 |
 | GET | `/lab/tarot/spreads` | 可用牌阵列表 |
-| GET | `/lab/calendar/day` | 黄历日课（宜忌/吉神凶煞） |
+| GET | `/lab/calendar/day` | 黄历日课（响应 `{ day, engine }`） |
+| GET | `/health/chart-engines` | 排盘引擎探活（各 domain 最小 Calculate） |
 
 ### 八字示例
 
@@ -63,6 +64,13 @@ curl -X POST http://localhost:5xxx/lab/bazi/hepan \
 curl -X POST http://localhost:5xxx/lab/bazi/interpret \
   -H 'Content-Type: application/json' \
   -d '{"year":1990,"month":5,"day":20,"hour":12,"gender":1,"focus":"事业"}'
+```
+
+### 黄历示例
+
+```bash
+curl "http://localhost:5xxx/lab/calendar/day?year=2026&month=1&day=1"
+# => { "day": { ...HuangLiDay... }, "engine": { "paipan": "lunar-csharp-1.6.8" } }
 ```
 
 ## Sidecar 样板

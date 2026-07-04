@@ -59,26 +59,40 @@ public partial class DrawPage : ContentPage
         int? seed = int.TryParse(SeedEntry.Text, out var parsed) ? parsed : null;
         var spread = _spreads[idx];
 
+        DrawButton.IsEnabled = false;
+        var drawLabel = DrawButton.Text;
+        DrawButton.Text = "洗牌中…";
+
         try
         {
-            HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+            try
+            {
+                HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+            }
+            catch
+            {
+                // ponytail: 部分桌面环境不支持触觉反馈
+            }
+
+            await Task.Delay(180);
+
+            var result = App.Tarot.Draw(spread.Id, QuestionEntry.Text, seed);
+            _currentReading = result.Reading;
+            _engineId = result.EngineId;
+            await ShowReadingAsync(_currentReading);
+            App.History.Add(_currentReading, _engineId);
+            UpdateHistoryPanel();
+            InterpretationPanel.IsVisible = false;
+            InterpretButton.IsEnabled = true;
+            EmptyStatePanel.IsVisible = false;
+
+            await MainScroll.ScrollToAsync(ReadingPanel, ScrollToPosition.Start, true);
         }
-        catch
+        finally
         {
-            // ponytail: 部分桌面环境不支持触觉反馈
+            DrawButton.Text = drawLabel;
+            DrawButton.IsEnabled = true;
         }
-
-        var result = App.Tarot.Draw(spread.Id, QuestionEntry.Text, seed);
-        _currentReading = result.Reading;
-        _engineId = result.EngineId;
-        await ShowReadingAsync(_currentReading);
-        App.History.Add(_currentReading, _engineId);
-        UpdateHistoryPanel();
-        InterpretationPanel.IsVisible = false;
-        InterpretButton.IsEnabled = true;
-        EmptyStatePanel.IsVisible = false;
-
-        await MainScroll.ScrollToAsync(ReadingPanel, ScrollToPosition.Start, true);
     }
 
     private void OnRedrawClicked(object? sender, EventArgs e) => OnDrawClicked(sender, e);

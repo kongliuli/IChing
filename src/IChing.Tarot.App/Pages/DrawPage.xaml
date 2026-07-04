@@ -78,7 +78,8 @@
                         </VerticalStackLayout>
                     </Expander>
 
-                    <Button Text="✦  开始抽牌"
+                    <Button x:Name="DrawButton"
+                            Text="✦  开始抽牌"
                             Clicked="OnDrawClicked"
                             TextColor="#1A1208"
                             FontAttributes="Bold"

@@ -5,6 +5,7 @@ using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Liuyao;
+using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Engines.Tarot;
@@ -167,7 +168,40 @@ public class LabController : ControllerBase
     }
 
     [HttpPost("bazi/read")]
-    public IActionResult BaziRead([FromQuery] int tier, [FromBody] BaziReadRequest req)
+    public IActionResult BaziRead([FromQuery] int tier, [FromBody] BaziReadRequest req) =>
+        ExecuteBaziRead(tier, req);
+
+    /// <summary>三域统一 Tier 入口：bazi / liuyao / tarot。</summary>
+    [HttpPost("{domain}/read")]
+    public async Task<IActionResult> UnifiedRead(string domain, [FromQuery] int tier, [FromBody] JsonElement body)
+    {
+        switch (domain.ToLowerInvariant())
+        {
+            case "bazi":
+                var baziReq = body.Deserialize<BaziReadRequest>(JsonOptions);
+                return baziReq is null
+                    ? BadRequest(new { error = "invalid bazi request body" })
+                    : ExecuteBaziRead(tier, baziReq);
+            case "liuyao":
+                var liuyaoReq = body.Deserialize<LiuyaoReadRequest>(JsonOptions);
+                return liuyaoReq is null
+                    ? BadRequest(new { error = "invalid liuyao request body" })
+                    : await ExecuteLiuyaoRead(tier, liuyaoReq);
+            case "tarot":
+                var tarotReq = body.Deserialize<TarotReadRequest>(JsonOptions);
+                return tarotReq is null
+                    ? BadRequest(new { error = "invalid tarot request body" })
+                    : await ExecuteTarotRead(tier, tarotReq);
+            default:
+                return NotFound(new
+                {
+                    error = $"unknown domain: {domain}",
+                    supported = new[] { "bazi", "liuyao", "tarot" }
+                });
+        }
+    }
+
+    private IActionResult ExecuteBaziRead(int tier, BaziReadRequest req)
     {
         if (!ValidTier(tier))
         {
@@ -176,7 +210,7 @@ public class LabController : ControllerBase
 
         var input = MapBaziInput(req);
         var (chart, engineId) = CalculateBazi(input);
-        var preview = new { oneLiner = $"日柱 {chart.DayPillar.GanZhi}，月柱 {chart.MonthPillar.GanZhi}；先看四柱、大运与关注点「{req.Focus ?? "综合"}」。" };
+        var preview = ReadingSummaries.BuildBaziTier0Preview(chart, req.Focus);
 
         if (tier == 0)
         {
@@ -245,7 +279,10 @@ public class LabController : ControllerBase
     }
 
     [HttpPost("liuyao/read")]
-    public async Task<IActionResult> LiuyaoRead([FromQuery] int tier, [FromBody] LiuyaoReadRequest req)
+    public Task<IActionResult> LiuyaoRead([FromQuery] int tier, [FromBody] LiuyaoReadRequest req) =>
+        ExecuteLiuyaoRead(tier, req);
+
+    private async Task<IActionResult> ExecuteLiuyaoRead(int tier, LiuyaoReadRequest req)
     {
         if (!ValidTier(tier))
         {
@@ -253,11 +290,8 @@ public class LabController : ControllerBase
         }
 
         var (chart, engineId) = CalculateLiuyao(req.Method, req.At ?? DateTimeOffset.Now, req.Seed);
-        var digest = BuildLiuyaoRuleDigest(chart, req.Question, req.Focus);
-        var preview = new
-        {
-            oneLiner = $"{chart.OriginalHexagram}{(chart.ChangedHexagram is null ? "" : $" 之 {chart.ChangedHexagram}")}；{string.Join("，", chart.Lines.Where(l => l.IsChanging).Select(l => $"{l.Index}爻动"))}"
-        };
+        var digest = ReadingSummaries.BuildLiuyaoRuleDigest(chart, req.Question, req.Focus);
+        var preview = ReadingSummaries.BuildLiuyaoTier0Preview(chart, req.Question, req.Focus);
 
         if (tier == 0)
         {
@@ -279,7 +313,7 @@ public class LabController : ControllerBase
             CancellationToken.None);
         return Ok(ReadEnvelope("liuyao", tier, chart, digest, preview, new
         {
-            text = gen.IsFallback ? preview.oneLiner : gen.Text,
+            text = gen.IsFallback ? preview.OneLiner : gen.Text,
             isFallback = gen.IsFallback,
             fallbackReason = gen.FallbackReason
         }, engineId));
@@ -293,7 +327,10 @@ public class LabController : ControllerBase
     }
 
     [HttpPost("tarot/read")]
-    public async Task<IActionResult> TarotRead([FromQuery] int tier, [FromBody] TarotReadRequest req)
+    public Task<IActionResult> TarotRead([FromQuery] int tier, [FromBody] TarotReadRequest req) =>
+        ExecuteTarotRead(tier, req);
+
+    private async Task<IActionResult> ExecuteTarotRead(int tier, TarotReadRequest req)
     {
         if (!ValidTier(tier))
         {
@@ -302,10 +339,7 @@ public class LabController : ControllerBase
 
         var (reading, engineId) = DrawTarotReading(req.SpreadId, req.Question, req.Seed);
         var digest = TarotReadingEnricher.BuildEnrichedRuleDigest(reading);
-        var preview = new
-        {
-            oneLiner = string.Join("；", reading.Positions.Select(p => $"[{p.PositionTitleZh}] {p.CardNameZh}{(p.Reversed ? "逆位" : "正位")}：{p.Meaning}"))
-        };
+        var preview = ReadingSummaries.BuildTarotTier0Preview(reading, req.Question);
 
         if (tier == 0)
         {
@@ -334,7 +368,7 @@ public class LabController : ControllerBase
             var result = _interpretation.InterpretTarotEnglishThenChinese(prompt, tokenBudget, tokenBudget);
             narrative = new
             {
-                text = string.IsNullOrWhiteSpace(result.TextZh) ? preview.oneLiner : result.TextZh,
+                text = string.IsNullOrWhiteSpace(result.TextZh) ? preview.OneLiner : result.TextZh,
                 textEn = result.TextEn,
                 isFallback = result.IsFallback,
                 fallbackReason = result.FallbackReason,
@@ -349,7 +383,7 @@ public class LabController : ControllerBase
                 CancellationToken.None);
             narrative = new
             {
-                text = string.IsNullOrWhiteSpace(gen.Text) ? preview.oneLiner : gen.Text,
+                text = string.IsNullOrWhiteSpace(gen.Text) ? preview.OneLiner : gen.Text,
                 textEn = (string?)null,
                 isFallback = gen.IsFallback,
                 fallbackReason = gen.FallbackReason,
@@ -384,7 +418,7 @@ public class LabController : ControllerBase
 
     private static bool ValidTier(int tier) => tier is >= 0 and <= 2;
 
-    private static object ReadEnvelope(string domain, int tier, object chart, object? ruleDigest, object tier0Preview, object? narrative, string? paipanEngine = null) => new
+    private static object ReadEnvelope(string domain, int tier, object chart, object? ruleDigest, Tier0Preview tier0Preview, object? narrative, string? paipanEngine = null) => new
     {
         domain,
         tier,
@@ -396,24 +430,9 @@ public class LabController : ControllerBase
         },
         chart,
         ruleDigest,
-        tier0Preview,
+        tier0Preview = new { oneLiner = tier0Preview.OneLiner, disclaimer = tier0Preview.Disclaimer },
         narrative
     };
-
-    private static object BuildLiuyaoRuleDigest(LiuyaoNajiaResult chart, string? question, string? focus)
-    {
-        var shi = chart.Lines.FirstOrDefault(l => l.Role?.Contains("世") == true);
-        var ying = chart.Lines.FirstOrDefault(l => l.Role?.Contains("应") == true);
-        return new
-        {
-            shiYaoSummary = shi is null ? "未标出世爻" : $"{shi.Index}爻{shi.SixKin}{shi.StemBranch}持世",
-            yingYaoSummary = ying is null ? "未标出应爻" : $"{ying.Index}爻{ying.SixKin}{ying.StemBranch}为应",
-            changingSummaries = chart.Lines.Where(l => l.IsChanging).Select(l => $"{l.Index}爻{l.SixKin}{l.StemBranch}动").ToList(),
-            questionType = focus ?? question ?? "综合",
-            yongShenSummary = "未分类问事默认以世爻为用神",
-            alerts = Array.Empty<string>()
-        };
-    }
 
     private (BaziChart Chart, string EngineId) CalculateBazi(BaziInput input)
     {

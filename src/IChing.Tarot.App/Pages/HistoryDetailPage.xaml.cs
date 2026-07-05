@@ -43,17 +43,6 @@ public partial class HistoryDetailPage : ContentPage
             $"{entry.At.LocalDateTime:yyyy-MM-dd HH:mm} · 引擎 {entry.EngineId} · Deckaura {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
 
         var cards = CardDisplayMapper.FromReading(reading);
-        var isCeltic = reading.SpreadId == "celtic-cross";
-        CelticCrossHost.IsVisible = isCeltic;
-        CardsCollection.IsVisible = !isCeltic;
-
-        if (isCeltic)
-        {
-            CelticCrossLayout.Render(CelticCrossHost, cards);
-        }
-        else
-        {
-            CardsCollection.ItemsSource = cards;
-        }
+        SpreadBoardLayout.Render(SpreadBoardHost, reading.SpreadId, cards);
     }
 }

@@ -1,0 +1,146 @@
+{
+  "spreads": [
+    {
+      "id": "single-card",
+      "title": "Single Card",
+      "titleZh": "单张牌",
+      "description": "快速抓取当前问题的核心原型或今日提醒，适合日签、是非倾向和轻量自检。",
+      "category": "daily",
+      "difficulty": "easiest",
+      "majorOnly": true,
+      "positions": [
+        { "key": "answer", "title": "Answer", "titleZh": "答案", "context": "当前最需要看见的一点" }
+      ]
+    },
+    {
+      "id": "past-present-future",
+      "title": "Past-Present-Future",
+      "titleZh": "过去-现在-未来",
+      "description": "用三张牌看一个议题的时间线：过去影响、当前核心和自然发展趋势。",
+      "category": "general",
+      "difficulty": "easiest",
+      "majorOnly": false,
+      "positions": [
+        { "key": "past", "title": "Past", "titleZh": "过去", "context": "已经发生的影响" },
+        { "key": "present", "title": "Present", "titleZh": "现在", "context": "当前核心议题" },
+        { "key": "future", "title": "Future", "titleZh": "未来", "context": "趋势与可能走向" }
+      ]
+    },
+    {
+      "id": "situation-action-outcome",
+      "title": "Situation-Action-Outcome",
+      "titleZh": "现状-行动-结果",
+      "description": "面向决策的实用牌阵：先看局面，再看可采取的行动，最后看可能结果。",
+      "category": "decision",
+      "difficulty": "easiest",
+      "majorOnly": false,
+      "positions": [
+        { "key": "situation", "title": "Situation", "titleZh": "现状", "context": "问题现状" },
+        { "key": "action", "title": "Action", "titleZh": "行动", "context": "建议行动" },
+        { "key": "outcome", "title": "Outcome", "titleZh": "结果", "context": "可能结果" }
+      ]
+    },
+    {
+      "id": "mind-body-spirit",
+      "title": "Mind-Body-Spirit",
+      "titleZh": "身心灵",
+      "description": "聚焦内在状态和人生主题，适合只用大阿卡纳看思想、身体能量与精神方向。",
+      "category": "self",
+      "difficulty": "easiest",
+      "majorOnly": true,
+      "positions": [
+        { "key": "mind", "title": "Mind", "titleZh": "心智", "context": "想法与判断" },
+        { "key": "body", "title": "Body", "titleZh": "身体", "context": "现实状态与精力" },
+        { "key": "spirit", "title": "Spirit", "titleZh": "灵性", "context": "内在方向" }
+      ]
+    },
+    {
+      "id": "choice",
+      "title": "Choice",
+      "titleZh": "二选一",
+      "description": "比较两条路径的倾向、隐藏变量和当下建议，适合具体选择题。",
+      "category": "decision",
+      "difficulty": "intermediate",
+      "majorOnly": false,
+      "positions": [
+        { "key": "option-a", "title": "Option A", "titleZh": "选项 A", "context": "选择 A 的核心倾向" },
+        { "key": "option-b", "title": "Option B", "titleZh": "选项 B", "context": "选择 B 的核心倾向" },
+        { "key": "hidden-factor", "title": "Hidden Factor", "titleZh": "隐藏因素", "context": "容易忽略的变量" },
+        { "key": "advice", "title": "Advice", "titleZh": "建议", "context": "当下可采取的做法" }
+      ]
+    },
+    {
+      "id": "relationship",
+      "title": "Relationship",
+      "titleZh": "关系牌阵",
+      "description": "观察双方状态、连接点、挑战和建议，适合亲密关系、合作或重要互动。",
+      "category": "relationship",
+      "difficulty": "intermediate",
+      "majorOnly": false,
+      "positions": [
+        { "key": "you", "title": "You", "titleZh": "你", "context": "你的状态" },
+        { "key": "other", "title": "Other", "titleZh": "对方", "context": "对方或外部对象的状态" },
+        { "key": "bridge", "title": "Bridge", "titleZh": "连接", "context": "双方连接点" },
+        { "key": "challenge", "title": "Challenge", "titleZh": "挑战", "context": "主要阻碍" },
+        { "key": "advice", "title": "Advice", "titleZh": "建议", "context": "关系中的建议" }
+      ]
+    },
+    {
+      "id": "horseshoe",
+      "title": "Horseshoe",
+      "titleZh": "马蹄牌阵",
+      "description": "七张牌梳理背景、阻碍、外部影响和走向，适合复杂但仍可行动的问题。",
+      "category": "decision",
+      "difficulty": "intermediate",
+      "majorOnly": false,
+      "positions": [
+        { "key": "past", "title": "Past", "titleZh": "过去", "context": "过去影响" },
+        { "key": "present", "title": "Present", "titleZh": "现在", "context": "当前状况" },
+        { "key": "hidden", "title": "Hidden Influence", "titleZh": "隐藏影响", "context": "隐藏影响" },
+        { "key": "obstacle", "title": "Obstacle", "titleZh": "阻碍", "context": "阻碍" },
+        { "key": "external", "title": "External Influence", "titleZh": "外部影响", "context": "外部环境" },
+        { "key": "advice", "title": "Advice", "titleZh": "建议", "context": "建议" },
+        { "key": "outcome", "title": "Outcome", "titleZh": "结果", "context": "可能结果" }
+      ]
+    },
+    {
+      "id": "week-ahead",
+      "title": "Week Ahead",
+      "titleZh": "未来一周",
+      "description": "七张牌对应未来七天的节奏和提醒，适合日程规划与每周观察。",
+      "category": "daily",
+      "difficulty": "intermediate",
+      "majorOnly": false,
+      "positions": [
+        { "key": "day-1", "title": "Day 1", "titleZh": "第 1 天", "context": "第一天重点" },
+        { "key": "day-2", "title": "Day 2", "titleZh": "第 2 天", "context": "第二天重点" },
+        { "key": "day-3", "title": "Day 3", "titleZh": "第 3 天", "context": "第三天重点" },
+        { "key": "day-4", "title": "Day 4", "titleZh": "第 4 天", "context": "第四天重点" },
+        { "key": "day-5", "title": "Day 5", "titleZh": "第 5 天", "context": "第五天重点" },
+        { "key": "day-6", "title": "Day 6", "titleZh": "第 6 天", "context": "第六天重点" },
+        { "key": "day-7", "title": "Day 7", "titleZh": "第 7 天", "context": "第七天重点" }
+      ]
+    },
+    {
+      "id": "celtic-cross",
+      "title": "Celtic Cross",
+      "titleZh": "凯尔特十字",
+      "description": "十张牌展开现状、挑战、根源、趋势、外部影响和结果，适合长问题和复盘。",
+      "category": "general",
+      "difficulty": "advanced",
+      "majorOnly": false,
+      "positions": [
+        { "key": "present", "title": "Present Situation", "titleZh": "当前处境", "context": "当前处境" },
+        { "key": "challenge", "title": "Challenge", "titleZh": "挑战", "context": "核心挑战/阻碍" },
+        { "key": "distant-past", "title": "Distant Past", "titleZh": "深层过去", "context": "深层根源" },
+        { "key": "recent-past", "title": "Recent Past", "titleZh": "近期过去", "context": "近期影响" },
+        { "key": "best-outcome", "title": "Best Outcome", "titleZh": "最佳可能", "context": "最佳可能" },
+        { "key": "near-future", "title": "Near Future", "titleZh": "近期未来", "context": "近期趋势" },
+        { "key": "approach", "title": "Your Approach", "titleZh": "你的态度", "context": "你的态度与做法" },
+        { "key": "external", "title": "External Influences", "titleZh": "外部影响", "context": "外部环境与他人" },
+        { "key": "hopes-fears", "title": "Hopes and Fears", "titleZh": "希望与担忧", "context": "希望与担心" },
+        { "key": "outcome", "title": "Final Outcome", "titleZh": "最终结果", "context": "最终结果" }
+      ]
+    }
+  ]
+}

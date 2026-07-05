@@ -1,6 +1,6 @@
 namespace IChing.Tarot.App.Services;
 
-/// <summary>牌面占位视觉：花色配色 + 可选本地 RWS 图片（Resources/Images/tarot/）。</summary>
+/// <summary>牌面占位视觉：花色配色 + 本地 RWS 图片（Resources/Images/tarot_*.jpeg）。</summary>
 public static class TarotCardVisual
 {
     public static string Slug(string cardName) =>
@@ -34,9 +34,12 @@ public static class TarotCardVisual
     public static string Abbrev(string cardNameZh) =>
         cardNameZh.Length <= 2 ? cardNameZh : cardNameZh[..2];
 
-    /// <summary>若已打包 RWS 资源（Resources/Images/tarot_*.jpeg）则返回 ImageSource。</summary>
+    /// <summary>MauiImage 打包资源，文件名 tarot_{slug}.jpeg（连字符转下划线）。</summary>
     public static ImageSource? TryImage(string cardName) =>
         ImageCache.TryGet(Slug(cardName));
+
+    public static string AssetFileName(string slug) =>
+        $"tarot_{slug.Replace('-', '_')}.jpeg";
 
     private static class ImageCache
     {
@@ -49,19 +52,15 @@ public static class TarotCardVisual
                 return cached;
             }
 
-            var file = $"tarot_{slug}.jpeg";
+            var file = AssetFileName(slug);
             ImageSource? source = null;
             try
             {
-                using var stream = FileSystem.OpenAppPackageFileAsync(file).GetAwaiter().GetResult();
-                if (stream.Length > 0)
-                {
-                    source = ImageSource.FromFile(file);
-                }
+                source = ImageSource.FromFile(file);
             }
             catch
             {
-                // 未下载牌面图时用占位 UI
+                // ponytail: 未 sync 牌面图时占位
             }
 
             Cache[slug] = source;

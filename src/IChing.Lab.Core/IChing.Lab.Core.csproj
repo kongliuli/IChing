@@ -16,4 +16,8 @@
     <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Tarot\spreads.json" LogicalName="IChing.Lab.Core.Tarot.spreads.json" />
+  </ItemGroup>
+
 </Project>

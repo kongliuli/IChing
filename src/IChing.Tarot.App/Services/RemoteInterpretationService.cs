@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Engines.Tarot;
 
@@ -18,10 +19,11 @@ public sealed class RemoteInterpretationService
     {
         if (!settings.IsConfigured)
         {
+            var preview = ReadingSummaries.BuildTarotTier0Preview(reading, question);
             return new InterpretationResult(
-                Text: BuildTier0Summary(reading, question),
+                Text: preview.OneLiner,
                 IsFallback: true,
-                Error: "请先在设置中填写 API Key");
+                Error: "请先在设置中填写 API Key，或启用 Lab API");
         }
 
         var prompt = BuildDeckauraPrompt(reading, question);
@@ -48,7 +50,7 @@ public sealed class RemoteInterpretationService
             if (!response.IsSuccessStatusCode)
             {
                 return new InterpretationResult(
-                    BuildTier0Summary(reading, question),
+                    ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner,
                     true,
                     $"{(int)response.StatusCode}: {Trim(json, 200)}");
             }
@@ -60,11 +62,17 @@ public sealed class RemoteInterpretationService
                 .GetProperty("content")
                 .GetString();
 
-            return new InterpretationResult(text ?? BuildTier0Summary(reading, question), false, null);
+            return new InterpretationResult(
+                text ?? ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner,
+                false,
+                null);
         }
         catch (Exception ex)
         {
-            return new InterpretationResult(BuildTier0Summary(reading, question), true, ex.Message);
+            return new InterpretationResult(
+                ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner,
+                true,
+                ex.Message);
         }
     }
 
@@ -129,16 +137,18 @@ public sealed class RemoteInterpretationService
         sb.AppendLine("规则摘要：");
         sb.AppendLine(digestJson);
         sb.AppendLine();
-        sb.AppendLine("请用简体中文写一段 300–500 字的解读：先整体能量，再逐位简析，最后给出可行动的建议。");
+        sb.AppendLine("请严格用简体中文、Markdown 分段输出（不要对话口吻，不要「你好」等寒暄），结构如下：");
+        sb.AppendLine("## 整体能量");
+        sb.AppendLine("（2–3 句概括牌阵基调）");
+        sb.AppendLine("## 牌位解读");
+        sb.AppendLine("### [牌位中文名] 牌名 · 正/逆位");
+        sb.AppendLine("（该位置 2–4 句，仅解读已列出的牌）");
+        sb.AppendLine("## 牌阵互动");
+        sb.AppendLine("（元素/数字/大阿卡纳比例等 2–3 句）");
+        sb.AppendLine("## 行动建议");
+        sb.AppendLine("（3 条可执行建议，每条一行，以 - 开头）");
+        sb.AppendLine($"总字数约 { (reading.Positions.Count >= 10 ? 500 : 350) } 字。");
         return sb.ToString();
-    }
-
-    private static string BuildTier0Summary(TarotReading reading, string? question)
-    {
-        var narrative = TarotNarrative.Build(reading);
-        return question is { Length: > 0 }
-            ? $"【{question}】\n{narrative.Summary}\n\n{narrative.Headline}"
-            : $"{narrative.Headline}\n{narrative.Summary}";
     }
 
     private static string Trim(string s, int max) =>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:models="clr-namespace:IChing.Tarot.App.Models"
              xmlns:services="clr-namespace:IChing.Tarot.App.Services"
              x:Class="IChing.Tarot.App.Pages.DrawPage"
              Title="星轨塔罗"
@@ -22,7 +21,7 @@
 
             <Border Stroke="{StaticResource GoldDim}"
                     StrokeThickness="1"
-                    Background="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource Surface}"
                     Padding="16"
                     StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="12">
@@ -45,7 +44,7 @@
 
                     <HorizontalStackLayout Spacing="8">
                         <Border Padding="6,2"
-                                Background="{StaticResource SurfaceAlt}"
+                                BackgroundColor="{StaticResource SurfaceAlt}"
                                 Stroke="{StaticResource GoldDim}"
                                 StrokeThickness="1"
                                 StrokeShape="RoundRectangle 8">
@@ -61,22 +60,27 @@
                                HorizontalOptions="Fill" />
                     </HorizontalStackLayout>
 
-                    <Expander IsExpanded="False">
-                        <Expander.Header>
-                            <Label Text="高级选项"
-                                   TextColor="{StaticResource TextSecondary}"
-                                   FontSize="12" />
-                        </Expander.Header>
-                        <VerticalStackLayout Spacing="4" Padding="0,8,0,0">
-                            <Label Text="随机种子（留空则每次不同）"
-                                   TextColor="{StaticResource Muted}" FontSize="12" />
-                            <Entry x:Name="SeedEntry"
-                                   Keyboard="Numeric"
-                                   Placeholder="如 42"
-                                   TextColor="{StaticResource TextPrimary}"
-                                   BackgroundColor="{StaticResource SurfaceAlt}" />
-                        </VerticalStackLayout>
-                    </Expander>
+                    <Button x:Name="AdvancedToggleButton"
+                            Text="▸ 高级选项"
+                            Clicked="OnAdvancedToggleClicked"
+                            FontSize="12"
+                            Padding="0,4"
+                            HorizontalOptions="Start"
+                            TextColor="{StaticResource TextSecondary}"
+                            BackgroundColor="Transparent"
+                            BorderWidth="0" />
+                    <VerticalStackLayout x:Name="AdvancedPanel"
+                                         IsVisible="False"
+                                         Spacing="4"
+                                         Padding="0,0,0,0">
+                        <Label Text="随机种子（留空则每次不同）"
+                               TextColor="{StaticResource Muted}" FontSize="12" />
+                        <Entry x:Name="SeedEntry"
+                               Keyboard="Numeric"
+                               Placeholder="如 42"
+                               TextColor="{StaticResource TextPrimary}"
+                               BackgroundColor="{StaticResource SurfaceAlt}" />
+                    </VerticalStackLayout>
 
                     <Button x:Name="DrawButton"
                             Text="✦  开始抽牌"
@@ -84,7 +88,7 @@
                             TextColor="#1A1208"
                             FontAttributes="Bold"
                             FontSize="16"
-                            Background="{StaticResource GoldButtonGradient}"
+                            BackgroundColor="{StaticResource Gold}"
                             Padding="18,14"
                             CornerRadius="28"
                             HorizontalOptions="Fill" />
@@ -94,7 +98,7 @@
             <Border x:Name="EmptyStatePanel"
                     Stroke="{StaticResource GoldDim}"
                     StrokeThickness="1"
-                    Background="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource Surface}"
                     Padding="24,32"
                     StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
@@ -121,12 +125,20 @@
                            FontSize="20"
                            FontAttributes="Bold"
                            TextColor="{StaticResource PurpleLight}" />
-                    <Grid ColumnDefinitions="*,Auto">
-                        <Label x:Name="ReadingMetaLabel"
-                               Grid.Column="0"
-                               FontSize="12"
-                               VerticalOptions="Center"
-                               TextColor="{StaticResource TextSecondary}" />
+                    <Label x:Name="ReadingMetaLabel"
+                           FontSize="12"
+                           TextColor="{StaticResource TextSecondary}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Button x:Name="SpreadToggleButton"
+                                Grid.Column="0"
+                                Text="▾ 牌阵布局"
+                                Clicked="OnSpreadToggleClicked"
+                                FontSize="13"
+                                Padding="0,4"
+                                HorizontalOptions="Start"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="Transparent"
+                                BorderWidth="0" />
                         <Button Grid.Column="1"
                                 Text="复制牌阵"
                                 FontSize="11"
@@ -139,87 +151,13 @@
                                 BorderWidth="1" />
                     </Grid>
 
-                    <Grid x:Name="CelticCrossHost"
-                          IsVisible="False"
-                          ColumnDefinitions="*,*,*"
-                          RowDefinitions="Auto,Auto,Auto,Auto"
-                          ColumnSpacing="8"
-                          RowSpacing="8" />
-
-                    <CollectionView x:Name="CardsCollection" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:CardDisplayItem">
-                                <Border Margin="0,0,0,10"
-                                        Padding="0"
-                                        Background="{StaticResource Surface}"
-                                        Stroke="{StaticResource GoldDim}"
-                                        StrokeThickness="1"
-                                        StrokeShape="RoundRectangle 12">
-                                    <Grid ColumnDefinitions="6,Auto,*" ColumnSpacing="0">
-                                        <BoxView Grid.Column="0"
-                                                 Color="{Binding SuitAccent}"
-                                                 HorizontalOptions="Fill"
-                                                 VerticalOptions="Fill" />
-                                        <Border Grid.Column="1"
-                                                Margin="12,12,0,12"
-                                                WidthRequest="52"
-                                                HeightRequest="78"
-                                                BackgroundColor="{StaticResource SurfaceAlt}"
-                                                Stroke="{Binding SuitAccent}"
-                                                StrokeThickness="1.5"
-                                                StrokeShape="RoundRectangle 8"
-                                                Rotation="{Binding CardRotation}">
-                                            <Grid>
-                                                <Image Source="{Binding CardImage}"
-                                                       Aspect="AspectFill"
-                                                       IsVisible="{Binding HasImage}" />
-                                                <VerticalStackLayout IsVisible="{Binding HasPlaceholder}"
-                                                                     VerticalOptions="Center"
-                                                                     HorizontalOptions="Center"
-                                                                     Spacing="2">
-                                                <Label Text="{Binding Abbrev}"
-                                                       FontSize="18"
-                                                       FontAttributes="Bold"
-                                                       TextColor="{Binding SuitAccent}"
-                                                       HorizontalOptions="Center" />
-                                                <Label Text="✦"
-                                                       FontSize="12"
-                                                       TextColor="{StaticResource GoldDim}"
-                                                       HorizontalOptions="Center" />
-                                            </VerticalStackLayout>
-                                            </Grid>
-                                        </Border>
-                                        <VerticalStackLayout Grid.Column="2"
-                                                             Margin="12,12,14,12"
-                                                             Spacing="4">
-                                            <HorizontalStackLayout Spacing="8">
-                                                <Label Text="{Binding PositionTitle}"
-                                                       FontAttributes="Bold"
-                                                       TextColor="{StaticResource Gold}"
-                                                       VerticalOptions="Center" />
-                                                <Border IsVisible="{Binding IsReversed}"
-                                                        Padding="6,2"
-                                                        BackgroundColor="#3A1F2A"
-                                                        Stroke="{StaticResource Danger}"
-                                                        StrokeThickness="1"
-                                                        StrokeShape="RoundRectangle 6">
-                                                    <Label Text="逆位"
-                                                           FontSize="10"
-                                                           TextColor="{StaticResource Danger}" />
-                                                </Border>
-                                            </HorizontalStackLayout>
-                                            <Label Text="{Binding CardLine}"
-                                                   TextColor="{StaticResource TextPrimary}" />
-                                            <Label Text="{Binding Meaning}"
-                                                   FontSize="13"
-                                                   LineBreakMode="WordWrap"
-                                                   TextColor="{StaticResource TextSecondary}" />
-                                        </VerticalStackLayout>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <VerticalStackLayout x:Name="SpreadBoardPanel" IsVisible="True" Spacing="0">
+                        <Grid x:Name="SpreadBoardHost"
+                              ColumnDefinitions="*"
+                              RowDefinitions="Auto"
+                              ColumnSpacing="8"
+                              RowSpacing="8" />
+                    </VerticalStackLayout>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                         <Button Grid.Column="0"
@@ -229,7 +167,7 @@
                                 IsEnabled="False"
                                 TextColor="#1A1208"
                                 FontAttributes="Bold"
-                                Background="{StaticResource GoldButtonGradient}"
+                                BackgroundColor="{StaticResource Gold}"
                                 CornerRadius="24"
                                 Padding="14,12" />
                         <Button Grid.Column="1"
@@ -251,7 +189,7 @@
                     <Border x:Name="InterpretationPanel"
                             IsVisible="False"
                             Padding="14"
-                            Background="{StaticResource SurfaceAlt}"
+                            BackgroundColor="{StaticResource SurfaceAlt}"
                             Stroke="{StaticResource PurpleLight}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 12">
@@ -272,12 +210,11 @@
                                         BorderColor="{StaticResource GoldDim}"
                                         BorderWidth="1" />
                             </Grid>
-                            <Label x:Name="InterpretationLabel"
-                                   LineBreakMode="WordWrap"
-                                   TextColor="{StaticResource TextPrimary}" />
                             <Label x:Name="InterpretationStatusLabel"
                                    FontSize="12"
                                    TextColor="{StaticResource Muted}" />
+                            <VerticalStackLayout x:Name="InterpretationBoardHost"
+                                                 Spacing="12" />
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>
@@ -287,7 +224,7 @@
                     IsVisible="False"
                     Stroke="{StaticResource GoldDim}"
                     StrokeThickness="1"
-                    Background="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource Surface}"
                     Padding="16"
                     StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="8">

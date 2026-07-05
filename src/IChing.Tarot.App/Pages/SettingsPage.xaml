@@ -16,7 +16,7 @@
                    LineBreakMode="WordWrap" />
 
             <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
-                    Background="{StaticResource Surface}" Padding="16"
+                    BackgroundColor="{StaticResource Surface}" Padding="16"
                     StrokeShape="RoundRectangle 16">
                 <VerticalStackLayout Spacing="14">
                     <Label Text="服务商预设" TextColor="{StaticResource TextSecondary}" FontSize="13" />
@@ -70,7 +70,7 @@
                                 Clicked="OnSaveClicked"
                                 TextColor="#1A1208"
                                 FontAttributes="Bold"
-                                Background="{StaticResource GoldButtonGradient}"
+                                BackgroundColor="{StaticResource Gold}"
                                 CornerRadius="24"
                                 Padding="14,12" />
                         <Button Grid.Column="1"
@@ -100,7 +100,32 @@
                            TextColor="{StaticResource Muted}" />
                 </VerticalStackLayout>
             </Border>
+
+            <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}" Padding="16"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="Lab API（可选）"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Gold}" />
+                    <Label Text="启用后优先调用 IChing.Lab.Api 的 /lab/tarot/read，使用 ONNX 或降级链解读。"
+                           TextColor="{StaticResource TextSecondary}"
+                           FontSize="13"
+                           LineBreakMode="WordWrap" />
+
+                    <Switch x:Name="UseLabSwitch"
+                            Toggled="OnUseLabToggled"
+                            OnColor="{StaticResource Gold}" />
+
+                    <Label Text="Lab API 地址" TextColor="{StaticResource TextSecondary}" FontSize="13" />
+                    <Entry x:Name="LabApiUrlEntry"
+                           Placeholder="http://localhost:5000"
+                           TextColor="{StaticResource TextPrimary}"
+                           BackgroundColor="{StaticResource SurfaceAlt}" />
+                </VerticalStackLayout>
+            </Border>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
-
+

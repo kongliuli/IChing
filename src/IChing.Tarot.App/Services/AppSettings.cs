@@ -6,7 +6,11 @@ public sealed class AppSettings
     public const string PrefBaseUrl = "api_base_url";
     public const string PrefModel = "api_model";
     public const string PrefProvider = "api_provider";
+    public const string PrefLabApiUrl = "lab_api_url";
+    public const string PrefUseLabApi = "use_lab_api";
+    public const string PrefInterpretTier = "interpret_tier";
     public const string DefaultDeepSeekUrl = "https://api.deepseek.com/v1";
+    public const string DefaultLabApiUrl = "http://localhost:5000";
 
     public string ApiKey
     {
@@ -32,7 +36,27 @@ public sealed class AppSettings
         set => Preferences.Default.Set(PrefProvider, value);
     }
 
+    public string LabApiUrl
+    {
+        get => Preferences.Default.Get(PrefLabApiUrl, DefaultLabApiUrl);
+        set => Preferences.Default.Set(PrefLabApiUrl, value);
+    }
+
+    public bool UseLabApi
+    {
+        get => Preferences.Default.Get(PrefUseLabApi, false);
+        set => Preferences.Default.Set(PrefUseLabApi, value);
+    }
+
+    public int InterpretTier
+    {
+        get => Preferences.Default.Get(PrefInterpretTier, 1);
+        set => Preferences.Default.Set(PrefInterpretTier, Math.Clamp(value, 0, 2));
+    }
+
     public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey);
+
+    public bool IsLabConfigured => !string.IsNullOrWhiteSpace(LabApiUrl);
 
     public void ApplyProviderPreset(string provider)
     {

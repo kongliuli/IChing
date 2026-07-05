@@ -34,8 +34,8 @@
 		<ApplicationId>com.iching.tarot</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
+		<ApplicationVersion>2</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
@@ -55,8 +55,8 @@
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#0B0812" BaseSize="128,128" />
 
 		<!-- Images -->
-		<MauiImage Include="Resources\Images\*" />
-		<MauiImage Include="Resources\Images\tarot\*.jpeg" Resize="True" BaseSize="120,180" />
+        <MauiImage Include="Resources\Images\*" Exclude="Resources\Images\tarot_*.jpeg" />
+        <MauiImage Include="Resources\Images\tarot_*.jpeg" Resize="True" BaseSize="120,180" />
 		<MauiImage Update="Resources\Images\dotnet_bot.png" Resize="True" BaseSize="300,185" />
 		
 		<!-- Custom Fonts -->
@@ -80,5 +80,12 @@
 	<ItemGroup>
 		<MauiXaml Update="Pages\DrawPage.xaml" Inflator="Default" />
 	</ItemGroup>
+
+	<!-- ponytail: Google aapt2 无法处理非 ASCII 路径；Android 必须从 C:\IChingDev junction 打开 sln -->
+	<Target Name="_IChingBlockAndroidNonAsciiPath"
+	        BeforeTargets="PrepareForBuild"
+	        Condition="'$(TargetFramework)' == 'net10.0-android' And $([System.Text.RegularExpressions.Regex]::IsMatch('$(MSBuildProjectDirectory)', '[^\x00-\x7F]'))">
+		<Error Text="APT2265：当前路径含非 ASCII 字符，Android 无法在此构建。请运行 scripts\ensure-android-ascii-path.cmd，然后用 VS 打开 C:\IChingDev\src\IChing.Lab.sln（勿打开 G: 中文路径下的 sln）。详见 https://learn.microsoft.com/dotnet/android/messages/apt2265" />
+	</Target>
 
 </Project>

@@ -1,0 +1,6 @@
+<Project>
+  <!-- ponytail: 默认跳过已废弃 WPF 桌面端；显式构建: dotnet build -p:BuildDeprecatedDesktop=true -->
+  <PropertyGroup Condition="'$(BuildDeprecatedDesktop)' != 'true' And '$(MSBuildProjectName)' == 'IChing.Desktop'">
+    <IsBuildable>false</IsBuildable>
+  </PropertyGroup>
+</Project>

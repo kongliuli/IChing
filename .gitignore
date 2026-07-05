@@ -13,3 +13,5 @@ obj/
 plugins/*.dll
 plugins/*.pdb
 plugins/*.deps.json
+dist/
+**/dist/v*/

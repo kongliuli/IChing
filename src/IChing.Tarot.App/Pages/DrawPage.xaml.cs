@@ -9,6 +9,7 @@ public partial class DrawPage : ContentPage
 {
     private TarotReading? _currentReading;
     private string _engineId = "iching-tarot-built-in";
+    private string _interpretationRaw = string.Empty;
     private readonly List<TarotSpread> _spreads = [];
 
     public DrawPage()
@@ -51,6 +52,18 @@ public partial class DrawPage : ContentPage
         };
     }
 
+    private void OnAdvancedToggleClicked(object? sender, EventArgs e)
+    {
+        AdvancedPanel.IsVisible = !AdvancedPanel.IsVisible;
+        AdvancedToggleButton.Text = AdvancedPanel.IsVisible ? "▾ 高级选项" : "▸ 高级选项";
+    }
+
+    private void OnSpreadToggleClicked(object? sender, EventArgs e)
+    {
+        SpreadBoardPanel.IsVisible = !SpreadBoardPanel.IsVisible;
+        SpreadToggleButton.Text = SpreadBoardPanel.IsVisible ? "▾ 牌阵布局" : "▸ 牌阵布局";
+    }
+
     private async void OnDrawClicked(object? sender, EventArgs e)
     {
         var idx = SpreadPicker.SelectedIndex;
@@ -86,6 +99,8 @@ public partial class DrawPage : ContentPage
             App.History.Add(_currentReading, _engineId);
             UpdateHistoryPanel();
             InterpretationPanel.IsVisible = false;
+            InterpretationBoardLayout.Render(InterpretationBoardHost, []);
+            _interpretationRaw = string.Empty;
             InterpretButton.IsEnabled = true;
             EmptyStatePanel.IsVisible = false;
 
@@ -112,23 +127,13 @@ public partial class DrawPage : ContentPage
             $"引擎 {_engineId} · seed={reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · Deckaura {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
 
         var cards = CardDisplayMapper.FromReading(reading);
-        var isCeltic = reading.SpreadId == "celtic-cross";
-        CelticCrossHost.IsVisible = isCeltic;
-        CardsCollection.IsVisible = !isCeltic;
-
-        if (isCeltic)
-        {
-            CelticCrossLayout.Render(CelticCrossHost, cards);
-        }
-        else
-        {
-            CelticCrossHost.Children.Clear();
-            CardsCollection.ItemsSource = cards;
-        }
+        SpreadBoardPanel.IsVisible = true;
+        SpreadToggleButton.Text = "▾ 牌阵布局";
+        SpreadBoardLayout.Render(SpreadBoardHost, reading.SpreadId, cards);
 
         await Task.WhenAll(
-            ReadingPanel.FadeTo(1, 320),
-            ReadingPanel.ScaleTo(1, 320, Easing.CubicOut));
+            ReadingPanel.FadeToAsync(1, 320),
+            ReadingPanel.ScaleToAsync(1, 320, Easing.CubicOut));
     }
 
     private async void OnHistorySelected(object? sender, SelectionChangedEventArgs e)
@@ -175,8 +180,17 @@ public partial class DrawPage : ContentPage
                 _currentReading,
                 QuestionEntry.Text);
 
-            InterpretationPanel.IsVisible = true;
-            InterpretationLabel.Text = result.Text;
+            var sections = InterpretationSectionParser.Parse(result.Text);
+            _interpretationRaw = result.Text;
+            if (sections.Count == 0)
+            {
+                InterpretationPanel.IsVisible = false;
+            }
+            else
+            {
+                InterpretationPanel.IsVisible = true;
+                InterpretationBoardLayout.Render(InterpretationBoardHost, sections, _currentReading);
+            }
             InterpretationStatusLabel.Text = result.IsFallback
                 ? $"⚠ 降级/部分失败：{result.Error ?? "使用规则摘要"}"
                 : $"✓ {App.Settings.Provider} · {App.Settings.Model}";
@@ -197,12 +211,12 @@ public partial class DrawPage : ContentPage
 
     private async void OnCopyInterpretationClicked(object? sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(InterpretationLabel.Text))
+        if (string.IsNullOrWhiteSpace(_interpretationRaw))
         {
             return;
         }
 
-        await Clipboard.Default.SetTextAsync(InterpretationLabel.Text);
+        await Clipboard.Default.SetTextAsync(_interpretationRaw);
         await DisplayAlertAsync("已复制", "解读内容已复制到剪贴板。", "好的");
     }
 

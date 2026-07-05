@@ -10,7 +10,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.*" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
     <PackageReference Include="Microsoft.ML.OnnxRuntimeGenAI" Version="0.14.1" />
-    <PackageReference Include="Scriban" Version="5.*" />
+    <PackageReference Include="Scriban" Version="7.2.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using IChing.App.Services;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Readings;
 
@@ -11,6 +12,7 @@ public partial class BaziPage : ContentPage
     private BaziRuleDigest? _currentDigest;
     private string _currentSummary = string.Empty;
     private string? _currentFocus;
+    private string? _currentInterpretation;
 
     public BaziPage()
     {
@@ -22,6 +24,7 @@ public partial class BaziPage : ContentPage
     {
         ErrorLabel.IsVisible = false;
         InterpretationPanel.IsVisible = false;
+        _currentInterpretation = null;
 
         try
         {
@@ -40,8 +43,7 @@ public partial class BaziPage : ContentPage
             _currentChart = chart;
             _currentDigest = digest;
             _currentFocus = focus;
-            _currentSummary =
-                $"日主 {chart.DayMaster}，{digest.PillarSummary}；{digest.YongShenSummary}";
+            _currentSummary = $"日主 {chart.DayMaster}，{digest.PillarSummary}；{digest.YongShenSummary}";
 
             BaziTitleLabel.Text = $"日主 {chart.DayMaster} · {chart.WallClock}";
             YearPillarLabel.Text = chart.YearPillar.GanZhi;
@@ -98,10 +100,14 @@ public partial class BaziPage : ContentPage
             return;
         }
 
+        _currentInterpretation = result.Text;
         InterpretStatusLabel.Text = "AI 解读";
-        InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Gold"];
+        InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Jade"];
         InterpretationLabel.Text = result.Text;
         App.History.Add("八字", _currentChart.DayPillar.GanZhi, _currentFocus, _currentSummary, result.Text);
+
+        var html = HtmlReadingTemplate.BuildBazi(_currentChart, _currentDigest, _currentFocus, _currentInterpretation);
+        await Navigation.PushModalAsync(new HtmlPreviewPage("八字解读展示", html));
     }
 
     private static string BuildPrompt(BaziChart chart, BaziRuleDigest digest, string? focus) =>

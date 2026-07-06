@@ -1,4 +1,5 @@
 using System.Text.Json;
+using IChing.App.Services;
 using IChing.Lab.Core.Liuyao;
 using IChing.Lab.Core.Readings;
 
@@ -12,6 +13,7 @@ public partial class LiuyaoPage : ContentPage
     private string _currentSummary = string.Empty;
     private string? _currentQuestion;
     private string? _currentFocus;
+    private string? _currentInterpretation;
 
     public LiuyaoPage()
     {
@@ -23,6 +25,7 @@ public partial class LiuyaoPage : ContentPage
     {
         ErrorLabel.IsVisible = false;
         InterpretationPanel.IsVisible = false;
+        _currentInterpretation = null;
 
         try
         {
@@ -94,10 +97,14 @@ public partial class LiuyaoPage : ContentPage
             return;
         }
 
+        _currentInterpretation = result.Text;
         InterpretStatusLabel.Text = "AI 解读";
-        InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Gold"];
+        InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Jade"];
         InterpretationLabel.Text = result.Text;
         App.History.Add("六爻", _currentChart.OriginalHexagram, _currentQuestion, _currentSummary, result.Text);
+
+        var html = HtmlReadingTemplate.BuildLiuyao(_currentChart, _currentDigest, _currentQuestion, _currentInterpretation);
+        await Navigation.PushModalAsync(new HtmlPreviewPage("六爻解读展示", html));
     }
 
     private static string BuildPrompt(

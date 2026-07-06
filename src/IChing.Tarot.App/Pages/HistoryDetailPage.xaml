@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="IChing.Tarot.App.Pages.HistoryDetailPage"
              Title="历史详情"
+             Shell.NavBarIsVisible="True"
+             Shell.TabBarIsVisible="False"
              Background="{StaticResource PageGradient}">
 
     <ScrollView>

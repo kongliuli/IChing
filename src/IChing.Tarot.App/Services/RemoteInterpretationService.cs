@@ -52,7 +52,7 @@ public sealed class RemoteInterpretationService
                 return new InterpretationResult(
                     ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner,
                     true,
-                    $"{(int)response.StatusCode}: {Trim(json, 200)}");
+                    UserFacingZh.Error($"{(int)response.StatusCode}: {Trim(json, 200)}"));
             }
 
             using var doc = JsonDocument.Parse(json);
@@ -72,7 +72,7 @@ public sealed class RemoteInterpretationService
             return new InterpretationResult(
                 ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner,
                 true,
-                ex.Message);
+                UserFacingZh.Error(ex.Message));
         }
     }
 
@@ -104,11 +104,11 @@ public sealed class RemoteInterpretationService
             }
 
             var body = Trim(await response.Content.ReadAsStringAsync(cancellationToken), 120);
-            return new ConnectionTestResult(false, $"{(int)response.StatusCode} {body}");
+            return new ConnectionTestResult(false, UserFacingZh.Error($"{(int)response.StatusCode} {body}"));
         }
         catch (Exception ex)
         {
-            return new ConnectionTestResult(false, ex.Message);
+            return new ConnectionTestResult(false, UserFacingZh.Error(ex.Message));
         }
     }
 

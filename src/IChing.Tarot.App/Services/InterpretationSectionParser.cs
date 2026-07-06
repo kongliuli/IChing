@@ -38,7 +38,7 @@ public static partial class InterpretationSectionParser
                 return;
             }
 
-            var title = currentTitle ?? "解读";
+            var title = UserFacingZh.SectionTitle(currentTitle ?? "解读");
             sections.Add(new InterpretationSectionItem
             {
                 Title = title,

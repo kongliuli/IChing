@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "headerTitle": "趣味探索",
+  "headerSubtitle": "轻量人格小工具，与正式占卜相互独立，仅供娱乐参考。",
+  "sections": [
+    {
+      "id": "personality",
+      "title": "人格测评",
+      "enabled": true,
+      "items": [
+        {
+          "id": "mbti-16",
+          "enabled": true,
+          "title": "十六型人格",
+          "description": "28 题 IPIP 风格四维计分，输出 16 型倾向（非官方 MBTI®）。",
+          "action": "personality-quiz",
+          "actionParam": "mbti-16",
+          "buttonText": "开始测试 →"
+        },
+        {
+          "id": "enneagram-9",
+          "enabled": true,
+          "title": "九型人格",
+          "description": "27 题核心动机倾向，识别 1–9 号类型。",
+          "action": "personality-quiz",
+          "actionParam": "enneagram-9",
+          "buttonText": "开始测试 →"
+        },
+        {
+          "id": "holland-riasec",
+          "enabled": true,
+          "title": "霍兰德职业兴趣",
+          "description": "30 题 RIASEC 六维，输出前三兴趣码。",
+          "action": "personality-quiz",
+          "actionParam": "holland-riasec",
+          "buttonText": "开始测试 →"
+        }
+      ]
+    },
+    {
+      "id": "tarot-fun",
+      "title": "塔罗趣味",
+      "enabled": true,
+      "items": [
+        {
+          "id": "spirit-card",
+          "enabled": true,
+          "title": "牌灵对应",
+          "description": "输入生日，发现你的大阿卡纳守护牌与简短解读。",
+          "action": "spirit-card",
+          "buttonText": "开始探索 →"
+        },
+        {
+          "id": "element-quiz",
+          "enabled": true,
+          "title": "四元素倾向",
+          "description": "8 道情境题，测测你更偏向火、水、风还是土。",
+          "action": "element-quiz",
+          "buttonText": "开始测试 →"
+        },
+        {
+          "id": "daily-color",
+          "enabled": true,
+          "title": "今日能量色",
+          "description": "根据日期生成今日幸运色与一句能量提示。",
+          "action": "daily-color",
+          "buttonText": "查看今日 →"
+        }
+      ]
+    }
+  ]
+}

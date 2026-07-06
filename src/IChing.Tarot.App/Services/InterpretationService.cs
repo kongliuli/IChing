@@ -141,11 +141,11 @@ public sealed class InterpretationService
             using var response = await Http.GetAsync(url, cancellationToken);
             return response.IsSuccessStatusCode
                 ? new ConnectionTestResult(true, "Lab API 在线")
-                : new ConnectionTestResult(false, $"{(int)response.StatusCode}");
+                : new ConnectionTestResult(false, UserFacingZh.HttpStatus((int)response.StatusCode));
         }
         catch (Exception ex)
         {
-            return new ConnectionTestResult(false, ex.Message);
+            return new ConnectionTestResult(false, UserFacingZh.Error(ex.Message));
         }
     }
 }

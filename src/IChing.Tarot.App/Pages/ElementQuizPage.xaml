@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="IChing.Tarot.App.Pages.ElementQuizPage"
+             Title="四元素倾向"
+             Shell.NavBarIsVisible="True"
+             Shell.TabBarIsVisible="False"
+             Background="{StaticResource PageGradient}">
+
+    <ScrollView x:Name="MainScroll">
+        <VerticalStackLayout Padding="20,28" Spacing="18">
+            <Label Text="四元素倾向测试"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Gold}" />
+            <Label x:Name="ProgressLabel"
+                   Text="第 1 / 8 题"
+                   TextColor="{StaticResource TextSecondary}" FontSize="13" />
+
+            <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}" Padding="16"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="12">
+                    <Label x:Name="QuestionLabel"
+                           FontSize="16"
+                           TextColor="{StaticResource TextPrimary}"
+                           LineBreakMode="WordWrap" />
+                    <VerticalStackLayout x:Name="OptionsHost" Spacing="8" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="ResultPanel"
+                    IsVisible="False"
+                    Stroke="{StaticResource Purple}"
+                    StrokeThickness="1"
+                    Background="{StaticResource CardGradient}"
+                    Padding="16"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="12">
+                    <Label x:Name="ResultTitleLabel"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource PurpleLight}" />
+                    <Label x:Name="ResultSummaryLabel"
+                           FontSize="14"
+                           TextColor="{StaticResource TextPrimary}"
+                           LineBreakMode="WordWrap" />
+                    <Button Text="保存长图"
+                            Clicked="OnSaveImageClicked"
+                            TextColor="{StaticResource Gold}"
+                            BackgroundColor="{StaticResource SurfaceAlt}"
+                            BorderColor="{StaticResource GoldDim}"
+                            BorderWidth="1"
+                            CornerRadius="24"
+                            Padding="14,12" />
+                    <Button Text="重新测试"
+                            Clicked="OnRestartClicked"
+                            TextColor="#1A1208"
+                            FontAttributes="Bold"
+                            BackgroundColor="{StaticResource Gold}"
+                            CornerRadius="24"
+                            Padding="14,12" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

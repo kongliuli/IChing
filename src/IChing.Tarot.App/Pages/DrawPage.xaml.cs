@@ -8,6 +8,8 @@ namespace IChing.Tarot.App.Pages;
 public partial class DrawPage : ContentPage
 {
     private TarotReading? _currentReading;
+    private List<Models.CardDisplayItem> _displayCards = [];
+    private List<Models.InterpretationSectionItem> _interpretationSections = [];
     private string _engineId = "iching-tarot-built-in";
     private string _interpretationRaw = string.Empty;
     private readonly List<TarotSpread> _spreads = [];
@@ -124,9 +126,10 @@ public partial class DrawPage : ContentPage
             ? $"「{q}」· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
         ReadingMetaLabel.Text =
-            $"引擎 {_engineId} · seed={reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · Deckaura {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
+            $"引擎 {UserFacingZh.EngineLabel(_engineId)} · 种子 {reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · 牌库覆盖 {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
 
-        var cards = CardDisplayMapper.FromReading(reading);
+        var cards = await CardDisplayMapper.FromReadingAsync(reading);
+        _displayCards = cards;
         SpreadBoardPanel.IsVisible = true;
         SpreadToggleButton.Text = "▾ 牌阵布局";
         SpreadBoardLayout.Render(SpreadBoardHost, reading.SpreadId, cards);
@@ -150,7 +153,7 @@ public partial class DrawPage : ContentPage
             return;
         }
 
-        await Shell.Current.GoToAsync($"history-detail?index={index}");
+        await Navigation.PushAsync(new HistoryDetailPage(index));
     }
 
     private async void OnInterpretClicked(object? sender, EventArgs e)
@@ -182,6 +185,7 @@ public partial class DrawPage : ContentPage
 
             var sections = InterpretationSectionParser.Parse(result.Text);
             _interpretationRaw = result.Text;
+            _interpretationSections = sections.ToList();
             if (sections.Count == 0)
             {
                 InterpretationPanel.IsVisible = false;
@@ -192,8 +196,8 @@ public partial class DrawPage : ContentPage
                 InterpretationBoardLayout.Render(InterpretationBoardHost, sections, _currentReading);
             }
             InterpretationStatusLabel.Text = result.IsFallback
-                ? $"⚠ 降级/部分失败：{result.Error ?? "使用规则摘要"}"
-                : $"✓ {App.Settings.Provider} · {App.Settings.Model}";
+                ? $"⚠ 降级/部分失败：{(string.IsNullOrWhiteSpace(result.Error) ? "已使用规则摘要" : UserFacingZh.Error(result.Error))}"
+                : $"✓ 解读成功 · {UserFacingZh.ProviderLabel(App.Settings.Provider)} / {App.Settings.Model}";
             InterpretationStatusLabel.TextColor = result.IsFallback
                 ? Color.FromArgb("#E06C75")
                 : Color.FromArgb("#7FD992");
@@ -232,6 +236,58 @@ public partial class DrawPage : ContentPage
         var text = string.Join("\n\n", lines);
         await Clipboard.Default.SetTextAsync(text);
         await DisplayAlertAsync("已复制", "牌阵内容已复制到剪贴板。", "好的");
+    }
+
+    private async void OnSaveSpreadImageClicked(object? sender, EventArgs e)
+    {
+        if (_currentReading is null || _displayCards.Count == 0)
+        {
+            return;
+        }
+
+        SaveSpreadButton.IsEnabled = false;
+        try
+        {
+            var view = ReadingExportBuilder.BuildSpread(_currentReading, _displayCards);
+            var path = await ExportService.CaptureAndSaveAsync(view, "牌阵");
+            if (path is null)
+            {
+                await DisplayAlertAsync("保存失败", "无法生成牌阵长图。", "好的");
+                return;
+            }
+
+            await DisplayAlertAsync("已保存", "牌阵长图已保存到相册或缓存目录。", "好的");
+        }
+        finally
+        {
+            SaveSpreadButton.IsEnabled = true;
+        }
+    }
+
+    private async void OnSaveInterpretationImageClicked(object? sender, EventArgs e)
+    {
+        if (_currentReading is null || _interpretationSections.Count == 0)
+        {
+            return;
+        }
+
+        SaveInterpretButton.IsEnabled = false;
+        try
+        {
+            var view = ReadingExportBuilder.BuildInterpretation(_currentReading, _interpretationSections);
+            var path = await ExportService.CaptureAndSaveAsync(view, "解读");
+            if (path is null)
+            {
+                await DisplayAlertAsync("保存失败", "无法生成解读长图。", "好的");
+                return;
+            }
+
+            await DisplayAlertAsync("已保存", "解读长图已保存到相册或缓存目录。", "好的");
+        }
+        finally
+        {
+            SaveInterpretButton.IsEnabled = true;
+        }
     }
 
     private void UpdateHistoryPanel()

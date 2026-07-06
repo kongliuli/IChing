@@ -1,10 +1,10 @@
 namespace IChing.Tarot.App.Services;
 
-/// <summary>牌面占位视觉：花色配色 + 本地 RWS 图片（Resources/Images/tarot_*.jpeg）。</summary>
+/// <summary>牌面占位视觉：花色配色 + 缓存 RWS 图片（TarotCardImageCache）。</summary>
 public static class TarotCardVisual
 {
     public static string Slug(string cardName) =>
-        cardName.ToLowerInvariant().Replace(" ", "-");
+        TarotRwsImageCatalog.Slug(cardName);
 
     public static Color SuitAccent(string cardName)
     {
@@ -34,37 +34,6 @@ public static class TarotCardVisual
     public static string Abbrev(string cardNameZh) =>
         cardNameZh.Length <= 2 ? cardNameZh : cardNameZh[..2];
 
-    /// <summary>MauiImage 打包资源，文件名 tarot_{slug}.jpeg（连字符转下划线）。</summary>
     public static ImageSource? TryImage(string cardName) =>
-        ImageCache.TryGet(Slug(cardName));
-
-    public static string AssetFileName(string slug) =>
-        $"tarot_{slug.Replace('-', '_')}.jpeg";
-
-    private static class ImageCache
-    {
-        private static readonly Dictionary<string, ImageSource?> Cache = new(StringComparer.OrdinalIgnoreCase);
-
-        public static ImageSource? TryGet(string slug)
-        {
-            if (Cache.TryGetValue(slug, out var cached))
-            {
-                return cached;
-            }
-
-            var file = AssetFileName(slug);
-            ImageSource? source = null;
-            try
-            {
-                source = ImageSource.FromFile(file);
-            }
-            catch
-            {
-                // ponytail: 未 sync 牌面图时占位
-            }
-
-            Cache[slug] = source;
-            return source;
-        }
-    }
+        App.CardImages.TryGetLocal(cardName);
 }

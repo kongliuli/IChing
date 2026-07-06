@@ -99,7 +99,7 @@ public static class InterpretationBoardLayout
         }
 
         content.Add(CollapsibleSection.Create(
-            "AI 解读",
+            "解读正文",
             new Label
             {
                 Text = item.Body,

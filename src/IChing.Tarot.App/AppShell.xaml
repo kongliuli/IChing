@@ -10,10 +10,13 @@
     Shell.TabBarUnselectedColor="{StaticResource Muted}"
     Shell.TabBarTitleColor="{StaticResource Gold}">
 
-    <Tab Title="✦ 占卜">
+    <Tab Title="占卜" Icon="tab_draw">
         <ShellContent Route="draw" ContentTemplate="{DataTemplate pages:DrawPage}" />
     </Tab>
-    <Tab Title="⚙ 设置">
+    <Tab Title="探索" Icon="tab_explore">
+        <ShellContent Route="explore" ContentTemplate="{DataTemplate pages:ExplorePage}" />
+    </Tab>
+    <Tab Title="设置" Icon="tab_settings">
         <ShellContent Route="settings" ContentTemplate="{DataTemplate pages:SettingsPage}" />
     </Tab>
 </Shell>

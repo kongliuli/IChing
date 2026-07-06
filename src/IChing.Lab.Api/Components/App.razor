@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>IChing Lab Tool</title>
+    <title>IChing Lab</title>
     <base href="/" />
     <ResourcePreloader />
     <ImportMap />
@@ -30,6 +30,7 @@
     </style>
 </head>
 <body>
-    <Routes />
+    <Routes @rendermode="InteractiveServer" />
+    <script src="_framework/blazor.web.js"></script>
 </body>
 </html>

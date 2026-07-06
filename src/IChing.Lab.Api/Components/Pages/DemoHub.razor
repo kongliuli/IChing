@@ -1,0 +1,37 @@
+@page "/demo"
+@rendermode InteractiveServer
+
+<PageTitle>星轨 Lab · 演示入口</PageTitle>
+
+<div class="chart-demo-page theme-tarot">
+    <header class="chart-demo-header">
+        <div>
+            <p class="kicker">IChing Lab</p>
+            <h1>测算演示</h1>
+            <p class="subtitle">Blazor 测试站 · 三域独立入口 · 共享 Core + 推理层</p>
+        </div>
+        <a class="nav-link" href="/lab-tool">Lab 调试台</a>
+    </header>
+
+    <div class="hub-grid">
+        <a class="hub-card" href="/bazi">
+            <strong>八字排盘</strong>
+            <span>四柱 · 格局用神 · 流年 · Tier0 概览 / Tier1 AI</span>
+        </a>
+        <a class="hub-card" href="/liuyao">
+            <strong>六爻起卦</strong>
+            <span>铜钱 / 时间卦 · 纳甲六亲 · Tier0 概览 / Tier1 AI</span>
+        </a>
+        <a class="hub-card" href="/tarot">
+            <strong>星轨塔罗</strong>
+            <span>10 种牌阵 · Deckaura 牌义 · Tier0 / Tier1 解读</span>
+        </a>
+    </div>
+
+    <p class="subtitle" style="margin-top:28px;max-width:640px">
+        单机 MAUI App：<code>IChing.Tarot.App</code> · <code>IChing.Bazi.App</code> · <code>IChing.Liuyao.App</code>（Windows 本地排盘/起卦）。
+        Web 演示与 MAUI 共用 <code>IChing.Lab.Core</code> 与 <code>ChartEngineRouter</code>。
+    </p>
+</div>
+
+<link href="css/chart-demo.css" rel="stylesheet" />

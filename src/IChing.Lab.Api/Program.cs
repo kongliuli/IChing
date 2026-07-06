@@ -1,6 +1,7 @@
 using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Api.Components;
+using IChing.Lab.Api.Services;
 using IChing.Lab.Core.Engines;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Engines.Bazi;
@@ -19,11 +20,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-builder.Services.AddRazorComponents();
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton(new RuleEngine(ReadRuleEngineOptions(builder.Configuration)));
+builder.Services.AddScoped<TarotDemoService>();
+builder.Services.AddScoped<BaziDemoService>();
+builder.Services.AddScoped<LiuyaoDemoService>();
 
 var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys");
 Directory.CreateDirectory(dataProtectionKeysPath);
@@ -84,7 +89,10 @@ var pluginLoader = new PluginLoader(
     builder.Configuration,
     pluginLoggerFactory.CreateLogger<PluginLoader>(),
     builder.Environment.ContentRootPath);
-pluginLoader.DiscoverAndRegister(builder.Services);
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    pluginLoader.DiscoverAndRegister(builder.Services);
+}
 builder.Services.AddSingleton(pluginLoader);
 
 var app = builder.Build();
@@ -95,8 +103,10 @@ app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapGet("/", () => Results.Redirect("/demo"));
 app.MapControllers();
-app.MapRazorComponents<App>();
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
 
 app.Run();
 

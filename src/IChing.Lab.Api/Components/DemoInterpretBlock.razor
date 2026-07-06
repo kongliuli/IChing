@@ -1,0 +1,39 @@
+@using IChing.Lab.Api.Services
+
+@if (Result is not null)
+{
+    <article class="interpretation">
+        <h3>@(Result.Tier == 0 ? "概览" : "AI 解读")</h3>
+        @if (!string.IsNullOrWhiteSpace(Result.PromptTemplate))
+        {
+            <p class="prompt-meta">提示词模板：<code>@Result.PromptTemplate</code></p>
+        }
+        @if (Result.IsFallback)
+        {
+            <p class="fallback">降级模式：@(Result.FallbackReason ?? "模型不可用")</p>
+        }
+        <div class="narrative">@((MarkupString)Format(Result.Text ?? Result.OneLiner))</div>
+        @if (!string.IsNullOrWhiteSpace(Result.TextEn))
+        {
+            <div class="narrative" style="margin-top:10px;opacity:.85">@((MarkupString)Format(Result.TextEn))</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Result.Disclaimer))
+        {
+            <small style="display:block;margin-top:10px;opacity:.65">@Result.Disclaimer</small>
+        }
+        @if (!string.IsNullOrWhiteSpace(Result.PromptPreview))
+        {
+            <details class="prompt-details">
+                <summary>查看发送给模型的 Prompt</summary>
+                <pre>@Result.PromptPreview</pre>
+            </details>
+        }
+    </article>
+}
+
+@code {
+    [Parameter] public DemoReadResult? Result { get; set; }
+
+    private static string Format(string text) =>
+        System.Net.WebUtility.HtmlEncode(text).Replace("\n", "<br>");
+}

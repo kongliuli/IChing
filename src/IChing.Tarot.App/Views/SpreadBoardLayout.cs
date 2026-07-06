@@ -230,7 +230,7 @@ public static class SpreadBoardLayout
     private static Border CreateMiniCard(CardDisplayItem item, double cardWidth)
     {
         var imageHeight = cardWidth * CardAspect;
-        var titleSize = cardWidth >= 120 ? 13 : 11;
+        var titleSize = cardWidth >= 120 ? 12 : 10;
         var lineSize = cardWidth >= 120 ? 12 : 10;
 
         View cardFaceContent = item.HasImage
@@ -256,10 +256,10 @@ public static class SpreadBoardLayout
             HeightRequest = imageHeight,
             MinimumHeightRequest = imageHeight,
             HorizontalOptions = LayoutOptions.Fill,
-            BackgroundColor = Color.FromArgb("#221833"),
+            BackgroundColor = Color.FromArgb("#1C142A"),
             Stroke = item.SuitAccent,
             StrokeThickness = 1,
-            StrokeShape = new RoundRectangle { CornerRadius = 8 },
+            StrokeShape = new RoundRectangle { CornerRadius = 6 },
             Rotation = item.CardRotation,
             Padding = 0,
             Content = cardFaceContent
@@ -267,16 +267,16 @@ public static class SpreadBoardLayout
 
         return new Border
         {
-            Padding = 8,
+            Padding = 6,
             HorizontalOptions = LayoutOptions.Fill,
             VerticalOptions = LayoutOptions.Start,
             BackgroundColor = Color.FromArgb("#161022"),
-            Stroke = Color.FromArgb("#9A7B2C"),
+            Stroke = Color.FromArgb("#3A2A50"),
             StrokeThickness = 1,
-            StrokeShape = new RoundRectangle { CornerRadius = 12 },
+            StrokeShape = new RoundRectangle { CornerRadius = 8 },
             Content = new VerticalStackLayout
             {
-                Spacing = 6,
+                Spacing = 5,
                 Children =
                 {
                     new Label

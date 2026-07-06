@@ -7,11 +7,11 @@
              Background="{StaticResource PageGradient}">
 
     <ScrollView x:Name="MainScroll">
-        <VerticalStackLayout Padding="20,28" Spacing="18">
+        <VerticalStackLayout Padding="20,24" Spacing="16">
 
             <VerticalStackLayout Spacing="6">
                 <Label Text="星轨塔罗"
-                       FontSize="32"
+                       FontSize="28"
                        FontAttributes="Bold"
                        TextColor="{StaticResource Gold}" />
                 <Label Text="静心提问 · 本地抽牌 · AI 深度解读"
@@ -19,12 +19,12 @@
                        TextColor="{StaticResource TextSecondary}" />
             </VerticalStackLayout>
 
-            <Border Stroke="{StaticResource GoldDim}"
+            <Border Stroke="{StaticResource StrokeSoft}"
                     StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}"
-                    Padding="16"
-                    StrokeShape="RoundRectangle 16">
-                <VerticalStackLayout Spacing="12">
+                    Background="{StaticResource CardGradient}"
+                    Padding="18"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="10">
                     <Label Text="你的问题" TextColor="{StaticResource TextSecondary}" FontSize="13" />
                     <Editor x:Name="QuestionEntry"
                             Placeholder="例如：接下来三个月的事业方向？"
@@ -32,7 +32,7 @@
                             TextColor="{StaticResource TextPrimary}"
                             BackgroundColor="{StaticResource SurfaceAlt}"
                             AutoSize="TextChanges"
-                            MinimumHeightRequest="72"
+                            MinimumHeightRequest="84"
                             MaxLength="200" />
 
                     <Label Text="牌阵" TextColor="{StaticResource TextSecondary}" FontSize="13" Margin="0,4,0,0" />
@@ -89,18 +89,18 @@
                             FontAttributes="Bold"
                             FontSize="16"
                             BackgroundColor="{StaticResource Gold}"
-                            Padding="18,14"
-                            CornerRadius="28"
+                            Padding="18,13"
+                            CornerRadius="12"
                             HorizontalOptions="Fill" />
                 </VerticalStackLayout>
             </Border>
 
             <Border x:Name="EmptyStatePanel"
-                    Stroke="{StaticResource GoldDim}"
+                    Stroke="{StaticResource StrokeSoft}"
                     StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource SurfaceRaised}"
                     Padding="24,32"
-                    StrokeShape="RoundRectangle 16">
+                    StrokeShape="RoundRectangle 12">
                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
                     <Label Text="✦"
                            FontSize="36"
@@ -115,11 +115,11 @@
 
             <Border x:Name="ReadingPanel"
                     IsVisible="False"
-                    Stroke="{StaticResource Purple}"
+                    Stroke="{StaticResource StrokeSoft}"
                     StrokeThickness="1"
                     Background="{StaticResource CardGradient}"
                     Padding="16"
-                    StrokeShape="RoundRectangle 16">
+                    StrokeShape="RoundRectangle 12">
                 <VerticalStackLayout Spacing="14">
                     <Label x:Name="ReadingTitleLabel"
                            FontSize="20"
@@ -168,7 +168,7 @@
                                 TextColor="#1A1208"
                                 FontAttributes="Bold"
                                 BackgroundColor="{StaticResource Gold}"
-                                CornerRadius="24"
+                                CornerRadius="12"
                                 Padding="14,12" />
                         <Button Grid.Column="1"
                                 Text="重新抽牌"
@@ -177,7 +177,7 @@
                                 BackgroundColor="{StaticResource SurfaceAlt}"
                                 BorderColor="{StaticResource GoldDim}"
                                 BorderWidth="1"
-                                CornerRadius="24"
+                                CornerRadius="12"
                                 Padding="14,12" />
                     </Grid>
 
@@ -192,7 +192,7 @@
                             BackgroundColor="{StaticResource SurfaceAlt}"
                             Stroke="{StaticResource PurpleLight}"
                             StrokeThickness="1"
-                            StrokeShape="RoundRectangle 12">
+                            StrokeShape="RoundRectangle 10">
                         <VerticalStackLayout Spacing="8">
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label Grid.Column="0"
@@ -222,11 +222,11 @@
 
             <Border x:Name="HistoryPanel"
                     IsVisible="False"
-                    Stroke="{StaticResource GoldDim}"
+                    Stroke="{StaticResource StrokeSoft}"
                     StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}"
+                    BackgroundColor="{StaticResource SurfaceRaised}"
                     Padding="16"
-                    StrokeShape="RoundRectangle 16">
+                    StrokeShape="RoundRectangle 12">
                 <VerticalStackLayout Spacing="8">
                     <Grid ColumnDefinitions="*,Auto">
                         <Label Grid.Column="0"
@@ -250,10 +250,17 @@
                                     HeightRequest="120">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="services:HistoryEntry">
-                                <Label Text="{Binding DisplayLine}"
-                                       FontSize="12"
-                                       TextColor="{StaticResource TextSecondary}"
-                                       Margin="0,0,0,6" />
+                                <Border Padding="10,8"
+                                        Margin="0,0,0,8"
+                                        BackgroundColor="{StaticResource SurfaceAlt}"
+                                        Stroke="{StaticResource StrokeSoft}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8">
+                                    <Label Text="{Binding DisplayLine}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           LineBreakMode="TailTruncation" />
+                                </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>

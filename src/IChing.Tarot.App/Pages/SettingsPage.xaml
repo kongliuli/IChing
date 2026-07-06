@@ -6,19 +6,19 @@
              Background="{StaticResource PageGradient}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20,28" Spacing="18">
+        <VerticalStackLayout Padding="20,24" Spacing="16">
             <Label Text="解读 API 设置"
-                   FontSize="26"
+                   FontSize="24"
                    FontAttributes="Bold"
                    TextColor="{StaticResource Gold}" />
             <Label Text="API Key 仅保存在本机。抽牌与 Deckaura 牌义在本地运行，解读时才联网。"
                    TextColor="{StaticResource TextSecondary}"
                    LineBreakMode="WordWrap" />
 
-            <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}" Padding="16"
-                    StrokeShape="RoundRectangle 16">
-                <VerticalStackLayout Spacing="14">
+            <Border Stroke="{StaticResource StrokeSoft}" StrokeThickness="1"
+                    Background="{StaticResource CardGradient}" Padding="18"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="12">
                     <Label Text="服务商预设" TextColor="{StaticResource TextSecondary}" FontSize="13" />
                     <Picker x:Name="ProviderPicker"
                             Title="选择服务商"
@@ -71,7 +71,7 @@
                                 TextColor="#1A1208"
                                 FontAttributes="Bold"
                                 BackgroundColor="{StaticResource Gold}"
-                                CornerRadius="24"
+                                CornerRadius="12"
                                 Padding="14,12" />
                         <Button Grid.Column="1"
                                 Text="测试连接"
@@ -79,9 +79,9 @@
                                 x:Name="TestButton"
                                 TextColor="{StaticResource Gold}"
                                 BackgroundColor="{StaticResource SurfaceAlt}"
-                                BorderColor="{StaticResource GoldDim}"
+                                BorderColor="{StaticResource StrokeSoft}"
                                 BorderWidth="1"
-                                CornerRadius="24"
+                                CornerRadius="12"
                                 Padding="14,12" />
                     </Grid>
 
@@ -101,10 +101,12 @@
                 </VerticalStackLayout>
             </Border>
 
-            <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}" Padding="16"
-                    StrokeShape="RoundRectangle 16">
-                <VerticalStackLayout Spacing="14">
+            <Border x:Name="LabApiPanel"
+                    IsVisible="False"
+                    Stroke="{StaticResource StrokeSoft}" StrokeThickness="1"
+                    BackgroundColor="{StaticResource SurfaceRaised}" Padding="18"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="12">
                     <Label Text="Lab API（可选）"
                            FontSize="18"
                            FontAttributes="Bold"

@@ -6,6 +6,8 @@
     <Color x:Key="Background">#0B0812</Color>
     <Color x:Key="Surface">#161022</Color>
     <Color x:Key="SurfaceAlt">#221833</Color>
+    <Color x:Key="SurfaceRaised">#1C142A</Color>
+    <Color x:Key="StrokeSoft">#3A2A50</Color>
     <Color x:Key="Gold">#D4AF37</Color>
     <Color x:Key="GoldDim">#9A7B2C</Color>
     <Color x:Key="Purple">#7B5EA7</Color>

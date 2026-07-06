@@ -7,13 +7,21 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="20,24" Spacing="14">
-            <Label x:Name="TitleLabel"
-                   FontSize="20"
-                   FontAttributes="Bold"
-                   TextColor="{StaticResource PurpleLight}" />
-            <Label x:Name="MetaLabel"
-                   FontSize="12"
-                   TextColor="{StaticResource TextSecondary}" />
+            <Border Stroke="{StaticResource StrokeSoft}"
+                    StrokeThickness="1"
+                    Background="{StaticResource CardGradient}"
+                    Padding="16"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="8">
+                    <Label x:Name="TitleLabel"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource PurpleLight}" />
+                    <Label x:Name="MetaLabel"
+                           FontSize="12"
+                           TextColor="{StaticResource TextSecondary}" />
+                </VerticalStackLayout>
+            </Border>
 
             <Grid x:Name="SpreadBoardHost"
                   ColumnDefinitions="*"

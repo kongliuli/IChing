@@ -4,27 +4,35 @@
              x:Class="IChing.App.Pages.LiuyaoPage"
              Title="六爻">
     <ScrollView>
-        <VerticalStackLayout Padding="20,24" Spacing="16">
-            <VerticalStackLayout Spacing="4">
-                <Label Text="六爻起卦"
-                       FontSize="28"
+        <VerticalStackLayout Padding="20,24,20,32"
+                             Spacing="14"
+                             MaximumWidthRequest="760"
+                             HorizontalOptions="Fill">
+            <VerticalStackLayout Spacing="2">
+                <Label Text="六爻"
+                       FontSize="30"
                        FontAttributes="Bold"
-                       TextColor="{StaticResource Gold}" />
-                <Label Text="铜钱卦、时间卦、纳甲六亲与世应用神"
-                       FontSize="13"
-                       TextColor="{StaticResource TextSecondary}" />
+                       TextColor="{StaticResource TextPrimary}" />
+                <BoxView HeightRequest="2"
+                         WidthRequest="40"
+                         HorizontalOptions="Start"
+                         Color="{StaticResource Gold}" />
             </VerticalStackLayout>
 
             <Border Stroke="{StaticResource StrokeSoft}"
                     StrokeThickness="1"
                     BackgroundColor="{StaticResource Surface}"
-                    Padding="16"
-                    StrokeShape="RoundRectangle 12">
+                    Padding="14"
+                    StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="10">
+                    <Label Text="起卦"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Gold}" />
                     <Editor x:Name="QuestionEntry"
                             Placeholder="请输入所问之事"
                             AutoSize="TextChanges"
-                            MinimumHeightRequest="72"
+                            MinimumHeightRequest="88"
                             MaxLength="200" />
                     <Entry x:Name="FocusEntry" Text="事业" Placeholder="关注点" />
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
@@ -52,17 +60,17 @@
                     Stroke="{StaticResource StrokeSoft}"
                     StrokeThickness="1"
                     BackgroundColor="{StaticResource SurfaceRaised}"
-                    Padding="16"
-                    StrokeShape="RoundRectangle 12">
+                    Padding="14"
+                    StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="12">
                     <Label x:Name="HexagramLabel"
-                           FontSize="20"
+                           FontSize="22"
                            FontAttributes="Bold"
                            TextColor="{StaticResource Gold}" />
                     <Label x:Name="DigestLabel"
                            FontSize="13"
-                           TextColor="{StaticResource TextSecondary}"
-                           LineBreakMode="WordWrap" />
+                           TextColor="{StaticResource TextSecondary}" />
+                    <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
                     <CollectionView x:Name="LinesView"
                                     SelectionMode="None">
                         <CollectionView.ItemTemplate>
@@ -79,8 +87,7 @@
                                                TextColor="{StaticResource TextPrimary}" />
                                         <Label Text="{Binding Detail}"
                                                FontSize="12"
-                                               TextColor="{StaticResource TextSecondary}"
-                                               LineBreakMode="WordWrap" />
+                                               TextColor="{StaticResource TextSecondary}" />
                                     </VerticalStackLayout>
                                 </Border>
                             </DataTemplate>
@@ -102,10 +109,10 @@
                     <Border x:Name="InterpretationPanel"
                             IsVisible="False"
                             Padding="12"
-                            BackgroundColor="{StaticResource SurfaceAlt}"
+                            BackgroundColor="{StaticResource Surface}"
                             Stroke="{StaticResource StrokeSoft}"
                             StrokeThickness="1"
-                            StrokeShape="RoundRectangle 10">
+                            StrokeShape="RoundRectangle 8">
                         <VerticalStackLayout Spacing="8">
                             <Label x:Name="InterpretStatusLabel"
                                    FontSize="12"
@@ -113,8 +120,7 @@
                                    TextColor="{StaticResource Muted}" />
                             <Label x:Name="InterpretationLabel"
                                    FontSize="13"
-                                   TextColor="{StaticResource TextPrimary}"
-                                   LineBreakMode="WordWrap" />
+                                   TextColor="{StaticResource TextPrimary}" />
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>

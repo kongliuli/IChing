@@ -4,19 +4,33 @@
              x:Class="IChing.App.Pages.SettingsPage"
              Title="设置">
     <ScrollView>
-        <VerticalStackLayout Padding="20,24" Spacing="16">
-            <Label Text="AI 解读设置"
-                   FontSize="28"
-                   FontAttributes="Bold"
-                   TextColor="{StaticResource Gold}" />
+        <VerticalStackLayout Padding="20,24,20,32"
+                             Spacing="14"
+                             MaximumWidthRequest="760"
+                             HorizontalOptions="Fill">
+            <VerticalStackLayout Spacing="2">
+                <Label Text="设置"
+                       FontSize="30"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource TextPrimary}" />
+                <BoxView HeightRequest="2"
+                         WidthRequest="40"
+                         HorizontalOptions="Start"
+                         Color="{StaticResource Gold}" />
+            </VerticalStackLayout>
 
             <Border Stroke="{StaticResource StrokeSoft}"
                     StrokeThickness="1"
                     BackgroundColor="{StaticResource Surface}"
-                    Padding="16"
-                    StrokeShape="RoundRectangle 12">
+                    Padding="14"
+                    StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="服务商" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="AI 解读"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Gold}" />
+
+                    <Label Text="服务商" FontSize="12" TextColor="{StaticResource Muted}" />
                     <Picker x:Name="ProviderPicker" SelectedIndexChanged="OnProviderChanged">
                         <Picker.Items>
                             <x:String>DeepSeek</x:String>
@@ -25,13 +39,13 @@
                         </Picker.Items>
                     </Picker>
 
-                    <Label Text="API Base URL" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="API Base URL" FontSize="12" TextColor="{StaticResource Muted}" />
                     <Entry x:Name="BaseUrlEntry" />
 
-                    <Label Text="模型" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="模型" FontSize="12" TextColor="{StaticResource Muted}" />
                     <Entry x:Name="ModelEntry" />
 
-                    <Label Text="API Key" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Label Text="API Key" FontSize="12" TextColor="{StaticResource Muted}" />
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                         <Entry x:Name="ApiKeyEntry"
                                IsPassword="True"
@@ -48,8 +62,14 @@
                     </Grid>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Entry x:Name="TemperatureEntry" Text="0.6" Placeholder="温度 0-1" Keyboard="Numeric" />
-                        <Entry x:Name="MaxTokensEntry" Grid.Column="1" Text="700" Placeholder="最大 tokens" Keyboard="Numeric" />
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="温度" FontSize="12" TextColor="{StaticResource Muted}" />
+                            <Entry x:Name="TemperatureEntry" Text="0.6" Placeholder="0-1" Keyboard="Numeric" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="最大 tokens" FontSize="12" TextColor="{StaticResource Muted}" />
+                            <Entry x:Name="MaxTokensEntry" Text="700" Placeholder="700" Keyboard="Numeric" />
+                        </VerticalStackLayout>
                     </Grid>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">

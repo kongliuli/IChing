@@ -13,5 +13,8 @@ obj/
 plugins/*.dll
 plugins/*.pdb
 plugins/*.deps.json
+plugins/runtimes/
+**/plugins/runtimes/
+src/IChing.Lab.Api/plugins/
 dist/
 **/dist/v*/

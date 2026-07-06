@@ -8,15 +8,18 @@
                              Spacing="14"
                              MaximumWidthRequest="760"
                              HorizontalOptions="Fill">
-            <VerticalStackLayout Spacing="2">
+            <VerticalStackLayout Spacing="4">
                 <Label Text="六爻"
                        FontSize="30"
                        FontAttributes="Bold"
-                       TextColor="{StaticResource TextPrimary}" />
+                       TextColor="{StaticResource Ink}" />
+                <Label Text="少阳 少阴 老阳 老阴"
+                       FontSize="12"
+                       TextColor="{StaticResource Cinnabar}" />
                 <BoxView HeightRequest="2"
-                         WidthRequest="40"
+                         WidthRequest="48"
                          HorizontalOptions="Start"
-                         Color="{StaticResource Gold}" />
+                         Color="{StaticResource Cinnabar}" />
             </VerticalStackLayout>
 
             <Border Stroke="{StaticResource StrokeSoft}"
@@ -28,7 +31,7 @@
                     <Label Text="起卦"
                            FontSize="13"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource Gold}" />
+                           TextColor="{StaticResource Jade}" />
                     <Editor x:Name="QuestionEntry"
                             Placeholder="请输入所问之事"
                             AutoSize="TextChanges"
@@ -46,8 +49,8 @@
                     </Grid>
                     <Button Text="起卦"
                             Clicked="OnCastClicked"
-                            TextColor="#171006"
-                            BackgroundColor="{StaticResource Gold}" />
+                            TextColor="{StaticResource White}"
+                            BackgroundColor="{StaticResource Cinnabar}" />
                     <Label x:Name="ErrorLabel"
                            IsVisible="False"
                            FontSize="12"
@@ -66,7 +69,7 @@
                     <Label x:Name="HexagramLabel"
                            FontSize="22"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource Gold}" />
+                           TextColor="{StaticResource Cinnabar}" />
                     <Label x:Name="DigestLabel"
                            FontSize="13"
                            TextColor="{StaticResource TextSecondary}" />
@@ -98,13 +101,13 @@
                                 Text="AI 解读"
                                 IsEnabled="False"
                                 Clicked="OnInterpretClicked"
-                                TextColor="#171006"
-                                BackgroundColor="{StaticResource Gold}" />
+                                TextColor="{StaticResource White}"
+                                BackgroundColor="{StaticResource Jade}" />
                         <ActivityIndicator x:Name="InterpretIndicator"
                                            Grid.Column="1"
                                            IsRunning="False"
                                            IsVisible="False"
-                                           Color="{StaticResource Gold}" />
+                                           Color="{StaticResource Jade}" />
                     </Grid>
                     <Border x:Name="InterpretationPanel"
                             IsVisible="False"

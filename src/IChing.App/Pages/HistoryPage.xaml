@@ -9,20 +9,23 @@
                              MaximumWidthRequest="760"
                              HorizontalOptions="Fill">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                <VerticalStackLayout Spacing="2">
+                <VerticalStackLayout Spacing="4">
                     <Label Text="历史"
                            FontSize="30"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource TextPrimary}" />
+                           TextColor="{StaticResource Ink}" />
+                    <Label Text="本地记录"
+                           FontSize="12"
+                           TextColor="{StaticResource Cinnabar}" />
                     <BoxView HeightRequest="2"
-                             WidthRequest="40"
+                             WidthRequest="48"
                              HorizontalOptions="Start"
-                             Color="{StaticResource Gold}" />
+                             Color="{StaticResource Cinnabar}" />
                 </VerticalStackLayout>
                 <Button Grid.Column="1"
                         Text="清空"
                         Clicked="OnClearClicked"
-                        TextColor="{StaticResource Gold}"
+                        TextColor="{StaticResource Jade}"
                         BackgroundColor="{StaticResource SurfaceAlt}"
                         BorderColor="{StaticResource StrokeSoft}"
                         BorderWidth="1" />
@@ -58,7 +61,7 @@
                                        TextColor="{StaticResource TextSecondary}" />
                                 <Label Text="{Binding Interpretation}"
                                        FontSize="12"
-                                       TextColor="{StaticResource Gold}" />
+                                       TextColor="{StaticResource Jade}" />
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>

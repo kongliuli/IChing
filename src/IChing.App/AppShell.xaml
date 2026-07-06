@@ -5,8 +5,12 @@
        x:Class="IChing.App.AppShell"
        FlyoutBehavior="Disabled"
        BackgroundColor="{StaticResource Background}"
-       ForegroundColor="{StaticResource TextPrimary}"
-       TitleColor="{StaticResource Gold}">
+       ForegroundColor="{StaticResource Ink}"
+       TitleColor="{StaticResource Ink}"
+       TabBarBackgroundColor="{StaticResource Surface}"
+       TabBarForegroundColor="{StaticResource Jade}"
+       TabBarTitleColor="{StaticResource Jade}"
+       TabBarUnselectedColor="{StaticResource Muted}">
     <TabBar>
         <ShellContent Title="八字"
                       ContentTemplate="{DataTemplate pages:BaziPage}" />

@@ -8,15 +8,18 @@
                              Spacing="14"
                              MaximumWidthRequest="760"
                              HorizontalOptions="Fill">
-            <VerticalStackLayout Spacing="2">
+            <VerticalStackLayout Spacing="4">
                 <Label Text="设置"
                        FontSize="30"
                        FontAttributes="Bold"
-                       TextColor="{StaticResource TextPrimary}" />
+                       TextColor="{StaticResource Ink}" />
+                <Label Text="远程解读 · 本地保存"
+                       FontSize="12"
+                       TextColor="{StaticResource Cinnabar}" />
                 <BoxView HeightRequest="2"
-                         WidthRequest="40"
+                         WidthRequest="48"
                          HorizontalOptions="Start"
-                         Color="{StaticResource Gold}" />
+                         Color="{StaticResource Cinnabar}" />
             </VerticalStackLayout>
 
             <Border Stroke="{StaticResource StrokeSoft}"
@@ -28,7 +31,7 @@
                     <Label Text="AI 解读"
                            FontSize="13"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource Gold}" />
+                           TextColor="{StaticResource Jade}" />
 
                     <Label Text="服务商" FontSize="12" TextColor="{StaticResource Muted}" />
                     <Picker x:Name="ProviderPicker" SelectedIndexChanged="OnProviderChanged">
@@ -55,7 +58,7 @@
                                 Text="显示"
                                 FontSize="12"
                                 Clicked="OnToggleKeyClicked"
-                                TextColor="{StaticResource Gold}"
+                                TextColor="{StaticResource Jade}"
                                 BackgroundColor="{StaticResource SurfaceAlt}"
                                 BorderColor="{StaticResource StrokeSoft}"
                                 BorderWidth="1" />
@@ -75,13 +78,13 @@
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                         <Button Text="保存"
                                 Clicked="OnSaveClicked"
-                                TextColor="#171006"
-                                BackgroundColor="{StaticResource Gold}" />
+                                TextColor="{StaticResource White}"
+                                BackgroundColor="{StaticResource Cinnabar}" />
                         <Button x:Name="TestButton"
                                 Grid.Column="1"
                                 Text="测试连接"
                                 Clicked="OnTestClicked"
-                                TextColor="{StaticResource Gold}"
+                                TextColor="{StaticResource Jade}"
                                 BackgroundColor="{StaticResource SurfaceAlt}"
                                 BorderColor="{StaticResource StrokeSoft}"
                                 BorderWidth="1" />
@@ -90,7 +93,7 @@
                     <ActivityIndicator x:Name="TestIndicator"
                                        IsVisible="False"
                                        IsRunning="False"
-                                       Color="{StaticResource Gold}" />
+                                       Color="{StaticResource Jade}" />
                     <Label x:Name="StatusLabel"
                            FontSize="13"
                            TextColor="{StaticResource Muted}" />

@@ -8,15 +8,18 @@
                              Spacing="14"
                              MaximumWidthRequest="760"
                              HorizontalOptions="Fill">
-            <VerticalStackLayout Spacing="2">
+            <VerticalStackLayout Spacing="4">
                 <Label Text="八字"
                        FontSize="30"
                        FontAttributes="Bold"
-                       TextColor="{StaticResource TextPrimary}" />
+                       TextColor="{StaticResource Ink}" />
+                <Label Text="乾 坤 震 巽 坎 离 艮 兑"
+                       FontSize="12"
+                       TextColor="{StaticResource Cinnabar}" />
                 <BoxView HeightRequest="2"
-                         WidthRequest="40"
+                         WidthRequest="48"
                          HorizontalOptions="Start"
-                         Color="{StaticResource Gold}" />
+                         Color="{StaticResource Cinnabar}" />
             </VerticalStackLayout>
 
             <Border Stroke="{StaticResource StrokeSoft}"
@@ -28,7 +31,7 @@
                     <Label Text="出生信息"
                            FontSize="13"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource Gold}" />
+                           TextColor="{StaticResource Jade}" />
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                         <Entry x:Name="YearEntry" Text="1990" Placeholder="年" Keyboard="Numeric" />
                         <Entry x:Name="MonthEntry" Grid.Column="1" Text="5" Placeholder="月" Keyboard="Numeric" />
@@ -53,8 +56,8 @@
                     <Entry x:Name="FocusEntry" Text="事业" Placeholder="关注点" />
                     <Button Text="排盘"
                             Clicked="OnCalculateClicked"
-                            TextColor="#171006"
-                            BackgroundColor="{StaticResource Gold}" />
+                            TextColor="{StaticResource White}"
+                            BackgroundColor="{StaticResource Cinnabar}" />
                     <Label x:Name="ErrorLabel"
                            IsVisible="False"
                            FontSize="12"
@@ -73,7 +76,7 @@
                     <Label x:Name="BaziTitleLabel"
                            FontSize="22"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource Gold}" />
+                           TextColor="{StaticResource Cinnabar}" />
                     <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
                         <Border Padding="8" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
                             <VerticalStackLayout Spacing="2">
@@ -115,13 +118,13 @@
                                 Text="AI 解读"
                                 IsEnabled="False"
                                 Clicked="OnInterpretClicked"
-                                TextColor="#171006"
-                                BackgroundColor="{StaticResource Gold}" />
+                                TextColor="{StaticResource White}"
+                                BackgroundColor="{StaticResource Jade}" />
                         <ActivityIndicator x:Name="InterpretIndicator"
                                            Grid.Column="1"
                                            IsRunning="False"
                                            IsVisible="False"
-                                           Color="{StaticResource Gold}" />
+                                           Color="{StaticResource Jade}" />
                     </Grid>
                     <Border x:Name="InterpretationPanel"
                             IsVisible="False"

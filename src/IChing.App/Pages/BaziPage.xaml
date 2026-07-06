@@ -133,14 +133,27 @@
                             Stroke="{StaticResource StrokeSoft}"
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 8">
-                        <VerticalStackLayout Spacing="8">
-                            <Label x:Name="InterpretStatusLabel"
-                                   FontSize="12"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource Muted}" />
+                        <VerticalStackLayout Spacing="10">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <Label x:Name="InterpretStatusLabel"
+                                       FontSize="12"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Muted}"
+                                       VerticalOptions="Center" />
+                                <Button x:Name="ExportButton"
+                                        Grid.Column="1"
+                                        Text="导出图片"
+                                        IsVisible="False"
+                                        Clicked="OnExportClicked"
+                                        TextColor="{StaticResource White}"
+                                        BackgroundColor="{StaticResource Cinnabar}" />
+                            </Grid>
                             <Label x:Name="InterpretationLabel"
                                    FontSize="13"
                                    TextColor="{StaticResource TextPrimary}" />
+                            <WebView x:Name="ReadingWebView"
+                                     IsVisible="False"
+                                     HeightRequest="760" />
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>

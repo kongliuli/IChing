@@ -25,6 +25,8 @@ public partial class LiuyaoPage : ContentPage
     {
         ErrorLabel.IsVisible = false;
         InterpretationPanel.IsVisible = false;
+        ReadingWebView.IsVisible = false;
+        ExportButton.IsVisible = false;
         _currentInterpretation = null;
 
         try
@@ -36,15 +38,16 @@ public partial class LiuyaoPage : ContentPage
             var question = Blank(QuestionEntry.Text);
             var focus = Blank(FocusEntry.Text);
             var digest = ReadingSummaries.BuildLiuyaoRuleDigest(chart, question, focus);
-            var changed = chart.ChangedHexagram is null ? "无变卦" : $"变卦 {chart.ChangedHexagram}";
+            var original = HtmlReadingTemplate.HexagramName(chart.OriginalHexagram);
+            var changed = chart.ChangedHexagram is null ? "无变卦" : $"变卦 {HtmlReadingTemplate.HexagramName(chart.ChangedHexagram)}";
 
             _currentChart = chart;
             _currentDigest = digest;
             _currentQuestion = question;
             _currentFocus = focus;
-            _currentSummary = $"{chart.OriginalHexagram}，{changed}；{digest.YongShenSummary}";
+            _currentSummary = $"{original}，{changed}；{digest.YongShenSummary}";
 
-            HexagramLabel.Text = $"{chart.OriginalHexagram} · {changed}";
+            HexagramLabel.Text = $"{original} · {changed}";
             DigestLabel.Text =
                 $"{digest.ShiYaoSummary}\n{digest.YingYaoSummary}\n{digest.YongShenSummary}";
             LinesView.ItemsSource = chart.Lines
@@ -56,7 +59,7 @@ public partial class LiuyaoPage : ContentPage
             ResultPanel.IsVisible = true;
             InterpretButton.IsEnabled = true;
 
-            App.History.Add("六爻", chart.OriginalHexagram, question, _currentSummary, null);
+            App.History.Add("六爻", original, question, _currentSummary, null);
         }
         catch (Exception ex)
         {
@@ -78,12 +81,13 @@ public partial class LiuyaoPage : ContentPage
         InterpretIndicator.IsVisible = true;
         InterpretIndicator.IsRunning = true;
         InterpretationPanel.IsVisible = true;
+        ExportButton.IsVisible = false;
+        ReadingWebView.IsVisible = false;
         InterpretStatusLabel.Text = "正在调用远程 API...";
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
         InterpretationLabel.Text = string.Empty;
 
-        var prompt = BuildPrompt(_currentChart, _currentDigest, _currentQuestion, _currentFocus);
-        var result = await App.Remote.InterpretAsync(App.Settings, "六爻", prompt);
+        var result = await App.Remote.InterpretAsync(App.Settings, "六爻", BuildPrompt(_currentChart, _currentDigest, _currentQuestion, _currentFocus));
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -98,13 +102,29 @@ public partial class LiuyaoPage : ContentPage
         }
 
         _currentInterpretation = result.Text;
-        InterpretStatusLabel.Text = "AI 解读";
+        InterpretStatusLabel.Text = "AI 解读展示";
         InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Jade"];
-        InterpretationLabel.Text = result.Text;
-        App.History.Add("六爻", _currentChart.OriginalHexagram, _currentQuestion, _currentSummary, result.Text);
+        InterpretationLabel.Text = string.Empty;
+        ReadingWebView.Source = new HtmlWebViewSource
+        {
+            Html = HtmlReadingTemplate.BuildLiuyao(_currentChart, _currentDigest, _currentQuestion, _currentInterpretation)
+        };
+        ReadingWebView.IsVisible = true;
+        ExportButton.IsVisible = true;
+        App.History.Add("六爻", HtmlReadingTemplate.HexagramName(_currentChart.OriginalHexagram), _currentQuestion, _currentSummary, result.Text);
+    }
 
-        var html = HtmlReadingTemplate.BuildLiuyao(_currentChart, _currentDigest, _currentQuestion, _currentInterpretation);
-        await Navigation.PushModalAsync(new HtmlPreviewPage("六爻解读展示", html));
+    private async void OnExportClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var path = await ImageExportService.ExportVisibleAsync("liuyao-reading");
+            await DisplayAlertAsync("已导出", path, "好的");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("导出失败", ex.Message, "好的");
+        }
     }
 
     private static string BuildPrompt(

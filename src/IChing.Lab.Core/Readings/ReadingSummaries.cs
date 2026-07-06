@@ -8,7 +8,7 @@ namespace IChing.Lab.Core.Readings;
 
 public static class ReadingSummaries
 {
-    public const string Tier0Disclaimer = "Rule-based preview generated without AI interpretation.";
+    public const string Tier0Disclaimer = "规则预览由本地规则生成，不包含 AI 解读。";
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
@@ -25,17 +25,17 @@ public static class ReadingSummaries
 
     public static Tier0Preview BuildLiuyaoTier0Preview(LiuyaoNajiaResult chart, string? question, string? focus)
     {
-        var changing = chart.Lines.Where(l => l.IsChanging).Select(l => $"line {l.Index}").ToList();
-        var changeText = changing.Count == 0 ? "no moving lines" : string.Join(", ", changing) + " moving";
-        var changed = chart.ChangedHexagram is null ? "" : $" changing to {chart.ChangedHexagram}";
-        var oneLiner = $"{chart.OriginalHexagram}{changed}; {changeText}. Unclassified questions use the Shi line/世爻 as yongshen.";
+        var changing = chart.Lines.Where(l => l.IsChanging).Select(l => $"第{l.Index}爻").ToList();
+        var changeText = changing.Count == 0 ? "无动爻" : $"{string.Join("、", changing)}动";
+        var changed = chart.ChangedHexagram is null ? "" : $"，变卦{chart.ChangedHexagram}";
+        var oneLiner = $"{chart.OriginalHexagram}{changed}；{changeText}。未分类问题默认以世爻为用神。";
         if (!string.IsNullOrWhiteSpace(question))
         {
-            oneLiner = $"Question '{question.Trim()}': {oneLiner}";
+            oneLiner = $"问题“{question.Trim()}”：{oneLiner}";
         }
         else if (!string.IsNullOrWhiteSpace(focus))
         {
-            oneLiner = $"Focus '{focus.Trim()}': {oneLiner}";
+            oneLiner = $"关注“{focus.Trim()}”：{oneLiner}";
         }
 
         return new Tier0Preview(oneLiner, Tier0Disclaimer);
@@ -77,16 +77,16 @@ public static class ReadingSummaries
         var ying = chart.Lines.FirstOrDefault(IsYing);
         var rules = (engine ?? RuleEngine.Default).Run("liuyao", chart, question, focus);
         var yongshen = rules.Items.FirstOrDefault(i => i.PluginId == "liuyao.yongshen.keyword")?.Text
-            ?? "Unclassified question: use Shi line as yongshen.";
+            ?? "未分类问题：默认以世爻为用神。";
 
         return new LiuyaoRuleDigest(
-            ShiYaoSummary: shi is null ? "Shi line not marked." : $"line {shi.Index}: {shi.SixKin} {shi.StemBranch} holds Shi",
-            YingYaoSummary: ying is null ? "Ying line not marked." : $"line {ying.Index}: {ying.SixKin} {ying.StemBranch} is Ying",
+            ShiYaoSummary: shi is null ? "未标记世爻。" : $"世爻：第{shi.Index}爻，{shi.SixKin} {shi.StemBranch}",
+            YingYaoSummary: ying is null ? "未标记应爻。" : $"应爻：第{ying.Index}爻，{ying.SixKin} {ying.StemBranch}",
             ChangingSummaries: chart.Lines
                 .Where(l => l.IsChanging)
-                .Select(l => $"line {l.Index}: {l.SixKin} {l.StemBranch} moving")
+                .Select(l => $"动爻：第{l.Index}爻，{l.SixKin} {l.StemBranch}")
                 .ToList(),
-            QuestionType: Blank(focus, Blank(question, "general")),
+            QuestionType: Blank(focus, Blank(question, "综合")),
             YongShenSummary: yongshen,
             Alerts: [],
             ActivePlugins: rules.ActivePlugins,

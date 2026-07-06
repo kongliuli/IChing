@@ -55,7 +55,7 @@ public static class LiuyaoNajiaService
                 .ToList();
 
             changedDetail = new ChangedHexagramDetail(
-                Hexagram: d.Changed.Meta.Label,
+                Hexagram: HexagramNames.Display(d.Changed.Meta.Label),
                 Nature: d.Changed.Meta.GetNature()?.Label,
                 HexagramBody: changedFull.Original.FindHexagramBody()?.Label,
                 SymbolicStars: MapSymbolicStars(changedFull),
@@ -70,8 +70,8 @@ public static class LiuyaoNajiaService
             Method: method,
             Seed: seed,
             CastingTime: d.CastingTime.Solar.ToString("O"),
-            OriginalHexagram: d.Original.Meta.Label,
-            ChangedHexagram: d.Changed?.Meta.Label,
+            OriginalHexagram: HexagramNames.Display(d.Original.Meta.Label),
+            ChangedHexagram: d.Changed is null ? null : HexagramNames.Display(d.Changed.Meta.Label),
             OriginalNature: d.Original.Meta.GetNature()?.Label,
             ChangedNature: d.Changed?.Meta.GetNature()?.Label,
             HexagramBody: d.Original.FindHexagramBody()?.Label,

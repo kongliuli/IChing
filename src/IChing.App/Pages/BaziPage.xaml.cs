@@ -24,6 +24,8 @@ public partial class BaziPage : ContentPage
     {
         ErrorLabel.IsVisible = false;
         InterpretationPanel.IsVisible = false;
+        ReadingWebView.IsVisible = false;
+        ExportButton.IsVisible = false;
         _currentInterpretation = null;
 
         try
@@ -81,12 +83,13 @@ public partial class BaziPage : ContentPage
         InterpretIndicator.IsVisible = true;
         InterpretIndicator.IsRunning = true;
         InterpretationPanel.IsVisible = true;
+        ExportButton.IsVisible = false;
+        ReadingWebView.IsVisible = false;
         InterpretStatusLabel.Text = "正在调用远程 API...";
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
         InterpretationLabel.Text = string.Empty;
 
-        var prompt = BuildPrompt(_currentChart, _currentDigest, _currentFocus);
-        var result = await App.Remote.InterpretAsync(App.Settings, "八字", prompt);
+        var result = await App.Remote.InterpretAsync(App.Settings, "八字", BuildPrompt(_currentChart, _currentDigest, _currentFocus));
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -101,13 +104,29 @@ public partial class BaziPage : ContentPage
         }
 
         _currentInterpretation = result.Text;
-        InterpretStatusLabel.Text = "AI 解读";
+        InterpretStatusLabel.Text = "AI 解读展示";
         InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Jade"];
-        InterpretationLabel.Text = result.Text;
+        InterpretationLabel.Text = string.Empty;
+        ReadingWebView.Source = new HtmlWebViewSource
+        {
+            Html = HtmlReadingTemplate.BuildBazi(_currentChart, _currentDigest, _currentFocus, _currentInterpretation)
+        };
+        ReadingWebView.IsVisible = true;
+        ExportButton.IsVisible = true;
         App.History.Add("八字", _currentChart.DayPillar.GanZhi, _currentFocus, _currentSummary, result.Text);
+    }
 
-        var html = HtmlReadingTemplate.BuildBazi(_currentChart, _currentDigest, _currentFocus, _currentInterpretation);
-        await Navigation.PushModalAsync(new HtmlPreviewPage("八字解读展示", html));
+    private async void OnExportClicked(object? sender, EventArgs e)
+    {
+        try
+        {
+            var path = await ImageExportService.ExportVisibleAsync("bazi-reading");
+            await DisplayAlertAsync("已导出", path, "好的");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("导出失败", ex.Message, "好的");
+        }
     }
 
     private static string BuildPrompt(BaziChart chart, BaziRuleDigest digest, string? focus) =>

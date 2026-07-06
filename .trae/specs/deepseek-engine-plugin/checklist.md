@@ -10,5 +10,5 @@
 - [x] 测试验证 HTTP 5xx 返回 `IsFallback=true`
 - [x] `dotnet build` 全绿（主程序 + samples/OpenAiCompatibleEngine）
 - [x] `dotnet test` 全绿（含新增 DeepSeek 测试）
-- [ ] `GET /health/engines` 含 `deepseek-remote` 条目
+- [x] `GET /health/engines` 含 `deepseek-remote` 条目
 - [x] 未引入 RAG（仅纯生成调用）

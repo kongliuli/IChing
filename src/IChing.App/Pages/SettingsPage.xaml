@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="IChing.App.Pages.SettingsPage"
+             Title="设置">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="16">
+            <Label Text="AI 解读设置"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Gold}" />
+
+            <Border Stroke="{StaticResource StrokeSoft}"
+                    StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}"
+                    Padding="16"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="服务商" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Picker x:Name="ProviderPicker" SelectedIndexChanged="OnProviderChanged">
+                        <Picker.Items>
+                            <x:String>DeepSeek</x:String>
+                            <x:String>OpenAI</x:String>
+                            <x:String>自定义</x:String>
+                        </Picker.Items>
+                    </Picker>
+
+                    <Label Text="API Base URL" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Entry x:Name="BaseUrlEntry" />
+
+                    <Label Text="模型" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Entry x:Name="ModelEntry" />
+
+                    <Label Text="API Key" FontSize="13" TextColor="{StaticResource TextSecondary}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Entry x:Name="ApiKeyEntry"
+                               IsPassword="True"
+                               Placeholder="sk-..." />
+                        <Button x:Name="ToggleKeyButton"
+                                Grid.Column="1"
+                                Text="显示"
+                                FontSize="12"
+                                Clicked="OnToggleKeyClicked"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="{StaticResource SurfaceAlt}"
+                                BorderColor="{StaticResource StrokeSoft}"
+                                BorderWidth="1" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Entry x:Name="TemperatureEntry" Text="0.6" Placeholder="温度 0-1" Keyboard="Numeric" />
+                        <Entry x:Name="MaxTokensEntry" Grid.Column="1" Text="700" Placeholder="最大 tokens" Keyboard="Numeric" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Text="保存"
+                                Clicked="OnSaveClicked"
+                                TextColor="#171006"
+                                BackgroundColor="{StaticResource Gold}" />
+                        <Button x:Name="TestButton"
+                                Grid.Column="1"
+                                Text="测试连接"
+                                Clicked="OnTestClicked"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="{StaticResource SurfaceAlt}"
+                                BorderColor="{StaticResource StrokeSoft}"
+                                BorderWidth="1" />
+                    </Grid>
+
+                    <ActivityIndicator x:Name="TestIndicator"
+                                       IsVisible="False"
+                                       IsRunning="False"
+                                       Color="{StaticResource Gold}" />
+                    <Label x:Name="StatusLabel"
+                           FontSize="13"
+                           TextColor="{StaticResource Muted}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

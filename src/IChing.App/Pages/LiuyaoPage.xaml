@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="IChing.App.Pages.LiuyaoPage"
+             Title="六爻">
+    <ScrollView>
+        <VerticalStackLayout Padding="20,24" Spacing="16">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="六爻起卦"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Gold}" />
+                <Label Text="铜钱卦、时间卦、纳甲六亲与世应用神"
+                       FontSize="13"
+                       TextColor="{StaticResource TextSecondary}" />
+            </VerticalStackLayout>
+
+            <Border Stroke="{StaticResource StrokeSoft}"
+                    StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}"
+                    Padding="16"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="10">
+                    <Editor x:Name="QuestionEntry"
+                            Placeholder="请输入所问之事"
+                            AutoSize="TextChanges"
+                            MinimumHeightRequest="72"
+                            MaxLength="200" />
+                    <Entry x:Name="FocusEntry" Text="事业" Placeholder="关注点" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Picker x:Name="MethodPicker" Title="起卦方式">
+                            <Picker.Items>
+                                <x:String>铜钱卦</x:String>
+                                <x:String>时间卦</x:String>
+                            </Picker.Items>
+                        </Picker>
+                        <Entry x:Name="SeedEntry" Grid.Column="1" Placeholder="随机种子，可空" Keyboard="Numeric" />
+                    </Grid>
+                    <Button Text="起卦"
+                            Clicked="OnCastClicked"
+                            TextColor="#171006"
+                            BackgroundColor="{StaticResource Gold}" />
+                    <Label x:Name="ErrorLabel"
+                           IsVisible="False"
+                           FontSize="12"
+                           TextColor="{StaticResource Danger}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border x:Name="ResultPanel"
+                    IsVisible="False"
+                    Stroke="{StaticResource StrokeSoft}"
+                    StrokeThickness="1"
+                    BackgroundColor="{StaticResource SurfaceRaised}"
+                    Padding="16"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="12">
+                    <Label x:Name="HexagramLabel"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Gold}" />
+                    <Label x:Name="DigestLabel"
+                           FontSize="13"
+                           TextColor="{StaticResource TextSecondary}"
+                           LineBreakMode="WordWrap" />
+                    <CollectionView x:Name="LinesView"
+                                    SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,8"
+                                        Padding="10"
+                                        BackgroundColor="{StaticResource SurfaceAlt}"
+                                        Stroke="{StaticResource StrokeSoft}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="{Binding Title}"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource TextPrimary}" />
+                                        <Label Text="{Binding Detail}"
+                                               FontSize="12"
+                                               TextColor="{StaticResource TextSecondary}"
+                                               LineBreakMode="WordWrap" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Button x:Name="InterpretButton"
+                                Text="AI 解读"
+                                IsEnabled="False"
+                                Clicked="OnInterpretClicked"
+                                TextColor="#171006"
+                                BackgroundColor="{StaticResource Gold}" />
+                        <ActivityIndicator x:Name="InterpretIndicator"
+                                           Grid.Column="1"
+                                           IsRunning="False"
+                                           IsVisible="False"
+                                           Color="{StaticResource Gold}" />
+                    </Grid>
+                    <Border x:Name="InterpretationPanel"
+                            IsVisible="False"
+                            Padding="12"
+                            BackgroundColor="{StaticResource SurfaceAlt}"
+                            Stroke="{StaticResource StrokeSoft}"
+                            StrokeThickness="1"
+                            StrokeShape="RoundRectangle 10">
+                        <VerticalStackLayout Spacing="8">
+                            <Label x:Name="InterpretStatusLabel"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Muted}" />
+                            <Label x:Name="InterpretationLabel"
+                                   FontSize="13"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

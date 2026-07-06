@@ -1,0 +1,124 @@
+using IChing.App.Services;
+
+namespace IChing.App.Pages;
+
+public partial class SettingsPage : ContentPage
+{
+    private bool _showKey;
+
+    public SettingsPage()
+    {
+        InitializeComponent();
+        LoadSettings();
+    }
+
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        LoadSettings();
+    }
+
+    private void LoadSettings()
+    {
+        ProviderPicker.SelectedIndex = App.Settings.Provider switch
+        {
+            "openai" => 1,
+            "custom" => 2,
+            _ => 0
+        };
+        BaseUrlEntry.Text = App.Settings.BaseUrl;
+        ModelEntry.Text = App.Settings.Model;
+        ApiKeyEntry.Text = App.Settings.ApiKey;
+        ApiKeyEntry.IsPassword = !_showKey;
+        ToggleKeyButton.Text = _showKey ? "隐藏" : "显示";
+        TemperatureEntry.Text = App.Settings.Temperature.ToString("0.##");
+        MaxTokensEntry.Text = App.Settings.MaxTokens.ToString();
+        UpdateStatus();
+    }
+
+    private void OnProviderChanged(object? sender, EventArgs e)
+    {
+        if (ProviderPicker.SelectedIndex == 0)
+        {
+            App.Settings.ApplyProviderPreset("deepseek");
+        }
+
+        if (ProviderPicker.SelectedIndex == 1)
+        {
+            App.Settings.ApplyProviderPreset("openai");
+        }
+
+        if (ProviderPicker.SelectedIndex == 2)
+        {
+            App.Settings.Provider = "custom";
+        }
+
+        if (ProviderPicker.SelectedIndex != 2)
+        {
+            BaseUrlEntry.Text = App.Settings.BaseUrl;
+            ModelEntry.Text = App.Settings.Model;
+        }
+    }
+
+    private void OnToggleKeyClicked(object? sender, EventArgs e)
+    {
+        _showKey = !_showKey;
+        ApiKeyEntry.IsPassword = !_showKey;
+        ToggleKeyButton.Text = _showKey ? "隐藏" : "显示";
+    }
+
+    private async void OnSaveClicked(object? sender, EventArgs e)
+    {
+        Save();
+        await DisplayAlertAsync("已保存", "AI 解读设置已保存到本机。", "好的");
+    }
+
+    private async void OnTestClicked(object? sender, EventArgs e)
+    {
+        Save();
+        TestButton.IsEnabled = false;
+        TestIndicator.IsVisible = true;
+        TestIndicator.IsRunning = true;
+        try
+        {
+            var result = await App.Remote.TestAsync(App.Settings);
+            StatusLabel.Text = result.Ok ? $"连接成功 · {App.Settings.Model}" : $"连接失败：{result.Error}";
+            StatusLabel.TextColor = result.Ok ? Color.FromArgb("#79D29A") : Color.FromArgb("#E27A7A");
+        }
+        finally
+        {
+            TestIndicator.IsRunning = false;
+            TestIndicator.IsVisible = false;
+            TestButton.IsEnabled = true;
+        }
+    }
+
+    private void Save()
+    {
+        App.Settings.BaseUrl = BaseUrlEntry.Text?.Trim() ?? AppSettings.DefaultBaseUrl;
+        App.Settings.Model = ModelEntry.Text?.Trim() ?? "deepseek-chat";
+        App.Settings.ApiKey = ApiKeyEntry.Text?.Trim() ?? string.Empty;
+        if (ProviderPicker.SelectedIndex == 2)
+        {
+            App.Settings.Provider = "custom";
+        }
+
+        if (double.TryParse(TemperatureEntry.Text, out var t))
+        {
+            App.Settings.Temperature = t;
+        }
+
+        if (int.TryParse(MaxTokensEntry.Text, out var m))
+        {
+            App.Settings.MaxTokens = m;
+        }
+
+        UpdateStatus();
+    }
+
+    private void UpdateStatus()
+    {
+        StatusLabel.Text = App.Settings.IsConfigured ? $"已配置 · {App.Settings.Model}" : "未配置 API Key";
+        StatusLabel.TextColor = App.Settings.IsConfigured ? Color.FromArgb("#79D29A") : Color.FromArgb("#798492");
+    }
+}

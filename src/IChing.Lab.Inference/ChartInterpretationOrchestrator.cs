@@ -37,13 +37,16 @@ public sealed class ChartInterpretationOrchestrator
         ILogger<ChartInterpretationOrchestrator> logger,
         IEnumerable<IChartEngine>? chartEngines = null)
     {
-        _engines = engines.ToDictionary(e => e.EngineId);
+        _engines = engines
+            .GroupBy(e => e.EngineId, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
         // 按 TemplateId 索引 PromptBuilder，供 RunFixture / 翻译 pass 按 domain+tier+templateId 选取。
         _promptBuilders = promptBuilders.ToDictionary(b => b.TemplateId);
         _configuration = configuration;
         _logger = logger;
         _chartEngines = (chartEngines ?? Enumerable.Empty<IChartEngine>())
-            .ToDictionary(e => e.EngineId);
+            .GroupBy(e => e.EngineId, StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>

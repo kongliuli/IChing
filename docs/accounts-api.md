@@ -1,6 +1,6 @@
 # IChing 用户与额度 API（.NET）
 
-轻量账户服务，迁移自 Java MVP 设计（[`mvp-backend.md`](mvp-backend.md)），用于 Tier 1+ 解读额度与 Mock 支付。
+Lightweight .NET account service for Tier 1+ reading credits and mock payment flows.
 
 ## 启动
 

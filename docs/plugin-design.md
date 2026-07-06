@@ -493,7 +493,7 @@ foreach (var manifest in loader.Discover())
 
 - **不替代** [inference-layer-design.md](./inference-layer-design.md)：分层（Layer1 / Tier / 英译中）逻辑保持
 - **不替代** [tech-stack-dotnet.md](./tech-stack-dotnet.md)：技术栈仍是 .NET 10
-- **补充** [mvp-backend.md](./mvp-backend.md)：Java Spike 中的 `BaziCalculator` 接口设计理念可借鉴到 `IChartEngine`
+- **补充** `IChartEngine` / `RuleEngine`：后端正式入口已经收敛到 .NET Lab，原型后端文档已移除。
 - **承接** [onnx-models-survey.md](./onnx-models-survey.md)：模型选型属于 `IInferenceEngine` 实现细节
 
 ---

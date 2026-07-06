@@ -2,6 +2,7 @@ using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Api.Controllers;
+using IChing.Lab.Core.Rules;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
@@ -151,7 +152,8 @@ public class OrchestratorFallbackTests
             Enumerable.Empty<IChartEngine>(),
             Enumerable.Empty<IPromptBuilder>(),
             inferenceEngines,
-            config);
+            config,
+            new RuleEngine());
 
         var actionResult = controller.HealthEngines();
         var ok = Assert.IsType<OkObjectResult>(actionResult);
@@ -181,7 +183,8 @@ public class OrchestratorFallbackTests
             Enumerable.Empty<IChartEngine>(),
             Enumerable.Empty<IPromptBuilder>(),
             Enumerable.Empty<IInferenceEngine>(),
-            config);
+            config,
+            new RuleEngine());
 
         var actionResult = controller.Health();
         Assert.IsType<OkObjectResult>(actionResult);

@@ -6,6 +6,7 @@ using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Calendar;
 using IChing.Lab.Core.Liuyao;
 using IChing.Lab.Core.Readings;
+using IChing.Lab.Core.Rules;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Engines.Tarot;
@@ -28,6 +29,7 @@ public class LabController : ControllerBase
     private readonly IEnumerable<IInferenceEngine> _inferenceEngines;
     private readonly IReadOnlyDictionary<string, IPromptBuilder> _promptBuilders;
     private readonly IConfiguration _configuration;
+    private readonly RuleEngine _ruleEngine;
 
     public LabController(
         ChartInterpretationOrchestrator interpretation,
@@ -35,7 +37,8 @@ public class LabController : ControllerBase
         IEnumerable<IChartEngine> engines,
         IEnumerable<IPromptBuilder> promptBuilders,
         IEnumerable<IInferenceEngine> inferenceEngines,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        RuleEngine ruleEngine)
     {
         _interpretation = interpretation;
         _chartRouter = chartRouter;
@@ -43,6 +46,7 @@ public class LabController : ControllerBase
         _inferenceEngines = inferenceEngines;
         _promptBuilders = promptBuilders.ToDictionary(b => b.TemplateId);
         _configuration = configuration;
+        _ruleEngine = ruleEngine;
     }
 
     /// <summary>按 templateId 选取已注册的 IPromptBuilder。</summary>
@@ -210,15 +214,16 @@ public class LabController : ControllerBase
 
         var input = MapBaziInput(req);
         var (chart, engineId) = CalculateBazi(input);
+        var digest = ReadingSummaries.BuildBaziRuleDigest(chart, req.Focus, _ruleEngine);
         var preview = ReadingSummaries.BuildBaziTier0Preview(chart, req.Focus);
 
         if (tier == 0)
         {
-            return Ok(ReadEnvelope("bazi", tier, chart, null, preview, null, engineId));
+            return Ok(ReadEnvelope("bazi", tier, chart, digest, preview, null, engineId));
         }
 
         var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 512);
-        return Ok(ReadEnvelope("bazi", tier, chart, null, preview, new
+        return Ok(ReadEnvelope("bazi", tier, chart, digest, preview, new
         {
             text = result.Text,
             textEn = result.TextEn,
@@ -290,7 +295,7 @@ public class LabController : ControllerBase
         }
 
         var (chart, engineId) = CalculateLiuyao(req.Method, req.At ?? DateTimeOffset.Now, req.Seed);
-        var digest = ReadingSummaries.BuildLiuyaoRuleDigest(chart, req.Question, req.Focus);
+        var digest = ReadingSummaries.BuildLiuyaoRuleDigest(chart, req.Question, req.Focus, _ruleEngine);
         var preview = ReadingSummaries.BuildLiuyaoTier0Preview(chart, req.Question, req.Focus);
 
         if (tier == 0)
@@ -338,7 +343,11 @@ public class LabController : ControllerBase
         }
 
         var (reading, engineId) = DrawTarotReading(req.SpreadId, req.Question, req.Seed);
-        var digest = TarotReadingEnricher.BuildEnrichedRuleDigest(reading);
+        var digest = new
+        {
+            enriched = TarotReadingEnricher.BuildEnrichedRuleDigest(reading),
+            rules = ReadingSummaries.BuildTarotRuleDigest(reading, _ruleEngine)
+        };
         var preview = ReadingSummaries.BuildTarotTier0Preview(reading, req.Question);
 
         if (tier == 0)
@@ -425,7 +434,7 @@ public class LabController : ControllerBase
         engine = new
         {
             paipan = paipanEngine ?? (domain == "liuyao" ? "IChingLibrary.SixLines" : "IChing.Lab.Core"),
-            rules = "iching-rules-v0",
+            rules = "iching-rules-v1",
             narrative = tier == 0 ? "none" : "qwen2.5-1.5b-onnx-genai"
         },
         chart,

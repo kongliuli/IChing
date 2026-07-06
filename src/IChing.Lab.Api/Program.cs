@@ -10,6 +10,7 @@ using IChing.Lab.Engines.Tarot;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
 using IChing.Lab.Inference.Prompts;
+using IChing.Lab.Core.Rules;
 using IChing.Lab.PluginLoader;
 using Microsoft.AspNetCore.DataProtection;
 
@@ -22,6 +23,7 @@ builder.Services.AddRazorComponents();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton(new RuleEngine(ReadRuleEngineOptions(builder.Configuration)));
 
 var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys");
 Directory.CreateDirectory(dataProtectionKeysPath);
@@ -133,6 +135,13 @@ static string ResolvePromptsRoot(string configuredPath, string contentRoot)
     };
 
     return candidates.FirstOrDefault(Directory.Exists) ?? candidates[0];
+}
+
+static RuleEngineOptions ReadRuleEngineOptions(IConfiguration configuration)
+{
+    var options = new RuleEngineOptions();
+    configuration.GetSection("RuleEngine").Bind(options);
+    return options;
 }
 
 public partial class Program;

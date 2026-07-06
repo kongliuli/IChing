@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="IChing.Liuyao.App.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:IChing.Liuyao.App.Pages"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.TabBarBackgroundColor="{StaticResource Surface}"
+    Shell.TabBarForegroundColor="{StaticResource Gold}"
+    Shell.TabBarUnselectedColor="{StaticResource Muted}"
+    Shell.TabBarTitleColor="{StaticResource Gold}">
+
+    <Tab Title="☰ 起卦">
+        <ShellContent Route="cast" ContentTemplate="{DataTemplate pages:ChartPage}" />
+    </Tab>
+    <Tab Title="⚙ 设置">
+        <ShellContent Route="settings" ContentTemplate="{DataTemplate pages:SettingsPage}" />
+    </Tab>
+</Shell>

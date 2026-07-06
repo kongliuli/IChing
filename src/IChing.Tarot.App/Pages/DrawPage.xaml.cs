@@ -99,6 +99,7 @@ public partial class DrawPage : ContentPage
             App.History.Add(_currentReading, _engineId);
             UpdateHistoryPanel();
             InterpretationPanel.IsVisible = false;
+            FollowUpButton.IsVisible = false;
             InterpretationBoardLayout.Render(InterpretationBoardHost, []);
             _interpretationRaw = string.Empty;
             InterpretButton.IsEnabled = true;
@@ -197,6 +198,7 @@ public partial class DrawPage : ContentPage
             InterpretationStatusLabel.TextColor = result.IsFallback
                 ? Color.FromArgb("#E06C75")
                 : Color.FromArgb("#7FD992");
+            FollowUpButton.IsVisible = !string.IsNullOrWhiteSpace(_interpretationRaw);
 
             await MainScroll.ScrollToAsync(InterpretationPanel, ScrollToPosition.End, true);
         }
@@ -207,6 +209,17 @@ public partial class DrawPage : ContentPage
             InterpretButton.Text = interpretLabel;
             InterpretButton.IsEnabled = true;
         }
+    }
+
+    private async void OnFollowUpClicked(object? sender, EventArgs e)
+    {
+        if (_currentReading is null || string.IsNullOrWhiteSpace(_interpretationRaw))
+        {
+            return;
+        }
+
+        var seed = FollowUpPromptTemplates.Tarot(_currentReading, QuestionEntry.Text, _interpretationRaw);
+        await Navigation.PushAsync(new FollowUpChatPage(seed.SystemPrompt, seed.Context));
     }
 
     private async void OnCopyInterpretationClicked(object? sender, EventArgs e)

@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using IChing.Lab.Core.Readings;
@@ -20,32 +21,19 @@ public sealed class RemoteInterpretationService
         if (!settings.IsConfigured)
         {
             var preview = ReadingSummaries.BuildTarotTier0Preview(reading, question);
-            return new InterpretationResult(
-                Text: preview.OneLiner,
-                IsFallback: true,
-                Error: "请先在设置中填写 API Key，或启用 Lab API");
+            return new InterpretationResult(preview.OneLiner, true, "请先在设置中填写 API Key，或启用 Lab API");
         }
 
         var prompt = BuildDeckauraPrompt(reading, question);
-        var endpoint = $"{settings.BaseUrl.TrimEnd('/')}/chat/completions";
-
-        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
-        request.Content = new StringContent(JsonSerializer.Serialize(new
+        var messages = new[]
         {
-            model = settings.Model,
-            messages = new[]
-            {
-                new { role = "system", content = "你是专业塔罗解读师。牌阵由系统抽取，请勿修改牌名与正逆位，不要编造未列出的牌。" },
-                new { role = "user", content = prompt }
-            },
-            temperature = 0.7,
-            max_tokens = reading.Positions.Count >= 10 ? 900 : 600
-        }), Encoding.UTF8, "application/json");
+            new ChatTurn("system", "你是专业塔罗解读师。牌阵由系统抽取，请勿修改牌名与正逆位，不要编造未列出的牌。"),
+            new ChatTurn("user", prompt)
+        };
 
         try
         {
-            using var response = await Http.SendAsync(request, cancellationToken);
+            using var response = await SendAsync(settings, messages, stream: false, maxTokens: reading.Positions.Count >= 10 ? 900 : 600, cancellationToken);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
@@ -56,12 +44,7 @@ public sealed class RemoteInterpretationService
             }
 
             using var doc = JsonDocument.Parse(json);
-            var text = doc.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString();
-
+            var text = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
             return new InterpretationResult(
                 text ?? ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner,
                 false,
@@ -85,19 +68,9 @@ public sealed class RemoteInterpretationService
             return new ConnectionTestResult(false, "API Key 为空");
         }
 
-        var endpoint = $"{settings.BaseUrl.TrimEnd('/')}/chat/completions";
-        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
-        request.Content = new StringContent(JsonSerializer.Serialize(new
-        {
-            model = settings.Model,
-            messages = new[] { new { role = "user", content = "ping" } },
-            max_tokens = 5
-        }), Encoding.UTF8, "application/json");
-
         try
         {
-            using var response = await Http.SendAsync(request, cancellationToken);
+            using var response = await SendAsync(settings, [new ChatTurn("user", "ping")], stream: false, maxTokens: 5, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
                 return new ConnectionTestResult(true, null);
@@ -112,11 +85,59 @@ public sealed class RemoteInterpretationService
         }
     }
 
+    public async IAsyncEnumerable<string> StreamAsync(
+        AppSettings settings,
+        IReadOnlyList<ChatTurn> messages,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        if (!settings.IsConfigured)
+        {
+            yield return "请先在设置中填写 API Key";
+            yield break;
+        }
+
+        using var response = await SendAsync(settings, messages, stream: true, maxTokens: 600, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            yield return $"{(int)response.StatusCode}: {Trim(await response.Content.ReadAsStringAsync(cancellationToken), 180)}";
+            yield break;
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var reader = new StreamReader(stream);
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var line = await reader.ReadLineAsync(cancellationToken);
+            if (line is null)
+            {
+                yield break;
+            }
+
+            if (!line.StartsWith("data:", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var data = line[5..].Trim();
+            if (data == "[DONE]")
+            {
+                yield break;
+            }
+
+            using var doc = JsonDocument.Parse(data);
+            if (doc.RootElement.TryGetProperty("choices", out var choices)
+                && choices[0].TryGetProperty("delta", out var delta)
+                && delta.TryGetProperty("content", out var content))
+            {
+                yield return content.GetString() ?? string.Empty;
+            }
+        }
+    }
+
     internal static string BuildDeckauraPrompt(TarotReading reading, string? question)
     {
         var digest = TarotReadingEnricher.BuildEnrichedRuleDigest(reading);
         var digestJson = JsonSerializer.Serialize(digest, new JsonSerializerOptions { WriteIndented = true });
-
         var sb = new StringBuilder();
         sb.AppendLine($"问题：{question ?? "综合解读"}");
         sb.AppendLine($"牌阵：{reading.SpreadTitleZh}（{reading.SpreadTitle}）");
@@ -137,24 +158,40 @@ public sealed class RemoteInterpretationService
         sb.AppendLine("规则摘要：");
         sb.AppendLine(digestJson);
         sb.AppendLine();
-        sb.AppendLine("请严格用简体中文、Markdown 分段输出（不要对话口吻，不要「你好」等寒暄），结构如下：");
-        sb.AppendLine("## 整体能量");
-        sb.AppendLine("（2–3 句概括牌阵基调）");
-        sb.AppendLine("## 牌位解读");
-        sb.AppendLine("### [牌位中文名] 牌名 · 正/逆位");
-        sb.AppendLine("（该位置 2–4 句，仅解读已列出的牌）");
-        sb.AppendLine("## 牌阵互动");
-        sb.AppendLine("（元素/数字/大阿卡纳比例等 2–3 句）");
-        sb.AppendLine("## 行动建议");
-        sb.AppendLine("（3 条可执行建议，每条一行，以 - 开头）");
-        sb.AppendLine($"总字数约 { (reading.Positions.Count >= 10 ? 500 : 350) } 字。");
+        sb.AppendLine("请严格用简体中文、Markdown 分段输出：整体能量、牌位解读、牌阵互动、行动建议。不要寒暄，不要新增牌。");
         return sb.ToString();
     }
 
+    private static Task<HttpResponseMessage> SendAsync(
+        AppSettings settings,
+        IReadOnlyList<ChatTurn> messages,
+        bool stream,
+        int maxTokens,
+        CancellationToken cancellationToken)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{settings.BaseUrl.TrimEnd('/')}/chat/completions");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
+        request.Content = new StringContent(JsonSerializer.Serialize(new
+        {
+            model = settings.Model,
+            messages = messages.Select(m => new { role = m.Role, content = m.Content }),
+            temperature = 0.7,
+            max_tokens = maxTokens,
+            stream
+        }), Encoding.UTF8, "application/json");
+
+        return Http.SendAsync(
+            request,
+            stream ? HttpCompletionOption.ResponseHeadersRead : HttpCompletionOption.ResponseContentRead,
+            cancellationToken);
+    }
+
     private static string Trim(string s, int max) =>
-        s.Length <= max ? s : s[..max] + "…";
+        s.Length <= max ? s : s[..max] + "...";
 }
 
 public sealed record InterpretationResult(string Text, bool IsFallback, string? Error);
 
 public sealed record ConnectionTestResult(bool Ok, string? Error);
+
+public sealed record ChatTurn(string Role, string Content);

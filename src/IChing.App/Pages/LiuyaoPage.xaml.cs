@@ -27,6 +27,7 @@ public partial class LiuyaoPage : ContentPage
         InterpretationPanel.IsVisible = false;
         ReadingWebView.IsVisible = false;
         ExportButton.IsVisible = false;
+        FollowUpButton.IsVisible = false;
         _currentInterpretation = null;
 
         try
@@ -82,6 +83,7 @@ public partial class LiuyaoPage : ContentPage
         InterpretIndicator.IsRunning = true;
         InterpretationPanel.IsVisible = true;
         ExportButton.IsVisible = false;
+        FollowUpButton.IsVisible = false;
         ReadingWebView.IsVisible = false;
         InterpretStatusLabel.Text = "正在调用远程 API...";
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
@@ -111,7 +113,19 @@ public partial class LiuyaoPage : ContentPage
         };
         ReadingWebView.IsVisible = true;
         ExportButton.IsVisible = true;
+        FollowUpButton.IsVisible = true;
         App.History.Add("六爻", HtmlReadingTemplate.HexagramName(_currentChart.OriginalHexagram), _currentQuestion, _currentSummary, result.Text);
+    }
+
+    private async void OnFollowUpClicked(object? sender, EventArgs e)
+    {
+        if (_currentChart is null || _currentDigest is null || string.IsNullOrWhiteSpace(_currentInterpretation))
+        {
+            return;
+        }
+
+        var seed = FollowUpPromptTemplates.Liuyao(_currentChart, _currentDigest, _currentQuestion, _currentFocus, _currentInterpretation);
+        await Navigation.PushAsync(new FollowUpChatPage("六爻追问", seed.SystemPrompt, seed.Context));
     }
 
     private async void OnExportClicked(object? sender, EventArgs e)

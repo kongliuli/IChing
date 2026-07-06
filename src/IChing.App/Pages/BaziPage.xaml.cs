@@ -26,6 +26,7 @@ public partial class BaziPage : ContentPage
         InterpretationPanel.IsVisible = false;
         ReadingWebView.IsVisible = false;
         ExportButton.IsVisible = false;
+        FollowUpButton.IsVisible = false;
         _currentInterpretation = null;
 
         try
@@ -84,6 +85,7 @@ public partial class BaziPage : ContentPage
         InterpretIndicator.IsRunning = true;
         InterpretationPanel.IsVisible = true;
         ExportButton.IsVisible = false;
+        FollowUpButton.IsVisible = false;
         ReadingWebView.IsVisible = false;
         InterpretStatusLabel.Text = "正在调用远程 API...";
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
@@ -113,7 +115,19 @@ public partial class BaziPage : ContentPage
         };
         ReadingWebView.IsVisible = true;
         ExportButton.IsVisible = true;
+        FollowUpButton.IsVisible = true;
         App.History.Add("八字", _currentChart.DayPillar.GanZhi, _currentFocus, _currentSummary, result.Text);
+    }
+
+    private async void OnFollowUpClicked(object? sender, EventArgs e)
+    {
+        if (_currentChart is null || _currentDigest is null || string.IsNullOrWhiteSpace(_currentInterpretation))
+        {
+            return;
+        }
+
+        var seed = FollowUpPromptTemplates.Bazi(_currentChart, _currentDigest, _currentFocus, _currentInterpretation);
+        await Navigation.PushAsync(new FollowUpChatPage("八字追问", seed.SystemPrompt, seed.Context));
     }
 
     private async void OnExportClicked(object? sender, EventArgs e)

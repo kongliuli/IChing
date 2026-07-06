@@ -194,12 +194,24 @@
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 10">
                         <VerticalStackLayout Spacing="8">
-                            <Grid ColumnDefinitions="*,Auto">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                                 <Label Grid.Column="0"
                                        Text="解读"
                                        FontAttributes="Bold"
                                        TextColor="{StaticResource PurpleLight}" />
-                                <Button Grid.Column="1"
+                                <Button x:Name="FollowUpButton"
+                                        Grid.Column="1"
+                                        Text="追问"
+                                        IsVisible="False"
+                                        FontSize="12"
+                                        Padding="10,4"
+                                        CornerRadius="12"
+                                        Clicked="OnFollowUpClicked"
+                                        TextColor="{StaticResource Gold}"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="{StaticResource GoldDim}"
+                                        BorderWidth="1" />
+                                <Button Grid.Column="2"
                                         Text="复制"
                                         FontSize="12"
                                         Padding="10,4"

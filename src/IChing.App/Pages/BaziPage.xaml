@@ -134,7 +134,7 @@
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 8">
                         <VerticalStackLayout Spacing="10">
-                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                                 <Label x:Name="InterpretStatusLabel"
                                        FontSize="12"
                                        FontAttributes="Bold"
@@ -147,6 +147,13 @@
                                         Clicked="OnExportClicked"
                                         TextColor="{StaticResource White}"
                                         BackgroundColor="{StaticResource Cinnabar}" />
+                                <Button x:Name="FollowUpButton"
+                                        Grid.Column="2"
+                                        Text="追问"
+                                        IsVisible="False"
+                                        Clicked="OnFollowUpClicked"
+                                        TextColor="{StaticResource White}"
+                                        BackgroundColor="{StaticResource Jade}" />
                             </Grid>
                             <Label x:Name="InterpretationLabel"
                                    FontSize="13"

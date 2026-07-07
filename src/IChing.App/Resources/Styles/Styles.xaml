@@ -11,8 +11,30 @@
         <Setter Property="LineBreakMode" Value="WordWrap" />
     </Style>
 
+    <Style x:Key="PageTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="34" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource Ink}" />
+    </Style>
+
+    <Style x:Key="PageKicker" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource Cinnabar}" />
+    </Style>
+
+    <Style x:Key="SectionTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{StaticResource Jade}" />
+    </Style>
+
+    <Style x:Key="Caption" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource Muted}" />
+    </Style>
+
     <Style TargetType="Entry">
-        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="46" />
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="PlaceholderColor" Value="{StaticResource Muted}" />
         <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
@@ -25,7 +47,7 @@
     </Style>
 
     <Style TargetType="Picker">
-        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="46" />
         <Setter Property="TextColor" Value="{StaticResource TextPrimary}" />
         <Setter Property="TitleColor" Value="{StaticResource Muted}" />
         <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
@@ -35,6 +57,35 @@
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="14,11" />
         <Setter Property="FontAttributes" Value="Bold" />
-        <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="MinimumHeightRequest" Value="46" />
+    </Style>
+
+    <Style x:Key="PrimaryButton" TargetType="Button">
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource Cinnabar}" />
+    </Style>
+
+    <Style x:Key="JadeButton" TargetType="Button">
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource Jade}" />
+    </Style>
+
+    <Style x:Key="SecondaryButton" TargetType="Button">
+        <Setter Property="TextColor" Value="{StaticResource Jade}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource SurfaceAlt}" />
+        <Setter Property="BorderColor" Value="{StaticResource StrokeSoft}" />
+        <Setter Property="BorderWidth" Value="1" />
+    </Style>
+
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="Stroke" Value="{StaticResource StrokeSoft}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="BackgroundColor" Value="{StaticResource Surface}" />
+        <Setter Property="Padding" Value="18" />
+        <Setter Property="StrokeShape" Value="RoundRectangle 8" />
+    </Style>
+
+    <Style x:Key="RaisedCard" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="BackgroundColor" Value="{StaticResource SurfaceRaised}" />
     </Style>
 </ResourceDictionary>

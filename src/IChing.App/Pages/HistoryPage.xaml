@@ -4,39 +4,29 @@
              x:Class="IChing.App.Pages.HistoryPage"
              Title="历史">
     <ScrollView>
-        <VerticalStackLayout Padding="20,24,20,32"
-                             Spacing="14"
-                             MaximumWidthRequest="760"
-                             HorizontalOptions="Fill">
+        <VerticalStackLayout Padding="22,24,22,36"
+                             Spacing="18"
+                             MaximumWidthRequest="920"
+                             HorizontalOptions="Center">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
-                <VerticalStackLayout Spacing="4">
-                    <Label Text="历史"
-                           FontSize="30"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource Ink}" />
-                    <Label Text="本地记录"
-                           FontSize="12"
-                           TextColor="{StaticResource Cinnabar}" />
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="历史记录" Style="{StaticResource PageTitle}" />
+                    <Label Text="本地保存 · 最近三十条"
+                           Style="{StaticResource PageKicker}" />
                     <BoxView HeightRequest="2"
-                             WidthRequest="48"
+                             WidthRequest="56"
                              HorizontalOptions="Start"
                              Color="{StaticResource Cinnabar}" />
                 </VerticalStackLayout>
                 <Button Grid.Column="1"
                         Text="清空"
                         Clicked="OnClearClicked"
-                        TextColor="{StaticResource Jade}"
-                        BackgroundColor="{StaticResource SurfaceAlt}"
-                        BorderColor="{StaticResource StrokeSoft}"
-                        BorderWidth="1" />
+                        Style="{StaticResource SecondaryButton}"
+                        VerticalOptions="Start" />
             </Grid>
 
             <Border x:Name="EmptyLabel"
-                    Padding="18"
-                    BackgroundColor="{StaticResource Surface}"
-                    Stroke="{StaticResource StrokeSoft}"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 8">
+                    Style="{StaticResource Card}">
                 <Label Text="还没有记录。"
                        HorizontalTextAlignment="Center"
                        TextColor="{StaticResource Muted}" />
@@ -47,7 +37,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="0,0,0,10"
-                                Padding="12"
+                                Padding="14"
                                 BackgroundColor="{StaticResource Surface}"
                                 Stroke="{StaticResource StrokeSoft}"
                                 StrokeThickness="1"

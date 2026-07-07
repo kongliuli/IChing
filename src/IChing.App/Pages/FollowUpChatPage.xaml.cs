@@ -56,7 +56,7 @@ public partial class FollowUpChatPage : ContentPage
         };
         ChatHost.Add(new Border
         {
-            Padding = 12,
+            Padding = 14,
             BackgroundColor = (Color)Application.Current.Resources[incoming ? "Surface" : "SurfaceAlt"],
             Stroke = (Color)Application.Current.Resources["StrokeSoft"],
             StrokeShape = new RoundRectangle { CornerRadius = 8 },
@@ -65,7 +65,7 @@ public partial class FollowUpChatPage : ContentPage
                 Spacing = 6,
                 Children =
                 {
-                    new Label { Text = title, FontAttributes = FontAttributes.Bold, TextColor = (Color)Application.Current.Resources["Jade"], FontSize = 12 },
+                    new Label { Text = title, FontAttributes = FontAttributes.Bold, TextColor = (Color)Application.Current.Resources[incoming ? "Jade" : "Cinnabar"], FontSize = 12 },
                     label
                 }
             }

@@ -4,150 +4,174 @@
              x:Class="IChing.App.Pages.LiuyaoPage"
              Title="六爻">
     <ScrollView>
-        <VerticalStackLayout Padding="20,24,20,32"
-                             Spacing="14"
-                             MaximumWidthRequest="760"
-                             HorizontalOptions="Fill">
-            <VerticalStackLayout Spacing="4">
-                <Label Text="六爻"
-                       FontSize="30"
-                       FontAttributes="Bold"
-                       TextColor="{StaticResource Ink}" />
-                <Label Text="少阳 少阴 老阳 老阴"
-                       FontSize="12"
-                       TextColor="{StaticResource Cinnabar}" />
-                <BoxView HeightRequest="2"
-                         WidthRequest="48"
-                         HorizontalOptions="Start"
-                         Color="{StaticResource Cinnabar}" />
-            </VerticalStackLayout>
-
-            <Border Stroke="{StaticResource StrokeSoft}"
-                    StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}"
-                    Padding="14"
-                    StrokeShape="RoundRectangle 8">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="起卦"
-                           FontSize="13"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource Jade}" />
-                    <Editor x:Name="QuestionEntry"
-                            Placeholder="请输入所问之事"
-                            AutoSize="TextChanges"
-                            MinimumHeightRequest="88"
-                            MaxLength="200" />
-                    <Entry x:Name="FocusEntry" Text="事业" Placeholder="关注点" />
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Picker x:Name="MethodPicker" Title="起卦方式">
-                            <Picker.Items>
-                                <x:String>铜钱卦</x:String>
-                                <x:String>时间卦</x:String>
-                            </Picker.Items>
-                        </Picker>
-                        <Entry x:Name="SeedEntry" Grid.Column="1" Placeholder="随机种子，可空" Keyboard="Numeric" />
-                    </Grid>
-                    <Button Text="起卦"
-                            Clicked="OnCastClicked"
-                            TextColor="{StaticResource White}"
-                            BackgroundColor="{StaticResource Cinnabar}" />
-                    <Label x:Name="ErrorLabel"
-                           IsVisible="False"
-                           FontSize="12"
-                           TextColor="{StaticResource Danger}" />
+        <VerticalStackLayout Padding="22,24,22,36"
+                             Spacing="18"
+                             MaximumWidthRequest="1120"
+                             HorizontalOptions="Center">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="六爻起卦" Style="{StaticResource PageTitle}" />
+                    <Label Text="铜钱起卦 · 纳甲六亲 · 世应用神"
+                           Style="{StaticResource PageKicker}" />
+                    <BoxView HeightRequest="2"
+                             WidthRequest="56"
+                             HorizontalOptions="Start"
+                             Color="{StaticResource Cinnabar}" />
                 </VerticalStackLayout>
-            </Border>
-
-            <Border x:Name="ResultPanel"
-                    IsVisible="False"
-                    Stroke="{StaticResource StrokeSoft}"
-                    StrokeThickness="1"
-                    BackgroundColor="{StaticResource SurfaceRaised}"
-                    Padding="14"
-                    StrokeShape="RoundRectangle 8">
-                <VerticalStackLayout Spacing="12">
-                    <Label x:Name="HexagramLabel"
-                           FontSize="22"
+                <Border Grid.Column="1"
+                        WidthRequest="58"
+                        HeightRequest="58"
+                        Stroke="{StaticResource Cinnabar}"
+                        StrokeThickness="2"
+                        BackgroundColor="{StaticResource Surface}"
+                        StrokeShape="RoundRectangle 8"
+                        HorizontalOptions="End">
+                    <Label Text="卦"
+                           FontSize="30"
                            FontAttributes="Bold"
-                           TextColor="{StaticResource Cinnabar}" />
-                    <Label x:Name="DigestLabel"
-                           FontSize="13"
-                           TextColor="{StaticResource TextSecondary}" />
-                    <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
-                    <CollectionView x:Name="LinesView"
-                                    SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,0,0,8"
-                                        Padding="10"
-                                        BackgroundColor="{StaticResource SurfaceAlt}"
-                                        Stroke="{StaticResource StrokeSoft}"
-                                        StrokeThickness="1"
-                                        StrokeShape="RoundRectangle 8">
-                                    <VerticalStackLayout Spacing="4">
-                                        <Label Text="{Binding Title}"
-                                               FontAttributes="Bold"
-                                               TextColor="{StaticResource TextPrimary}" />
-                                        <Label Text="{Binding Detail}"
-                                               FontSize="12"
-                                               TextColor="{StaticResource TextSecondary}" />
-                                    </VerticalStackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <Button x:Name="InterpretButton"
-                                Text="AI 解读"
-                                IsEnabled="False"
-                                Clicked="OnInterpretClicked"
-                                TextColor="{StaticResource White}"
-                                BackgroundColor="{StaticResource Jade}" />
-                        <ActivityIndicator x:Name="InterpretIndicator"
-                                           Grid.Column="1"
-                                           IsRunning="False"
-                                           IsVisible="False"
-                                           Color="{StaticResource Jade}" />
-                    </Grid>
-                    <Border x:Name="InterpretationPanel"
-                            IsVisible="False"
-                            Padding="12"
-                            BackgroundColor="{StaticResource Surface}"
-                            Stroke="{StaticResource StrokeSoft}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 8">
-                        <VerticalStackLayout Spacing="10">
-                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                                <Label x:Name="InterpretStatusLabel"
-                                       FontSize="12"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource Muted}"
-                                       VerticalOptions="Center" />
-                                <Button x:Name="ExportButton"
-                                        Grid.Column="1"
-                                        Text="导出图片"
-                                        IsVisible="False"
-                                        Clicked="OnExportClicked"
-                                        TextColor="{StaticResource White}"
-                                        BackgroundColor="{StaticResource Cinnabar}" />
-                                <Button x:Name="FollowUpButton"
-                                        Grid.Column="2"
-                                        Text="追问"
-                                        IsVisible="False"
-                                        Clicked="OnFollowUpClicked"
-                                        TextColor="{StaticResource White}"
-                                        BackgroundColor="{StaticResource Jade}" />
-                            </Grid>
-                            <Label x:Name="InterpretationLabel"
+                           TextColor="{StaticResource Cinnabar}"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center" />
+                </Border>
+            </Grid>
+
+            <Grid x:Name="ResponsiveGrid"
+                  ColumnDefinitions="1.02*,0.98*"
+                  RowDefinitions="Auto"
+                  ColumnSpacing="16"
+                  RowSpacing="16">
+                <Border x:Name="InputPanel"
+                        Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="起卦信息" Style="{StaticResource SectionTitle}" />
+                        <Editor x:Name="QuestionEntry"
+                                Placeholder="请输入所问之事"
+                                AutoSize="TextChanges"
+                                MinimumHeightRequest="96"
+                                MaxLength="200" />
+                        <Entry x:Name="FocusEntry" Text="事业" Placeholder="关注点，如事业、关系、财运" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Picker x:Name="MethodPicker" Title="起卦方式">
+                                <Picker.Items>
+                                    <x:String>铜钱卦</x:String>
+                                    <x:String>时间卦</x:String>
+                                </Picker.Items>
+                            </Picker>
+                            <Entry x:Name="SeedEntry" Grid.Column="1" Placeholder="随机种子，可空" Keyboard="Numeric" />
+                        </Grid>
+                        <Button Text="起卦"
+                                Clicked="OnCastClicked"
+                                Style="{StaticResource PrimaryButton}" />
+                        <Label x:Name="ErrorLabel"
+                               IsVisible="False"
+                               FontSize="12"
+                               TextColor="{StaticResource Danger}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="ResultPanel"
+                        Grid.Column="1"
+                        IsVisible="False"
+                        Style="{StaticResource RaisedCard}">
+                    <VerticalStackLayout Spacing="14">
+                        <VerticalStackLayout Spacing="3">
+                            <Label x:Name="HexagramLabel"
+                                   FontSize="23"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Cinnabar}" />
+                            <Label x:Name="DigestLabel"
                                    FontSize="13"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <WebView x:Name="ReadingWebView"
-                                     IsVisible="False"
-                                     HeightRequest="760" />
+                                   TextColor="{StaticResource TextSecondary}" />
                         </VerticalStackLayout>
-                    </Border>
-                </VerticalStackLayout>
-            </Border>
+
+                        <Border Padding="12"
+                                BackgroundColor="{StaticResource SurfaceAlt}"
+                                Stroke="{StaticResource StrokeSoft}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8">
+                            <CollectionView x:Name="LinesView"
+                                            SelectionMode="None">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid ColumnDefinitions="58,*,Auto"
+                                              ColumnSpacing="10"
+                                              Padding="0,7">
+                                            <Label Text="{Binding Position}"
+                                                   Style="{StaticResource Caption}"
+                                                   VerticalTextAlignment="Center" />
+                                            <Label Grid.Column="1"
+                                                   Text="{Binding Glyph}"
+                                                   FontSize="22"
+                                                   FontAttributes="Bold"
+                                                   TextColor="{StaticResource Ink}"
+                                                   HorizontalTextAlignment="Center"
+                                                   VerticalTextAlignment="Center" />
+                                            <VerticalStackLayout Grid.Column="2" Spacing="2" WidthRequest="132">
+                                                <Label Text="{Binding Detail}"
+                                                       FontSize="12"
+                                                       TextColor="{StaticResource TextPrimary}"
+                                                       HorizontalTextAlignment="End" />
+                                                <Label Text="{Binding Marker}"
+                                                       FontSize="11"
+                                                       TextColor="{StaticResource Cinnabar}"
+                                                       HorizontalTextAlignment="End" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <Button x:Name="InterpretButton"
+                                    Text="AI 解读"
+                                    IsEnabled="False"
+                                    Clicked="OnInterpretClicked"
+                                    Style="{StaticResource JadeButton}" />
+                            <ActivityIndicator x:Name="InterpretIndicator"
+                                               Grid.Column="1"
+                                               IsRunning="False"
+                                               IsVisible="False"
+                                               Color="{StaticResource Jade}" />
+                        </Grid>
+
+                        <Border x:Name="InterpretationPanel"
+                                IsVisible="False"
+                                Padding="14"
+                                BackgroundColor="{StaticResource Surface}"
+                                Stroke="{StaticResource StrokeSoft}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8">
+                            <VerticalStackLayout Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <Label x:Name="InterpretStatusLabel"
+                                           Style="{StaticResource Caption}"
+                                           FontAttributes="Bold"
+                                           VerticalOptions="Center" />
+                                    <Button x:Name="ExportButton"
+                                            Grid.Column="1"
+                                            Text="导出图片"
+                                            IsVisible="False"
+                                            Clicked="OnExportClicked"
+                                            Style="{StaticResource PrimaryButton}" />
+                                    <Button x:Name="FollowUpButton"
+                                            Grid.Column="2"
+                                            Text="追问"
+                                            IsVisible="False"
+                                            Clicked="OnFollowUpClicked"
+                                            Style="{StaticResource JadeButton}" />
+                                </Grid>
+                                <Label x:Name="InterpretationLabel"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <WebView x:Name="ReadingWebView"
+                                         IsVisible="False"
+                                         HeightRequest="760" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

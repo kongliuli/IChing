@@ -18,6 +18,28 @@ public partial class BaziPage : ContentPage
     {
         InitializeComponent();
         GenderPicker.SelectedIndex = 1;
+        SizeChanged += (_, _) => UpdateResponsiveLayout();
+    }
+
+    private void UpdateResponsiveLayout()
+    {
+        var wide = Width >= 900;
+        ResponsiveGrid.ColumnDefinitions.Clear();
+        ResponsiveGrid.RowDefinitions.Clear();
+        ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        if (wide)
+        {
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(ResultPanel, 1);
+            Grid.SetRow(ResultPanel, 0);
+            return;
+        }
+
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        Grid.SetColumn(ResultPanel, 0);
+        Grid.SetRow(ResultPanel, 1);
     }
 
     private void OnCalculateClicked(object? sender, EventArgs e)
@@ -46,9 +68,10 @@ public partial class BaziPage : ContentPage
             _currentChart = chart;
             _currentDigest = digest;
             _currentFocus = focus;
-            _currentSummary = $"日主 {chart.DayMaster}，{digest.PillarSummary}；{digest.YongShenSummary}";
+            _currentSummary = $"日主 {chart.DayMaster}，{digest.PillarSummary}，{digest.YongShenSummary}";
 
             BaziTitleLabel.Text = $"日主 {chart.DayMaster} · {chart.WallClock}";
+            DayMasterBadge.Text = $"日主 {chart.DayMaster}";
             YearPillarLabel.Text = chart.YearPillar.GanZhi;
             MonthPillarLabel.Text = chart.MonthPillar.GanZhi;
             DayPillarLabel.Text = chart.DayPillar.GanZhi;

@@ -19,6 +19,28 @@ public partial class LiuyaoPage : ContentPage
     {
         InitializeComponent();
         MethodPicker.SelectedIndex = 0;
+        SizeChanged += (_, _) => UpdateResponsiveLayout();
+    }
+
+    private void UpdateResponsiveLayout()
+    {
+        var wide = Width >= 900;
+        ResponsiveGrid.ColumnDefinitions.Clear();
+        ResponsiveGrid.RowDefinitions.Clear();
+        ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        if (wide)
+        {
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(ResultPanel, 1);
+            Grid.SetRow(ResultPanel, 0);
+            return;
+        }
+
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        Grid.SetColumn(ResultPanel, 0);
+        Grid.SetRow(ResultPanel, 1);
     }
 
     private void OnCastClicked(object? sender, EventArgs e)
@@ -46,7 +68,7 @@ public partial class LiuyaoPage : ContentPage
             _currentDigest = digest;
             _currentQuestion = question;
             _currentFocus = focus;
-            _currentSummary = $"{original}，{changed}；{digest.YongShenSummary}";
+            _currentSummary = $"{original}，{changed}，{digest.YongShenSummary}";
 
             HexagramLabel.Text = $"{original} · {changed}";
             DigestLabel.Text =
@@ -54,8 +76,10 @@ public partial class LiuyaoPage : ContentPage
             LinesView.ItemsSource = chart.Lines
                 .OrderByDescending(l => l.Index)
                 .Select(l => new LineRow(
-                    $"{l.Position} · {l.YinYang}{(l.IsChanging ? " 动" : "")}",
-                    $"{l.SixKin} {l.StemBranch} {l.SixSpirit} {l.Role}".Trim()))
+                    l.Position,
+                    LineGlyph(l.YinYang, l.IsChanging),
+                    $"{l.SixKin} {l.StemBranch} {l.SixSpirit} {l.Role}".Trim(),
+                    l.IsChanging ? "动爻" : string.Empty))
                 .ToList();
             ResultPanel.IsVisible = true;
             InterpretButton.IsEnabled = true;
@@ -162,8 +186,15 @@ public partial class LiuyaoPage : ContentPage
         {JsonSerializer.Serialize(chart, JsonOptions)}
         """;
 
+    private static string LineGlyph(string yinYang, bool changing)
+    {
+        var yin = yinYang.Contains('阴') || yinYang.Contains("yin", StringComparison.OrdinalIgnoreCase);
+        var glyph = yin ? "━━  ━━" : "━━━━━";
+        return changing ? $"{glyph}  ○" : glyph;
+    }
+
     private static string? Blank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private sealed record LineRow(string Title, string Detail);
+    private sealed record LineRow(string Position, string Glyph, string Detail, string Marker);
 }

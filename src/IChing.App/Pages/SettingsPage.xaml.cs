@@ -81,7 +81,7 @@ public partial class SettingsPage : ContentPage
         {
             var result = await App.Remote.TestAsync(App.Settings);
             StatusLabel.Text = result.Ok ? $"连接成功 · {App.Settings.Model}" : $"连接失败：{result.Error}";
-            StatusLabel.TextColor = result.Ok ? Color.FromArgb("#79D29A") : Color.FromArgb("#E27A7A");
+            StatusLabel.TextColor = result.Ok ? (Color)Application.Current!.Resources["Success"] : (Color)Application.Current!.Resources["Danger"];
         }
         finally
         {
@@ -117,6 +117,6 @@ public partial class SettingsPage : ContentPage
     private void UpdateStatus()
     {
         StatusLabel.Text = App.Settings.IsConfigured ? $"已配置 · {App.Settings.Model}" : "未配置 API Key";
-        StatusLabel.TextColor = App.Settings.IsConfigured ? Color.FromArgb("#79D29A") : Color.FromArgb("#798492");
+        StatusLabel.TextColor = App.Settings.IsConfigured ? (Color)Application.Current!.Resources["Success"] : (Color)Application.Current!.Resources["Muted"];
     }
 }

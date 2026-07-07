@@ -1,5 +1,4 @@
 using IChing.Lab.Core.Tarot;
-using IChing.Lab.Engines.Tarot;
 using IChing.Tarot.App.Services;
 using IChing.Tarot.App.Views;
 
@@ -145,6 +144,10 @@ public partial class DrawPage : ContentPage
 
             await MainScroll.ScrollToAsync(ReadingPanel, ScrollToPosition.Start, true);
         }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("抽牌失败", UserFacingZh.Error(ex.Message), "好的");
+        }
         finally
         {
             DrawButton.Text = drawLabel;
@@ -163,7 +166,7 @@ public partial class DrawPage : ContentPage
             ? $"《{q}》· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
         ReadingMetaLabel.Text =
-            $"引擎 {UserFacingZh.EngineLabel(_engineId)} · 种子 {reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · 牌库覆盖 {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
+            $"引擎 {UserFacingZh.EngineLabel(_engineId)} · 种子 {reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · 牌义覆盖 {TarotReadingStats.CoveragePercent(reading)}%";
 
         var cards = await CardDisplayMapper.FromReadingAsync(reading);
         _displayCards = cards;

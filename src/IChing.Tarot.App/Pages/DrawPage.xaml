@@ -148,7 +148,7 @@
                                         StrokeThickness="1"
                                         BackgroundColor="{StaticResource SurfaceAlt}"
                                         StrokeShape="RoundRectangle 6">
-                                    <Label Text="月"
+                                    <Label Text="星"
                                            FontSize="18"
                                            FontAttributes="Bold"
                                            TextColor="{StaticResource Gold}"

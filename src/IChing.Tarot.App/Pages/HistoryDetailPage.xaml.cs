@@ -1,4 +1,3 @@
-using IChing.Lab.Engines.Tarot;
 using IChing.Tarot.App.Services;
 using IChing.Tarot.App.Views;
 
@@ -52,7 +51,7 @@ public partial class HistoryDetailPage : ContentPage
             ? $"「{q}」· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
         MetaLabel.Text =
-            $"{entry.At.LocalDateTime:yyyy-MM-dd HH:mm} · 引擎 {UserFacingZh.EngineLabel(entry.EngineId)} · 牌库覆盖 {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
+            $"{entry.At.LocalDateTime:yyyy-MM-dd HH:mm} · 引擎 {UserFacingZh.EngineLabel(entry.EngineId)} · 牌义覆盖 {TarotReadingStats.CoveragePercent(reading)}%";
 
         var cards = CardDisplayMapper.FromReading(reading);
         SpreadBoardLayout.Render(SpreadBoardHost, reading.SpreadId, cards);

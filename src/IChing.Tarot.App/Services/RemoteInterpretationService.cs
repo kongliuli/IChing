@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Tarot;
-using IChing.Lab.Engines.Tarot;
 
 namespace IChing.Tarot.App.Services;
 
@@ -24,7 +23,7 @@ public sealed class RemoteInterpretationService
             return new InterpretationResult(preview.OneLiner, true, "请先在设置中填写 API Key，或启用 Lab API");
         }
 
-        var prompt = BuildDeckauraPrompt(reading, question);
+        var prompt = BuildTarotPrompt(reading, question);
         var messages = new[]
         {
             new ChatTurn("system", "你是专业塔罗解读师。牌阵由系统抽取，请勿修改牌名与正逆位，不要编造未列出的牌。"),
@@ -134,10 +133,11 @@ public sealed class RemoteInterpretationService
         }
     }
 
-    internal static string BuildDeckauraPrompt(TarotReading reading, string? question)
+    internal static string BuildTarotPrompt(TarotReading reading, string? question)
     {
-        var digest = TarotReadingEnricher.BuildEnrichedRuleDigest(reading);
-        var digestJson = JsonSerializer.Serialize(digest, new JsonSerializerOptions { WriteIndented = true });
+        var digestJson = JsonSerializer.Serialize(
+            TarotReadingStats.BuildRuleDigest(reading),
+            new JsonSerializerOptions { WriteIndented = true });
         var sb = new StringBuilder();
         sb.AppendLine($"问题：{question ?? "综合解读"}");
         sb.AppendLine($"牌阵：{reading.SpreadTitleZh}（{reading.SpreadTitle}）");
@@ -145,13 +145,8 @@ public sealed class RemoteInterpretationService
         sb.AppendLine("牌位：");
         foreach (var p in reading.Positions)
         {
-            var deckaura = TarotDeckData.FindByNameIgnoreCase(p.CardName);
             sb.AppendLine($"- [{p.PositionTitleZh}] {p.CardName} / {p.CardNameZh} · {(p.Reversed ? "逆位" : "正位")}");
             sb.AppendLine($"  牌义：{p.Meaning}");
-            if (deckaura is not null)
-            {
-                sb.AppendLine($"  关键词：{deckaura.Keywords} · 元素 {deckaura.Element} · Yes/No {deckaura.YesNo}");
-            }
         }
 
         sb.AppendLine();

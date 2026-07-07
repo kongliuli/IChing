@@ -5,9 +5,10 @@
              Shell.NavBarIsVisible="False"
              Title="八字">
     <ScrollView>
-        <VerticalStackLayout Padding="22,24,22,36"
+        <VerticalStackLayout x:Name="PageBody"
+                             Padding="22,24,22,36"
                              Spacing="18"
-                             MaximumWidthRequest="1120"
+                             MaximumWidthRequest="1360"
                              HorizontalOptions="Center">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
                 <VerticalStackLayout Spacing="5">
@@ -37,7 +38,7 @@
             </Grid>
 
             <Grid x:Name="ResponsiveGrid"
-                  ColumnDefinitions="1.02*,0.98*"
+                  ColumnDefinitions="420,*"
                   RowDefinitions="Auto"
                   ColumnSpacing="16"
                   RowSpacing="16">

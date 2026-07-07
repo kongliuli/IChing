@@ -23,12 +23,21 @@ public partial class BaziPage : ContentPage
 
     private void UpdateResponsiveLayout()
     {
-        var wide = Width >= 900;
+        if (double.IsNaN(Width) || Width <= 0)
+        {
+            return;
+        }
+
+        var wide = Width >= 920;
+        var margin = wide ? 96 : 32;
+        var cap = wide ? 1360 : 680;
+        PageBody.WidthRequest = Math.Min(cap, Math.Max(320, Width - margin));
+
         ResponsiveGrid.ColumnDefinitions.Clear();
         ResponsiveGrid.RowDefinitions.Clear();
-        ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
         if (wide)
         {
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(420)));
             ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
             Grid.SetColumn(PlaceholderPanel, 1);
@@ -38,6 +47,7 @@ public partial class BaziPage : ContentPage
             return;
         }
 
+        ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
         ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
         ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
         Grid.SetColumn(PlaceholderPanel, 0);

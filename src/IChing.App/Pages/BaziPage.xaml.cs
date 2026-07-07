@@ -31,6 +31,8 @@ public partial class BaziPage : ContentPage
         {
             ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(PlaceholderPanel, 1);
+            Grid.SetRow(PlaceholderPanel, 0);
             Grid.SetColumn(ResultPanel, 1);
             Grid.SetRow(ResultPanel, 0);
             return;
@@ -38,6 +40,8 @@ public partial class BaziPage : ContentPage
 
         ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
         ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        Grid.SetColumn(PlaceholderPanel, 0);
+        Grid.SetRow(PlaceholderPanel, 1);
         Grid.SetColumn(ResultPanel, 0);
         Grid.SetRow(ResultPanel, 1);
     }
@@ -82,6 +86,7 @@ public partial class BaziPage : ContentPage
             DaYunLabel.Text = chart.DaYun is { Count: > 0 }
                 ? "大运：" + string.Join("  ", chart.DaYun.Take(5).Select(x => $"{x.StartAge}-{x.EndAge}岁 {x.GanZhi}"))
                 : "大运：选择性别后显示";
+            PlaceholderPanel.IsVisible = false;
             ResultPanel.IsVisible = true;
             InterpretButton.IsEnabled = true;
 
@@ -92,6 +97,7 @@ public partial class BaziPage : ContentPage
             ErrorLabel.Text = ex.Message;
             ErrorLabel.IsVisible = true;
             ResultPanel.IsVisible = false;
+            PlaceholderPanel.IsVisible = true;
             InterpretButton.IsEnabled = false;
         }
     }

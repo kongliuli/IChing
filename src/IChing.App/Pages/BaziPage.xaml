@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="IChing.App.Pages.BaziPage"
+             Shell.NavBarIsVisible="False"
              Title="八字">
     <ScrollView>
         <VerticalStackLayout Padding="22,24,22,36"
@@ -71,6 +72,58 @@
                                IsVisible="False"
                                FontSize="12"
                                TextColor="{StaticResource Danger}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="PlaceholderPanel"
+                        Grid.Column="1"
+                        Style="{StaticResource RaisedCard}">
+                    <VerticalStackLayout Spacing="16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="命盘预览"
+                                   FontSize="23"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Cinnabar}" />
+                            <Label Text="填写出生信息后生成四柱、五行、用神与大运摘要。"
+                                   FontSize="13"
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="年柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="月柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="2" Spacing="4">
+                                <Label Text="日柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="3" Spacing="4">
+                                <Label Text="时柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
+
+                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                            <Grid ColumnDefinitions="78,*" ColumnSpacing="10">
+                                <Label Text="核心" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="日主、月令、格局" TextColor="{StaticResource TextPrimary}" />
+                            </Grid>
+                            <Grid Grid.Row="1" ColumnDefinitions="78,*" ColumnSpacing="10">
+                                <Label Text="取用" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="用神、忌神、五行平衡" TextColor="{StaticResource TextPrimary}" />
+                            </Grid>
+                            <Grid Grid.Row="2" ColumnDefinitions="78,*" ColumnSpacing="10">
+                                <Label Text="输出" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="本地排盘后可追加 AI 解读" TextColor="{StaticResource TextPrimary}" />
+                            </Grid>
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
 

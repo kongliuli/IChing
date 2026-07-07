@@ -32,6 +32,8 @@ public partial class LiuyaoPage : ContentPage
         {
             ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
             ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(PlaceholderPanel, 1);
+            Grid.SetRow(PlaceholderPanel, 0);
             Grid.SetColumn(ResultPanel, 1);
             Grid.SetRow(ResultPanel, 0);
             return;
@@ -39,6 +41,8 @@ public partial class LiuyaoPage : ContentPage
 
         ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
         ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        Grid.SetColumn(PlaceholderPanel, 0);
+        Grid.SetRow(PlaceholderPanel, 1);
         Grid.SetColumn(ResultPanel, 0);
         Grid.SetRow(ResultPanel, 1);
     }
@@ -81,6 +85,7 @@ public partial class LiuyaoPage : ContentPage
                     $"{l.SixKin} {l.StemBranch} {l.SixSpirit} {l.Role}".Trim(),
                     l.IsChanging ? "动爻" : string.Empty))
                 .ToList();
+            PlaceholderPanel.IsVisible = false;
             ResultPanel.IsVisible = true;
             InterpretButton.IsEnabled = true;
 
@@ -91,6 +96,7 @@ public partial class LiuyaoPage : ContentPage
             ErrorLabel.Text = ex.Message;
             ErrorLabel.IsVisible = true;
             ResultPanel.IsVisible = false;
+            PlaceholderPanel.IsVisible = true;
             InterpretButton.IsEnabled = false;
         }
     }

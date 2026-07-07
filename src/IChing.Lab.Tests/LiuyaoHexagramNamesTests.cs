@@ -8,8 +8,19 @@ public class LiuyaoHexagramNamesTests
     [MemberData(nameof(AllCanonicalNames))]
     public void Display_AllSixtyFourCanonicalNames_ReturnsChinese(string name, string expected)
     {
-        var actual = HexagramNames.Display(name);
+        AssertChineseName(name, expected);
+    }
 
+    [Theory]
+    [MemberData(nameof(AllLibraryFieldNames))]
+    public void Display_AllSixtyFourLibraryFieldNames_ReturnsChinese(string name, string expected)
+    {
+        AssertChineseName(name, expected);
+    }
+
+    private static void AssertChineseName(string name, string expected)
+    {
+        var actual = HexagramNames.Display(name);
         Assert.Equal(expected, actual);
         Assert.DoesNotContain("卦名待补", actual);
         Assert.DoesNotMatch("[A-Za-z]", actual);
@@ -81,5 +92,73 @@ public class LiuyaoHexagramNamesTests
         { "Xiao Guo", "雷山小过" },
         { "Ji Ji", "水火既济" },
         { "Wei Ji", "火水未济" }
+    };
+
+    public static TheoryData<string, string> AllLibraryFieldNames() => new()
+    {
+        { "TheCreative", "乾为天" },
+        { "ComingToMeet", "天风姤" },
+        { "Retreat", "天山遁" },
+        { "Standstill", "天地否" },
+        { "Contemplation", "风地观" },
+        { "SplittingApart", "山地剥" },
+        { "Progress", "火地晋" },
+        { "PossessionInGreatMeasure", "火天大有" },
+        { "TheJoyous", "兑为泽" },
+        { "Oppression", "泽水困" },
+        { "GatheringTogether", "泽地萃" },
+        { "Influence", "泽山咸" },
+        { "Obstruction", "水山蹇" },
+        { "Modesty", "地山谦" },
+        { "PreponderanceOfTheSmall", "雷山小过" },
+        { "TheMarryingMaiden", "雷泽归妹" },
+        { "TheClinging", "离为火" },
+        { "TheWanderer", "火山旅" },
+        { "TheCauldron", "火风鼎" },
+        { "BeforeCompletion", "火水未济" },
+        { "YouthfulFolly", "山水蒙" },
+        { "Dispersion", "风水涣" },
+        { "Conflict", "天水讼" },
+        { "FellowshipWithMen", "天火同人" },
+        { "TheArousing", "震为雷" },
+        { "Enthusiasm", "雷地豫" },
+        { "Deliverance", "雷水解" },
+        { "Duration", "雷风恒" },
+        { "PushingUpward", "地风升" },
+        { "TheWell", "水风井" },
+        { "PreponderanceOfTheGreat", "泽风大过" },
+        { "Following", "泽雷随" },
+        { "TheGentle", "巽为风" },
+        { "TheTamingPowerOfTheSmall", "风天小畜" },
+        { "TheFamily", "风火家人" },
+        { "Increase", "风雷益" },
+        { "Innocence", "天雷无妄" },
+        { "BitingThrough", "火雷噬嗑" },
+        { "TheCornersOfTheMouth", "山雷颐" },
+        { "WorkOnTheDecayed", "山风蛊" },
+        { "TheAbysmal", "坎为水" },
+        { "Limitation", "水泽节" },
+        { "DifficultyAtTheBeginning", "水雷屯" },
+        { "AfterCompletion", "水火既济" },
+        { "Revolution", "泽火革" },
+        { "Abundance", "雷火丰" },
+        { "DarkeningOfTheLight", "地火明夷" },
+        { "TheArmy", "地水师" },
+        { "KeepingStill", "艮为山" },
+        { "Grace", "山火贲" },
+        { "TheTamingPowerOfTheGreat", "山天大畜" },
+        { "Decrease", "山泽损" },
+        { "Opposition", "火泽睽" },
+        { "Treading", "天泽履" },
+        { "InnerTruth", "风泽中孚" },
+        { "Development", "风山渐" },
+        { "TheReceptive", "坤为地" },
+        { "Return", "地雷复" },
+        { "Approach", "地泽临" },
+        { "Peace", "地天泰" },
+        { "ThePowerOfTheGreat", "雷天大壮" },
+        { "BreakThrough", "泽天夬" },
+        { "Waiting", "水天需" },
+        { "HoldingTogether", "水地比" }
     };
 }

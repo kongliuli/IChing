@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- 进程内官方六爻引擎：公共契约由主程序提供，避免 plugins/ 里出现重复副本。 -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+    <ProjectReference Include="..\..\samples\ChartBridge\ChartBridge.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- YiJingFramework.Annotating 用作周易/易传注解数据源。 -->
+    <PackageReference Include="YiJingFramework.Annotating" Version="5.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
+  </ItemGroup>
+
+</Project>

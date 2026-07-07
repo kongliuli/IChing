@@ -10,10 +10,10 @@ foreach ($dir in $OutDirs) {
 }
 
 $plugins = @(
-    @{ Project = "samples\TarotEngines\TarotEngines.csproj"; Name = "TarotEngines.dll" },
-    @{ Project = "samples\BaziEngines\BaziEngines.csproj"; Name = "BaziEngines.dll" },
-    @{ Project = "samples\LiuyaoEngines\LiuyaoEngines.csproj"; Name = "LiuyaoEngines.dll" },
-    @{ Project = "samples\CalendarEngines\CalendarEngines.csproj"; Name = "CalendarEngines.dll" },
+    @{ Project = "src\TarotEngines\TarotEngines.csproj"; Name = "TarotEngines.dll" },
+    @{ Project = "src\BaziEngines\BaziEngines.csproj"; Name = "BaziEngines.dll" },
+    @{ Project = "src\LiuyaoEngines\LiuyaoEngines.csproj"; Name = "LiuyaoEngines.dll" },
+    @{ Project = "src\CalendarEngines\CalendarEngines.csproj"; Name = "CalendarEngines.dll" },
     @{ Project = "samples\ChartBridge\ChartBridge.csproj"; Name = "ChartBridge.dll" },
     @{ Project = "samples\SamplePlugin\SamplePlugin.csproj"; Name = "SamplePlugin.dll" }
 )

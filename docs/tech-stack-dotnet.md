@@ -1,43 +1,32 @@
-# 技术路线：.NET Lab
+# 技术栈：.NET Lab
 
 ## 定位
 
-正式方向是 .NET 10 + ASP.NET Core，代码位于 `src/IChing.Lab.*`。历史技术验证代码已从仓库移除。
+正式实现路径是 `.NET 10`，代码位于 `src/`。历史 Java/Spring Boot Spike 已移除。
 
-## 结构
+## 核心技术
 
-```text
-src/
-├── IChing.Lab.Core/        # 八字、六爻、塔罗、黄历、合盘、Layer1 规则
-├── IChing.Lab.Inference/   # ONNX GenAI 解读
-├── IChing.Lab.Api/         # HTTP API + Blazor Lab
-├── IChing.Lab.PromptTest/  # Prompt/模型本地试跑
-└── IChing.Lab.Tests/       # 测试
-```
-
-SDK 锁定见 `global.json`。
-
-## 依赖
-
-| 模块 | 实现 |
+| 模块 | 技术 |
 | --- | --- |
-| 八字 | `lunar-csharp` + 真太阳时 + 大运流年 + 格局/用神 |
-| 六爻 | `IChingLibrary.SixLines`，负责铜钱/时间起卦、纳甲、世应、六亲、六神、伏神、神煞 |
-| 塔罗 | 内置 78 张牌、牌阵、正逆位和 Layer1 摘要 |
-| AI 解读 | `Microsoft.ML.OnnxRuntimeGenAI` + Qwen2.5-1.5B |
-
-## 规则引擎
-
-`IChing.Lab.Core/Rules` 提供最小插件模型：
-
-- 内置插件注册，不加载外部 DLL。
-- `RuleEngine:Plugins:{pluginId}:Enabled` 控制启停。
-- `RuleEngine:Plugins:{pluginId}:Weight` 和 `RuleEngine:MinWeight` 控制过滤。
-- `ruleDigest.activePlugins` 和 `ruleDigest.items` 返回实际参与的规则。
+| API | ASP.NET Core Controller + Razor Components |
+| App | .NET MAUI |
+| 八字 | `lunar-csharp` + 真太阳时 + 大运流年 + 格局/用神启发式 |
+| 六爻 | `IChingLibrary.SixLines` + 纳甲、世应、六亲、六神、神煞 |
+| 塔罗 | 内置 78 张牌、牌阵、正逆位、Deckaura 牌义扩展 |
+| 规则 | `IChing.Lab.Core/Rules` 内置插件表 + 权重过滤 |
+| 推理 | `Microsoft.ML.OnnxRuntimeGenAI` + 模板 fallback + OpenAI 兼容远程样例 |
+| 插件 | `AssemblyLoadContext` + `IChing.Lab.Abstractions` |
 
 ## 本地运行
 
-```bash
-cd src/IChing.Lab.Api
-dotnet run
+```bat
+scripts\run-lab-api.cmd
+scripts\run-iching-app.cmd
+scripts\run-tarot-app.cmd
+```
+
+## 验证
+
+```bat
+scripts\test-lab.cmd
 ```

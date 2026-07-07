@@ -42,13 +42,11 @@ public partial class SettingsPage : ContentPage
         {
             App.Settings.ApplyProviderPreset("deepseek");
         }
-
-        if (ProviderPicker.SelectedIndex == 1)
+        else if (ProviderPicker.SelectedIndex == 1)
         {
             App.Settings.ApplyProviderPreset("openai");
         }
-
-        if (ProviderPicker.SelectedIndex == 2)
+        else if (ProviderPicker.SelectedIndex == 2)
         {
             App.Settings.Provider = "custom";
         }

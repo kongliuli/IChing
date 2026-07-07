@@ -54,6 +54,15 @@ public sealed class RuleEngine
         return true;
     }
 
+    public RuleEngineOptions SnapshotOptions() => new()
+    {
+        MinWeight = _options.MinWeight,
+        Plugins = _options.Plugins.ToDictionary(
+            p => p.Key,
+            p => new RulePluginOptions { Enabled = p.Value.Enabled, Weight = p.Value.Weight },
+            StringComparer.Ordinal)
+    };
+
     public RuleEngineResult Run(string domain, object chart, string? question = null, string? focus = null)
     {
         var context = new RuleContext(chart, question, focus);

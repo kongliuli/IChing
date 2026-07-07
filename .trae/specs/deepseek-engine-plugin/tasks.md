@@ -22,7 +22,7 @@
 - [x] Task 5: 验证
   - [x] SubTask 5.1: `dotnet build` 全绿（主程序 + samples/OpenAiCompatibleEngine）
   - [x] SubTask 5.2: `dotnet test` 全绿（含新增 DeepSeek 测试）
-  - [ ] SubTask 5.3: 启动 API，`GET /health/engines` 含 `deepseek-remote`
+  - [x] SubTask 5.3: 启动 API，`GET /health/engines` 含 `deepseek-remote`
   - [ ] SubTask 5.4: `/lab/bazi/interpret` 触发降级链命中 deepseek-remote（mock onnx 不可用时），返回真实 DeepSeek 解读
 
 # Task Dependencies

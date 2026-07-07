@@ -93,11 +93,52 @@
                     <Label x:Name="StatusLabel"
                            FontSize="13"
                            TextColor="{StaticResource Muted}" />
+                </VerticalStackLayout>
+            </Border>
 
-                    <Label Text="牌面图（可选）：先运行 scripts/download-rws-tarot-assets.ps1，再 scripts/sync-tarot-images-to-maui.ps1"
-                           FontSize="11"
-                           LineBreakMode="WordWrap"
+            <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}" Padding="16"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="14">
+                    <Label Text="牌面图缓存"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Gold}" />
+                    <Label Text="牌面图按需从 CDN 下载并缓存在本机，可显著减小安装包体积。首次抽牌需联网。"
+                           TextColor="{StaticResource TextSecondary}"
+                           FontSize="13"
+                           LineBreakMode="WordWrap" />
+
+                    <Label x:Name="CacheStatusLabel"
+                           FontSize="13"
                            TextColor="{StaticResource Muted}" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                x:Name="PreloadButton"
+                                Text="预下载全部"
+                                Clicked="OnPreloadClicked"
+                                TextColor="#1A1208"
+                                FontAttributes="Bold"
+                                BackgroundColor="{StaticResource Gold}"
+                                CornerRadius="24"
+                                Padding="14,12" />
+                        <Button Grid.Column="1"
+                                x:Name="ClearCacheButton"
+                                Text="清除缓存"
+                                Clicked="OnClearCacheClicked"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="{StaticResource SurfaceAlt}"
+                                BorderColor="{StaticResource GoldDim}"
+                                BorderWidth="1"
+                                CornerRadius="24"
+                                Padding="14,12" />
+                    </Grid>
+
+                    <ActivityIndicator x:Name="CacheIndicator"
+                                       IsRunning="False"
+                                       IsVisible="False"
+                                       Color="{StaticResource Gold}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -125,6 +166,46 @@
                            Placeholder="http://localhost:5000"
                            TextColor="{StaticResource TextPrimary}"
                            BackgroundColor="{StaticResource SurfaceAlt}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label x:Name="VersionLabel"
+                   FontSize="12"
+                   TextColor="{StaticResource Muted}"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,8,0,0" />
+
+            <Border x:Name="AndroidToolsPanel"
+                    IsVisible="False"
+                    Stroke="{StaticResource GoldDim}" StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}" Padding="16"
+                    StrokeShape="RoundRectangle 16">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Android 工具"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Gold}" />
+                    <Label Text="若系统安装界面只有「完成」，更新后会收到「点击打开」通知；首次安装后打开 App 也会提示进入探索。"
+                           TextColor="{StaticResource TextSecondary}"
+                           FontSize="13"
+                           LineBreakMode="WordWrap" />
+                    <Button x:Name="InstallApkButton"
+                            Text="从文件安装 APK"
+                            Clicked="OnInstallApkClicked"
+                            TextColor="{StaticResource Gold}"
+                            BackgroundColor="{StaticResource SurfaceAlt}"
+                            BorderColor="{StaticResource GoldDim}"
+                            BorderWidth="1"
+                            CornerRadius="24"
+                            Padding="14,12" />
+                    <Label Text="探索模块配置"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource PurpleLight}"
+                           FontSize="15" />
+                    <Label x:Name="ExploreConfigPathLabel"
+                           FontSize="11"
+                           TextColor="{StaticResource Muted}"
+                           LineBreakMode="WordWrap" />
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>

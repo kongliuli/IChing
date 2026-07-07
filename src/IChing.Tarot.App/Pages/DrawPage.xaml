@@ -128,7 +128,7 @@
                     <Label x:Name="ReadingMetaLabel"
                            FontSize="12"
                            TextColor="{StaticResource TextSecondary}" />
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
                         <Button x:Name="SpreadToggleButton"
                                 Grid.Column="0"
                                 Text="▾ 牌阵布局"
@@ -140,11 +140,22 @@
                                 BackgroundColor="Transparent"
                                 BorderWidth="0" />
                         <Button Grid.Column="1"
-                                Text="复制牌阵"
+                                Text="复制"
                                 FontSize="11"
                                 Padding="8,4"
                                 CornerRadius="10"
                                 Clicked="OnCopySpreadClicked"
+                                TextColor="{StaticResource Gold}"
+                                BackgroundColor="Transparent"
+                                BorderColor="{StaticResource GoldDim}"
+                                BorderWidth="1" />
+                        <Button x:Name="SaveSpreadButton"
+                                Grid.Column="2"
+                                Text="长图"
+                                FontSize="11"
+                                Padding="8,4"
+                                CornerRadius="10"
+                                Clicked="OnSaveSpreadImageClicked"
                                 TextColor="{StaticResource Gold}"
                                 BackgroundColor="Transparent"
                                 BorderColor="{StaticResource GoldDim}"
@@ -194,7 +205,7 @@
                             StrokeThickness="1"
                             StrokeShape="RoundRectangle 10">
                         <VerticalStackLayout Spacing="8">
-                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                            <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
                                 <Label Grid.Column="0"
                                        Text="解读"
                                        FontAttributes="Bold"
@@ -217,6 +228,17 @@
                                         Padding="10,4"
                                         CornerRadius="12"
                                         Clicked="OnCopyInterpretationClicked"
+                                        TextColor="{StaticResource Gold}"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="{StaticResource GoldDim}"
+                                        BorderWidth="1" />
+                                <Button x:Name="SaveInterpretButton"
+                                        Grid.Column="3"
+                                        Text="长图"
+                                        FontSize="12"
+                                        Padding="10,4"
+                                        CornerRadius="12"
+                                        Clicked="OnSaveInterpretationImageClicked"
                                         TextColor="{StaticResource Gold}"
                                         BackgroundColor="Transparent"
                                         BorderColor="{StaticResource GoldDim}"

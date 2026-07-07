@@ -12,7 +12,7 @@ public static class InterpretationSectionEnricher
         return sections
             .Select(s => new InterpretationSectionItem
             {
-                Title = s.Title,
+                Title = UserFacingZh.SectionTitle(s.Title, reading),
                 Body = s.Body,
                 IsSubsection = s.IsSubsection,
                 Band = s.Band,
@@ -38,5 +38,5 @@ public static class InterpretationSectionEnricher
     }
 
     private static string FormatPosition(TarotPositionReading p) =>
-        $"[{p.PositionTitleZh}]\n{p.CardNameZh}（{p.CardName}）· {(p.Reversed ? "逆位" : "正位")}\n\n{p.Meaning}";
+        UserFacingZh.CardSource(p);
 }

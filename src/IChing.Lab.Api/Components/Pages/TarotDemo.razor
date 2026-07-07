@@ -1,0 +1,168 @@
+@page "/tarot"
+@rendermode InteractiveServer
+@using IChing.Lab.Core.Tarot
+@using IChing.Lab.Api.Services
+@inject TarotDemoService Tarot
+
+<PageTitle>星轨塔罗 · 演示</PageTitle>
+
+<div class="chart-demo-page theme-tarot">
+    <header class="chart-demo-header">
+        <div>
+            <p class="kicker">IChing Lab · 测试演示</p>
+            <h1>星轨塔罗</h1>
+            <p class="subtitle">静心提问 · 本地抽牌 · 可选 AI 解读</p>
+        </div>
+        <a class="nav-link" href="/demo">← 演示入口</a>
+    </header>
+
+    <div class="demo-grid">
+        <section class="panel">
+            <label class="field">
+                <span>你的问题</span>
+                <textarea @bind="_question" rows="3" maxlength="200"
+                          placeholder="例如：接下来三个月的事业方向？"></textarea>
+            </label>
+
+            <label class="field">
+                <span>牌阵</span>
+                <select @bind="_spreadId" @bind:after="OnSpreadChanged">
+                    @foreach (var spread in _spreads)
+                    {
+                        <option value="@spread.Id">@spread.TitleZh · @spread.CardCount 张</option>
+                    }
+                </select>
+            </label>
+
+            @if (_selectedSpread is not null)
+            {
+                <p style="font-size:13px;opacity:.8;margin:-8px 0 14px">
+                    <span class="badge" style="padding:2px 8px;border-radius:999px;background:rgba(241,196,83,.15);color:#f1c453;font-size:11px">
+                        @DifficultyLabel(_selectedSpread.Difficulty)
+                    </span>
+                    @_selectedSpread.Description
+                </p>
+            }
+
+            <details style="margin-bottom:14px;font-size:13px;opacity:.85">
+                <summary>高级选项</summary>
+                <label class="field">
+                    <span>随机种子（留空则每次不同）</span>
+                    <input type="number" @bind="_seedText" placeholder="如 42" />
+                </label>
+            </details>
+
+            <button class="btn-primary" disabled="@_busy" @onclick="DrawAsync">
+                @(_busy && _phase == "draw" ? "洗牌中…" : "✦ 开始抽牌")
+            </button>
+        </section>
+
+        <section class="panel">
+            @if (_reading is null)
+            {
+                <div class="empty"><p>输入问题并选择牌阵，然后抽牌</p></div>
+            }
+            else
+            {
+                <h2 style="margin:0 0 6px;font-size:20px">@_reading.SpreadTitleZh</h2>
+                <p style="font-size:12px;opacity:.7;margin:0 0 14px">@_reading.Positions.Count 张 · @_engineId</p>
+
+                <div class="cards-grid">
+                    @foreach (var pos in _reading.Positions)
+                    {
+                        <article class="card-tile">
+                            @if (!string.IsNullOrEmpty(pos.ImageUrl))
+                            {
+                                <img src="@pos.ImageUrl" alt="@pos.CardNameZh"
+                                     style="@(pos.Reversed ? "transform:rotate(180deg)" : null)"
+                                     loading="lazy" onerror="this.style.display='none'" />
+                            }
+                            <small>@pos.PositionTitleZh</small>
+                            <strong>@pos.CardNameZh@(pos.Reversed ? " · 逆位" : "")</strong>
+                            <p style="margin:0;font-size:12px;opacity:.8">@pos.Meaning</p>
+                        </article>
+                    }
+                </div>
+
+                <div class="interpret-actions">
+                    <button class="btn-secondary" disabled="@_busy" @onclick="() => InterpretAsync(0)">概览解读</button>
+                    <button class="btn-primary" style="width:auto" disabled="@_busy" @onclick="() => InterpretAsync(1)">
+                        @(_busy && _phase == "read" ? "解读中…" : "AI 解读")
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_error)) { <p class="error">@_error</p> }
+                <DemoInterpretBlock Result="_interpretation" />
+            }
+        </section>
+    </div>
+</div>
+
+<link href="css/chart-demo.css" rel="stylesheet" />
+
+<style>
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .card-tile { border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px; background: rgba(0,0,0,.2); }
+    .card-tile img { width: min(100%, 120px); aspect-ratio: 9/16; object-fit: cover; display: block; margin: 0 auto 8px; border-radius: 6px; }
+</style>
+
+@code {
+    private readonly List<TarotSpread> _spreads = [];
+    private string _spreadId = "past-present-future";
+    private string _question = "";
+    private string? _seedText;
+    private TarotSpread? _selectedSpread;
+    private TarotReading? _reading;
+    private string _engineId = "";
+    private DemoReadResult? _interpretation;
+    private string? _error;
+    private bool _busy;
+    private string _phase = "";
+
+    protected override void OnInitialized()
+    {
+        _spreads.AddRange(Tarot.ListSpreads());
+        _selectedSpread = _spreads.FirstOrDefault(s => s.Id == _spreadId) ?? _spreads.FirstOrDefault();
+    }
+
+    private void OnSpreadChanged() =>
+        _selectedSpread = _spreads.FirstOrDefault(s => s.Id == _spreadId);
+
+    private async Task DrawAsync()
+    {
+        _busy = true;
+        _phase = "draw";
+        _error = null;
+        _interpretation = null;
+        try
+        {
+            int? seed = int.TryParse(_seedText, out var s) ? s : null;
+            var (reading, engineId) = Tarot.Draw(_spreadId, string.IsNullOrWhiteSpace(_question) ? null : _question.Trim(), seed);
+            _reading = reading;
+            _engineId = engineId;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; _phase = ""; }
+    }
+
+    private async Task InterpretAsync(int tier)
+    {
+        if (_reading is null) return;
+        _busy = true;
+        _phase = "read";
+        _error = null;
+        try
+        {
+            _interpretation = await Tarot.InterpretAsync(
+                _reading, _engineId, tier,
+                string.IsNullOrWhiteSpace(_question) ? null : _question.Trim());
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; _phase = ""; }
+    }
+
+    private static string DifficultyLabel(string d) => d switch
+    {
+        "easiest" => "入门", "intermediate" => "进阶", "advanced" => "高阶", _ => d
+    };
+}

@@ -4,10 +4,27 @@ using IChing.Tarot.App.Views;
 
 namespace IChing.Tarot.App.Pages;
 
-[QueryProperty(nameof(HistoryIndex), "index")]
 public partial class HistoryDetailPage : ContentPage
 {
     private int _historyIndex = -1;
+
+    public HistoryDetailPage()
+    {
+        InitializeComponent();
+        SubPageSetup.Configure(this, "返回");
+    }
+
+    public HistoryDetailPage(int index) : this()
+    {
+        _historyIndex = index;
+        LoadEntry();
+    }
+
+    protected override bool OnBackButtonPressed()
+    {
+        _ = SubPageSetup.GoBackAsync(this);
+        return true;
+    }
 
     public string HistoryIndex
     {
@@ -19,11 +36,6 @@ public partial class HistoryDetailPage : ContentPage
                 LoadEntry();
             }
         }
-    }
-
-    public HistoryDetailPage()
-    {
-        InitializeComponent();
     }
 
     private void LoadEntry()
@@ -40,7 +52,7 @@ public partial class HistoryDetailPage : ContentPage
             ? $"「{q}」· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
         MetaLabel.Text =
-            $"{entry.At.LocalDateTime:yyyy-MM-dd HH:mm} · 引擎 {entry.EngineId} · Deckaura {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
+            $"{entry.At.LocalDateTime:yyyy-MM-dd HH:mm} · 引擎 {UserFacingZh.EngineLabel(entry.EngineId)} · 牌库覆盖 {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
 
         var cards = CardDisplayMapper.FromReading(reading);
         SpreadBoardLayout.Render(SpreadBoardHost, reading.SpreadId, cards);

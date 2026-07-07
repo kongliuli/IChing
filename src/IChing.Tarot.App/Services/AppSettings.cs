@@ -9,6 +9,7 @@ public sealed class AppSettings
     public const string PrefLabApiUrl = "lab_api_url";
     public const string PrefUseLabApi = "use_lab_api";
     public const string PrefInterpretTier = "interpret_tier";
+    public const string PrefCardCdnBase = "card_cdn_base";
     public const string DefaultDeepSeekUrl = "https://api.deepseek.com/v1";
     public const string DefaultLabApiUrl = "http://localhost:5000";
 
@@ -52,6 +53,12 @@ public sealed class AppSettings
     {
         get => Preferences.Default.Get(PrefInterpretTier, 1);
         set => Preferences.Default.Set(PrefInterpretTier, Math.Clamp(value, 0, 2));
+    }
+
+    public string CardCdnBaseUrl
+    {
+        get => Preferences.Default.Get(PrefCardCdnBase, TarotCardImageCache.DefaultCdnBase);
+        set => Preferences.Default.Set(PrefCardCdnBase, value.Trim());
     }
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey);

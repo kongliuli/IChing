@@ -3,6 +3,7 @@ using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Api.Controllers;
 using IChing.Lab.Core.Rules;
+using IChing.Lab.Core.Engines;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
@@ -45,6 +46,18 @@ public class OrchestratorFallbackTests
             ["plugins:inferenceEngines:0:id"] = "onnx-genai-qwen2.5-1.5b",
             ["plugins:inferenceEngines:0:default"] = "true",
             ["plugins:inferenceEngines:1:id"] = "ollama-local",
+            ["plugins:inferenceEngines:1:default"] = "false"
+        };
+        return new ConfigurationBuilder().Add(new InMemorySource(dict)).Build();
+    }
+
+    private static IConfiguration BuildHealthConfigWithDeepSeek()
+    {
+        var dict = new Dictionary<string, string?>
+        {
+            ["plugins:inferenceEngines:0:id"] = "onnx-genai-qwen2.5-1.5b",
+            ["plugins:inferenceEngines:0:default"] = "true",
+            ["plugins:inferenceEngines:1:id"] = "deepseek-remote",
             ["plugins:inferenceEngines:1:default"] = "false"
         };
         return new ConfigurationBuilder().Add(new InMemorySource(dict)).Build();
@@ -166,6 +179,56 @@ public class OrchestratorFallbackTests
         Assert.Equal("ollama-local", items[1].EngineId);
         Assert.False(items[1].IsReady);
         Assert.False(items[1].IsDefault);
+    }
+
+    /// <summary>/health/engines 应包含 deepseek-remote（降级链远程引擎）。</summary>
+    [Fact]
+    public void HealthEngines_IncludesDeepSeekRemote()
+    {
+        var onnx = new FakeEngine("onnx-genai-qwen2.5-1.5b", isReady: false);
+        var deepseek = new FakeEngine("deepseek-remote", isReady: true);
+        var inferenceEngines = new IInferenceEngine[] { onnx, deepseek };
+        var config = BuildHealthConfigWithDeepSeek();
+
+        var orchestrator = new ChartInterpretationOrchestrator(
+            inferenceEngines, Enumerable.Empty<IPromptBuilder>(), config, OrchestratorLogger);
+
+        var chartRouter = new ChartEngineRouter(Enumerable.Empty<IChartEngine>());
+        var controller = new LabController(
+            orchestrator,
+            chartRouter,
+            Enumerable.Empty<IChartEngine>(),
+            Enumerable.Empty<IPromptBuilder>(),
+            inferenceEngines,
+            config,
+            new RuleEngine());
+
+        var actionResult = controller.HealthEngines();
+        var ok = Assert.IsType<OkObjectResult>(actionResult);
+        var items = Assert.IsAssignableFrom<IReadOnlyList<EngineHealthStatus>>(ok.Value);
+
+        Assert.Contains(items, i => i.EngineId == "deepseek-remote" && i.IsReady);
+    }
+
+    /// <summary>bazi 与 calendar 共用 EngineId 时，Orchestrator 按 domain 解析 metadata 不冲突。</summary>
+    [Fact]
+    public void ResolveEngineMetadata_DistinctByDomain_WhenEngineIdShared()
+    {
+        var engines = new IChartEngine[] { new BaziChartEngine(), new CalendarEngine() };
+        var orchestrator = new ChartInterpretationOrchestrator(
+            Enumerable.Empty<IInferenceEngine>(),
+            Enumerable.Empty<IPromptBuilder>(),
+            new ConfigurationBuilder().Build(),
+            OrchestratorLogger,
+            engines);
+
+        var baziMeta = orchestrator.ResolveEngineMetadata("bazi", "lunar-csharp-1.6.8");
+        var calendarMeta = orchestrator.ResolveEngineMetadata("calendar", "lunar-csharp-1.6.8");
+
+        Assert.NotNull(baziMeta);
+        Assert.NotNull(calendarMeta);
+        Assert.Contains("geju", baziMeta!.ModuleFocus);
+        Assert.Contains("huangli", calendarMeta!.ModuleFocus);
     }
 
     /// <summary>/health 简单存活探活应返回 200 Ok。</summary>

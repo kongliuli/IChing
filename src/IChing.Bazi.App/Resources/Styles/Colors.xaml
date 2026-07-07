@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Color x:Key="Background">#0B0812</Color>
+    <Color x:Key="Surface">#161022</Color>
+    <Color x:Key="SurfaceAlt">#221833</Color>
+    <Color x:Key="Gold">#D4AF37</Color>
+    <Color x:Key="GoldDim">#9A7B2C</Color>
+    <Color x:Key="Purple">#7B5EA7</Color>
+    <Color x:Key="PurpleLight">#B794F6</Color>
+    <Color x:Key="TextPrimary">#F5F0E8</Color>
+    <Color x:Key="TextSecondary">#B8AEC9</Color>
+    <Color x:Key="Muted">#6E6380</Color>
+    <Color x:Key="Danger">#E06C75</Color>
+    <Color x:Key="Success">#7FD992</Color>
+
+    <!-- MAUI 模板 Styles.xaml 兼容别名（缺失时 Android 启动会 JavaProxyThrowable） -->
+    <Color x:Key="Primary">#D4AF37</Color>
+    <Color x:Key="PrimaryDark">#9A7B2C</Color>
+    <Color x:Key="PrimaryDarkText">#F5F0E8</Color>
+    <Color x:Key="Secondary">#7B5EA7</Color>
+    <Color x:Key="SecondaryDarkText">#B8AEC9</Color>
+    <Color x:Key="White">#F5F0E8</Color>
+    <Color x:Key="Black">#0B0812</Color>
+    <Color x:Key="OffBlack">#0B0812</Color>
+    <Color x:Key="MidnightBlue">#1A0F2E</Color>
+    <Color x:Key="Magenta">#D4AF37</Color>
+    <Color x:Key="Gray100">#F5F0E8</Color>
+    <Color x:Key="Gray200">#B8AEC9</Color>
+    <Color x:Key="Gray300">#6E6380</Color>
+    <Color x:Key="Gray400">#6E6380</Color>
+    <Color x:Key="Gray500">#6E6380</Color>
+    <Color x:Key="Gray600">#4A4058</Color>
+    <Color x:Key="Gray900">#221833</Color>
+    <Color x:Key="Gray950">#161022</Color>
+
+    <LinearGradientBrush x:Key="PageGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#0B0812" Offset="0" />
+        <GradientStop Color="#1A0F2E" Offset="0.55" />
+        <GradientStop Color="#0F1524" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="CardGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#2A1F3D" Offset="0" />
+        <GradientStop Color="#161022" Offset="1" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GoldButtonGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#E8C547" Offset="0" />
+        <GradientStop Color="#B8860B" Offset="1" />
+    </LinearGradientBrush>
+</ResourceDictionary>

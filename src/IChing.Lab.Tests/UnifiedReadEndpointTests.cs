@@ -1,14 +1,22 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace IChing.Lab.Tests;
 
-public class UnifiedReadEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+/// <summary>集成测试专用 WebApplicationFactory：Testing 环境不加载 plugins/ 外部 DLL。</summary>
+public sealed class LabApiWebApplicationFactory : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder) =>
+        builder.UseEnvironment("Testing");
+}
+
+public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactory>
 {
     private readonly HttpClient _client;
 
-    public UnifiedReadEndpointTests(WebApplicationFactory<Program> factory) =>
+    public UnifiedReadEndpointTests(LabApiWebApplicationFactory factory) =>
         _client = factory.CreateClient();
 
     [Fact]

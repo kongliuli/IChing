@@ -310,7 +310,7 @@ public class LabController : ControllerBase
             Question: req.Question ?? "综合",
             Focus: req.Focus,
             MaxTokens: req.MaxTokens ?? 512,
-            Engine: _interpretation.ResolveEngineMetadata(engineId));
+            Engine: _interpretation.ResolveEngineMetadata("liuyao", engineId));
         var prompt = liuyaoBuilder.Build(liuyaoCtx).PromptText;
         var gen = await _interpretation.GenerateWithFallbackAsync(
             prompt,
@@ -367,7 +367,7 @@ public class LabController : ControllerBase
             Question: req.Question ?? "General reading",
             Focus: null,
             MaxTokens: req.MaxTokens ?? maxTokens,
-            Engine: _interpretation.ResolveEngineMetadata(engineId));
+            Engine: _interpretation.ResolveEngineMetadata("tarot", engineId));
         var prompt = tarotBuilder.Build(tarotCtx).PromptText;
 
         object narrative;

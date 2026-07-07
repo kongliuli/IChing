@@ -1,0 +1,147 @@
+@page "/bazi"
+@rendermode InteractiveServer
+@using IChing.Lab.Core.Bazi
+@inject BaziDemoService Bazi
+
+<PageTitle>八字排盘 · 演示</PageTitle>
+
+<div class="chart-demo-page theme-bazi">
+    <header class="chart-demo-header">
+        <div>
+            <p class="kicker">IChing Lab · 测试演示</p>
+            <h1>八字排盘</h1>
+            <p class="subtitle">四柱 · 格局用神 · 可选 AI 解读</p>
+        </div>
+        <a class="nav-link" href="/demo">← 演示入口</a>
+    </header>
+
+    <div class="demo-grid">
+        <section class="panel">
+            <div class="field-row">
+                <label class="field"><span>年</span><input type="number" @bind="_year" /></label>
+                <label class="field"><span>月</span><input type="number" @bind="_month" min="1" max="12" /></label>
+            </div>
+            <div class="field-row">
+                <label class="field"><span>日</span><input type="number" @bind="_day" min="1" max="31" /></label>
+                <label class="field"><span>时</span><input type="number" @bind="_hour" min="0" max="23" /></label>
+            </div>
+            <label class="field">
+                <span>性别</span>
+                <select @bind="_gender">
+                    <option value="1">男</option>
+                    <option value="0">女</option>
+                </select>
+            </label>
+            <label class="field"><span>城市（可选）</span><input @bind="_city" placeholder="上海" /></label>
+            <label class="field"><span>关注点</span><input @bind="_focus" placeholder="事业 / 感情 / 综合" /></label>
+            <label class="field"><span>流年（可选）</span><input type="number" @bind="_flowYear" /></label>
+
+            <button class="btn-primary" disabled="@_busy" @onclick="CalculateAsync">
+                @(_busy ? "排盘中…" : "排盘")
+            </button>
+        </section>
+
+        <section class="panel">
+            @if (_chart is null)
+            {
+                <div class="empty"><p>填写出生信息后点击排盘</p></div>
+            }
+            else
+            {
+                <div class="summary-cards">
+                    <div><small>日主</small><strong>@_chart.DayMaster</strong></div>
+                    <div><small>公历</small><strong>@_chart.Solar</strong></div>
+                    <div><small>农历</small><strong>@_chart.Lunar</strong></div>
+                    <div><small>引擎</small><strong style="font-size:11px">@_engineId</strong></div>
+                </div>
+
+                <div class="pillars">
+                    @Pillar("年", _chart.YearPillar)
+                    @Pillar("月", _chart.MonthPillar)
+                    @Pillar("日", _chart.DayPillar)
+                    @Pillar("时", _chart.HourPillar)
+                </div>
+
+                @if (_chart.YongShen is not null)
+                {
+                    <p style="font-size:13px;line-height:1.6;margin:0 0 14px">
+                        格局 <strong>@_chart.YongShen.GeJu.Pattern</strong> ·
+                        身@_chart.YongShen.Strength · 用神 @_chart.YongShen.PrimaryYongShen
+                    </p>
+                }
+
+                <div class="interpret-actions">
+                    <button class="btn-secondary" disabled="@_busy" @onclick="() => InterpretAsync(0)">概览解读</button>
+                    <button class="btn-primary" style="width:auto" disabled="@_busy" @onclick="() => InterpretAsync(1)">
+                        @(_busy && _phase == "read" ? "解读中…" : "AI 解读")
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_error)) { <p class="error">@_error</p> }
+                <DemoInterpretBlock Result="_interpretation" />
+            }
+        </section>
+    </div>
+</div>
+
+<link href="css/chart-demo.css" rel="stylesheet" />
+
+@code {
+    private int _year = 1990, _month = 5, _day = 20, _hour = 10;
+    private int _gender = 1;
+    private string _city = "";
+    private string _focus = "综合";
+    private int? _flowYear = 2026;
+    private BaziChart? _chart;
+    private string _engineId = "";
+    private DemoReadResult? _interpretation;
+    private string? _error;
+    private bool _busy;
+    private string _phase = "";
+
+    private RenderFragment Pillar(string title, BaziPillar p) => __builder =>
+    {
+        <div class="pillar">
+            <small>@title</small>
+            <strong>@p.GanZhi</strong>
+            <span style="font-size:11px;opacity:.7">@p.WuXing</span>
+        </div>
+    };
+
+    private BaziInput BuildInput() => new(
+        _year, _month, _day, _hour,
+        Gender: _gender,
+        City: string.IsNullOrWhiteSpace(_city) ? null : _city.Trim(),
+        FlowYear: _flowYear);
+
+    private async Task CalculateAsync()
+    {
+        _busy = true;
+        _error = null;
+        _interpretation = null;
+        try
+        {
+            var (chart, engineId) = Bazi.Calculate(BuildInput());
+            _chart = chart;
+            _engineId = engineId;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private async Task InterpretAsync(int tier)
+    {
+        if (_chart is null) return;
+        _busy = true;
+        _phase = "read";
+        _error = null;
+        try
+        {
+            _interpretation = await Bazi.InterpretAsync(
+                _chart, _engineId, tier,
+                string.IsNullOrWhiteSpace(_focus) ? null : _focus.Trim());
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; _phase = ""; }
+    }
+}

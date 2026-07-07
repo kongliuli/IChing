@@ -1,0 +1,130 @@
+@page "/liuyao"
+@rendermode InteractiveServer
+@using IChing.Lab.Core.Liuyao
+@inject LiuyaoDemoService Liuyao
+
+<PageTitle>六爻起卦 · 演示</PageTitle>
+
+<div class="chart-demo-page theme-liuyao">
+    <header class="chart-demo-header">
+        <div>
+            <p class="kicker">IChing Lab · 测试演示</p>
+            <h1>六爻起卦</h1>
+            <p class="subtitle">铜钱 / 时间卦 · 纳甲六亲 · 可选 AI 解读</p>
+        </div>
+        <a class="nav-link" href="/demo">← 演示入口</a>
+    </header>
+
+    <div class="demo-grid">
+        <section class="panel">
+            <label class="field">
+                <span>起卦方式</span>
+                <select @bind="_method">
+                    <option value="coin">铜钱法</option>
+                    <option value="time">时间卦</option>
+                </select>
+            </label>
+            <label class="field">
+                <span>时间</span>
+                <input type="datetime-local" @bind="_at" @bind:format="yyyy-MM-ddTHH:mm" />
+            </label>
+            @if (_method == "coin")
+            {
+                <label class="field"><span>随机种子（可选）</span><input type="number" @bind="_seedText" placeholder="42" /></label>
+            }
+            <label class="field"><span>问题</span><input @bind="_question" placeholder="这件事的发展如何？" /></label>
+            <label class="field"><span>关注点</span><input @bind="_focus" placeholder="综合" /></label>
+
+            <button class="btn-primary" disabled="@_busy" @onclick="CastAsync">
+                @(_busy ? "起卦中…" : "起卦")
+            </button>
+        </section>
+
+        <section class="panel">
+            @if (_chart is null)
+            {
+                <div class="empty"><p>选择方式后点击起卦</p></div>
+            }
+            else
+            {
+                <div class="summary-cards">
+                    <div><small>本卦</small><strong>@_chart.OriginalHexagram</strong></div>
+                    <div><small>变卦</small><strong>@(_chart.ChangedHexagram ?? "无")</strong></div>
+                    <div><small>卦身</small><strong>@(_chart.HexagramBody ?? "-")</strong></div>
+                    <div><small>引擎</small><strong style="font-size:11px">@_engineId</strong></div>
+                </div>
+
+                <div class="lines-table">
+                    @foreach (var line in _chart.Lines.OrderByDescending(l => l.Index))
+                    {
+                        <div class="line-row @(line.IsChanging ? "changing" : null)">
+                            <strong>@line.Index 爻</strong>
+                            <span>@line.YinYang · @line.SixKin @line.StemBranch</span>
+                            <em style="font-style:normal;font-size:12px;opacity:.75">@line.Role@(line.IsChanging ? " · 动" : "")</em>
+                        </div>
+                    }
+                </div>
+
+                <div class="interpret-actions">
+                    <button class="btn-secondary" disabled="@_busy" @onclick="() => InterpretAsync(0)">概览解读</button>
+                    <button class="btn-primary" style="width:auto" disabled="@_busy" @onclick="() => InterpretAsync(1)">
+                        @(_busy && _phase == "read" ? "解读中…" : "AI 解读")
+                    </button>
+                </div>
+
+                @if (!string.IsNullOrEmpty(_error)) { <p class="error">@_error</p> }
+                <DemoInterpretBlock Result="_interpretation" />
+            }
+        </section>
+    </div>
+</div>
+
+<link href="css/chart-demo.css" rel="stylesheet" />
+
+@code {
+    private string _method = "coin";
+    private DateTime _at = DateTime.Now;
+    private string? _seedText = "42";
+    private string _question = "";
+    private string _focus = "";
+    private LiuyaoNajiaResult? _chart;
+    private string _engineId = "";
+    private DemoReadResult? _interpretation;
+    private string? _error;
+    private bool _busy;
+    private string _phase = "";
+
+    private async Task CastAsync()
+    {
+        _busy = true;
+        _error = null;
+        _interpretation = null;
+        try
+        {
+            int? seed = int.TryParse(_seedText, out var s) ? s : null;
+            var at = new DateTimeOffset(_at);
+            var (chart, engineId) = Liuyao.Cast(_method, at, _method == "coin" ? seed : null);
+            _chart = chart;
+            _engineId = engineId;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; }
+    }
+
+    private async Task InterpretAsync(int tier)
+    {
+        if (_chart is null) return;
+        _busy = true;
+        _phase = "read";
+        _error = null;
+        try
+        {
+            _interpretation = await Liuyao.InterpretAsync(
+                _chart, _engineId, tier,
+                string.IsNullOrWhiteSpace(_question) ? null : _question.Trim(),
+                string.IsNullOrWhiteSpace(_focus) ? null : _focus.Trim());
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _busy = false; _phase = ""; }
+    }
+}

@@ -5,12 +5,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:pages="clr-namespace:IChing.Tarot.App.Pages"
     Shell.FlyoutBehavior="Disabled"
+    Shell.BackgroundColor="{StaticResource Surface}"
+    Shell.ForegroundColor="{StaticResource Gold}"
+    Shell.TitleColor="{StaticResource TextPrimary}"
     Shell.TabBarBackgroundColor="{StaticResource Surface}"
     Shell.TabBarForegroundColor="{StaticResource Gold}"
     Shell.TabBarUnselectedColor="{StaticResource Muted}"
     Shell.TabBarTitleColor="{StaticResource Gold}">
 
-    <Tab Title="占卜" Icon="tab_draw">
+    <Tab Title="塔罗" Icon="tab_draw">
         <ShellContent Route="draw" ContentTemplate="{DataTemplate pages:DrawPage}" />
     </Tab>
     <Tab Title="探索" Icon="tab_explore">

@@ -595,7 +595,7 @@ public static class ReadingPromptPackets
     public static ReadingPromptPacket BaziInitial(BaziChart chart, BaziRuleDigest digest, string? focus)
     {
         var plugins = Plugins(digest.Items);
-        var template = ReadingPromptTemplateManager.Get("bazi", "initial", PluginOutputSections(plugins));
+        var (template, ext) = BuildTemplate("bazi", "initial", plugins, digest.ActivePlugins);
         return new(
             Schema: "reading-request.v1",
             OutputSchema: ReadingSchemas.OutputV2,
@@ -623,7 +623,7 @@ public static class ReadingPromptPackets
                 digest.PillarSummary,
                 digest.YongShenSummary
             ],
-            SystemDirectives: template.SystemDirectives,
+            SystemDirectives: template.SystemDirectives.Concat(ext.SystemDirectives).ToList(),
             PluginContext: plugins,
             OutputSections: template.OutputSections);
     }
@@ -635,7 +635,7 @@ public static class ReadingPromptPackets
         string? focus)
     {
         var plugins = Plugins(digest.Items);
-        var template = ReadingPromptTemplateManager.Get("liuyao", "initial", PluginOutputSections(plugins));
+        var (template, ext) = BuildTemplate("liuyao", "initial", plugins, digest.ActivePlugins);
         return new(
             Schema: "reading-request.v1",
             OutputSchema: ReadingSchemas.OutputV2,
@@ -661,7 +661,7 @@ public static class ReadingPromptPackets
                 digest.YongShenSummary,
                 .. digest.Alerts
             ],
-            SystemDirectives: template.SystemDirectives,
+            SystemDirectives: template.SystemDirectives.Concat(ext.SystemDirectives).ToList(),
             PluginContext: plugins,
             OutputSections: template.OutputSections);
     }
@@ -669,13 +669,14 @@ public static class ReadingPromptPackets
     public static ReadingPromptPacket TarotInitial(TarotReading reading, TarotRuleDigest digest, string? question)
     {
         var plugins = Plugins(digest.Items);
-        var template = ReadingPromptTemplateManager.Get(
+        var positionSections = reading.Positions
+            .Select(p => new OutputSectionSpec(p.PositionKey, p.PositionTitleZh));
+        var (template, ext) = BuildTemplate(
             "tarot",
             "initial",
-            reading.Positions
-                .Select(p => new OutputSectionSpec(p.PositionKey, p.PositionTitleZh))
-                .Concat(PluginOutputSections(plugins))
-                .Append(new OutputSectionSpec("advice", "行动建议")));
+            plugins,
+            digest.ActivePlugins,
+            positionSections.Append(new OutputSectionSpec("advice", "行动建议")));
         return new(
             Schema: "reading-request.v1",
             OutputSchema: ReadingSchemas.OutputV2,
@@ -696,20 +697,41 @@ public static class ReadingPromptPackets
                 $"suits: wands={digest.Wands}; cups={digest.Cups}; swords={digest.Swords}; pentacles={digest.Pentacles}",
                 $"reversed: {digest.ReversedCount}/{digest.Total}"
             ],
-            SystemDirectives: template.SystemDirectives,
+            SystemDirectives: template.SystemDirectives.Concat(ext.SystemDirectives).ToList(),
             PluginContext: plugins,
             OutputSections: template.OutputSections);
+    }
+
+    private static (ReadingPromptTemplate Template, PromptExtension Extensions) BuildTemplate(
+        string domain,
+        string mode,
+        IReadOnlyList<PluginPromptContext> plugins,
+        IReadOnlyList<string> activePluginIds,
+        IEnumerable<OutputSectionSpec>? extraSections = null)
+    {
+        var ext = RulePromptExtensionRegistry.Merge(activePluginIds);
+        var sections = PluginOutputSections(plugins)
+            .Concat(ext.OutputSections)
+            .Concat(extraSections ?? []);
+        var template = ReadingPromptTemplateManager.Get(domain, mode, sections);
+        return (template, ext);
     }
 
     private static IReadOnlyList<PluginPromptContext> Plugins(IReadOnlyList<RuleDigestItem> items) =>
         items
             .GroupBy(i => i.PluginId)
-            .Select(g => new PluginPromptContext(
-                g.Key,
-                g.Select(i => $"{i.Title}: {i.Text}").ToList(),
-                [],
-                g.Select(i => i.Title).Distinct().ToList(),
-                g.Select(i => $"Plugin {g.Key} must be considered when relevant: {i.Title}: {Bound(i.Text, 160)}").ToList()))
+            .Select(g =>
+            {
+                var ext = RulePromptExtensionRegistry.Get(g.Key);
+                return new PluginPromptContext(
+                    g.Key,
+                    g.Select(i => $"{i.Title}: {i.Text}").ToList(),
+                    ext?.Constraints ?? [],
+                    g.Select(i => i.Title).Distinct().ToList(),
+                    g.Select(i => $"Plugin {g.Key} must be considered when relevant: {i.Title}: {Bound(i.Text, 160)}")
+                        .Concat(ext?.SystemDirectives ?? [])
+                        .ToList());
+            })
             .ToList();
 
     private static IEnumerable<OutputSectionSpec> PluginOutputSections(IReadOnlyList<PluginPromptContext> plugins)

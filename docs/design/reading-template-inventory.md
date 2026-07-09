@@ -43,4 +43,7 @@
 - [x] `ReadingTemplateRegistry` 元数据（templateId / producerId / translate 标记）
 - [x] 塔罗 `(engineId, tier, spreadId)` 解析迁入 Registry
 - [x] Lab read 三域 tier≥1 走 Scriban + JSON v2
-- [ ] Inference `PromptContext.FromExchange(exchange)`（远期，Phase 6 `/lab/chat`）
+- [x] Inference `PromptContext.FromExchange(exchange)`（`ExchangePromptAdapter`）
+- [x] 追问 `ReadingExchange` + `ExchangePromptAdapter.ToFollowUpPacket`
+- [x] Lab `POST /lab/chat`（register / initial / followup）
+- [x] Tarot App 追问 Exchange 化（`LocalSessionStore` + `ExchangePromptAdapter`）

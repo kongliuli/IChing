@@ -1,4 +1,7 @@
+using IChing.Lab.Abstractions.Readings;
+using IChing.Lab.Client;
 using IChing.Lab.Core.Integrations;
+using IChing.Lab.Core.Readings;
 using IChing.Tarot.App.Services;
 using Microsoft.Maui.Controls.Shapes;
 
@@ -6,19 +9,23 @@ namespace IChing.Tarot.App.Pages;
 
 public partial class FollowUpChatPage : ContentPage
 {
-    private readonly RemoteInterpretationService _remote = new();
-    private readonly string _systemPrompt;
-    private readonly string _context;
-    private string? _lastUser;
-    private string? _lastAssistant;
+    private readonly FollowUpChatArgs _args;
+    private readonly FollowUpSessionSeed _seed;
+    private readonly List<DialogueTurn> _history = [];
+    private ReadingStructuredOutput? _initialStructured;
     private int _rounds;
 
-    public FollowUpChatPage(string systemPrompt, string context)
+    public FollowUpChatPage(FollowUpChatArgs args)
     {
         InitializeComponent();
-        _systemPrompt = systemPrompt;
-        _context = context;
-        AddBubble("当前上下文", context, incoming: true);
+        _args = args;
+        Title = args.Title;
+        var seed = App.Sessions.GetFollowUpSeed(args.SessionId)
+                   ?? throw new InvalidOperationException($"session not found: {args.SessionId}");
+        _seed = seed;
+        _initialStructured = ReadingOutputParser.TryParseStructured(seed.InitialOutputJson, seed.Domain);
+        var preview = ExchangeContextCompactor.BuildFollowUpContext(seed.Input, _initialStructured, [], null);
+        AddBubble("当前上下文", preview, incoming: true);
     }
 
     private async void OnSendClicked(object? sender, EventArgs e)
@@ -29,40 +36,70 @@ public partial class FollowUpChatPage : ContentPage
             return;
         }
 
+        var exchangeId = Guid.NewGuid().ToString("N");
+        if (App.Settings.UseLabApi)
+        {
+            var token = string.IsNullOrWhiteSpace(App.Settings.AuthToken) ? null : App.Settings.AuthToken;
+            var (ok, status, error) = await LabApiClient.ConsumeCreditsAsync(
+                App.Settings.LabApiUrl,
+                exchangeId,
+                _args.Domain,
+                "followup",
+                token,
+                _args.SessionId);
+            if (!ok)
+            {
+                await DisplayAlertAsync("额度不足", $"HTTP {status}: {error}", "好的");
+                return;
+            }
+        }
+
         _rounds++;
         QuestionEntry.Text = string.Empty;
         AddBubble("你", text, incoming: false);
 
+        var exchange = ReadingExchangeFactory.CreateFollowUp(
+            _seed.Input,
+            _seed.Domain,
+            _seed.Tier,
+            _args.SessionId,
+            _seed.LastExchangeId,
+            text,
+            _history,
+            _initialStructured);
+
+        var packet = ExchangePromptAdapter.ToFollowUpPacket(exchange, _initialStructured, _seed.InitialOutputJson);
+        var messages = new List<ChatTurn>
+        {
+            new("system", ReadingPromptProtocol.BuildSystemPrompt(packet)),
+            new("user", ReadingPromptProtocol.BuildUserMessage(packet))
+        };
+
         SendButton.IsEnabled = false;
         var answer = AddBubble("继续解答", string.Empty, incoming: true);
-        await foreach (var chunk in _remote.StreamAsync(App.Settings, BuildRequestMessages(text)))
+        var raw = new System.Text.StringBuilder();
+        await foreach (var chunk in App.Remote.StreamAsync(App.Settings, messages))
         {
-            answer.Text += chunk;
+            raw.Append(chunk);
+            answer.Text = ReadingPromptProtocol.NormalizeOutput(raw.ToString());
             await ChatScroll.ScrollToAsync(ChatHost, ScrollToPosition.End, false);
         }
 
-        _lastUser = text;
-        _lastAssistant = answer.Text;
+        var body = raw.ToString();
+        _history.Add(new DialogueTurn("user", text));
+        _history.Add(new DialogueTurn("assistant", body));
+        App.Sessions.AppendExchange(_args.SessionId, new StoredExchange(
+            exchangeId,
+            _args.SessionId,
+            _seed.LastExchangeId,
+            "followup",
+            _seed.Tier,
+            FollowUpExchangeBuilder.SerializeInput(_seed.Input),
+            body,
+            DateTimeOffset.UtcNow));
+
         SendButton.IsEnabled = _rounds < 3;
         QuestionEntry.IsEnabled = _rounds < 3;
-    }
-
-    private IReadOnlyList<ChatTurn> BuildRequestMessages(string currentQuestion)
-    {
-        var messages = new List<ChatTurn>
-        {
-            new("system", _systemPrompt),
-            new("assistant", _context)
-        };
-
-        if (!string.IsNullOrWhiteSpace(_lastUser) && !string.IsNullOrWhiteSpace(_lastAssistant))
-        {
-            messages.Add(new("user", _lastUser));
-            messages.Add(new("assistant", _lastAssistant));
-        }
-
-        messages.Add(new("user", currentQuestion));
-        return messages;
     }
 
     private Label AddBubble(string title, string text, bool incoming)

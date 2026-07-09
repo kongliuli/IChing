@@ -8,7 +8,9 @@ public partial class App : Application
     public static TarotCardImageCache CardImages { get; } = new();
     public static TarotDrawService Tarot { get; } = new();
     public static InterpretationService Interpretation { get; } = new();
+    public static RemoteInterpretationService Remote { get; } = new();
     public static ReadingHistoryStore History { get; } = new();
+    public static LocalSessionStore Sessions { get; } = new();
 
     public App()
     {

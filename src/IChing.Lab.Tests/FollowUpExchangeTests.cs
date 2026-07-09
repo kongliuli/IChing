@@ -48,6 +48,18 @@ public class FollowUpExchangeTests
         var ctx = ExchangePromptAdapter.FromExchange(exchange, null);
         Assert.Equal("世应如何?", ctx.Question);
     }
+
+    [Fact]
+    public void ToFollowUpPacket_TarotDomain_UsesFollowUpMode()
+    {
+        var input = new ExchangeInput("问", null, ["spread: 过去现在未来"], ["正位含义"], []);
+        var exchange = ReadingExchangeFactory.CreateFollowUp(
+            input, "tarot", 1, "s", "p", "还能复合吗?", [], null);
+        var packet = ExchangePromptAdapter.ToFollowUpPacket(exchange, null, "初始塔罗解读");
+        Assert.Equal("tarot", packet.Domain);
+        Assert.Equal("followup", packet.Mode);
+        Assert.Equal("还能复合吗?", packet.UserQuestion);
+    }
 }
 
 public class EntitlementGateTests

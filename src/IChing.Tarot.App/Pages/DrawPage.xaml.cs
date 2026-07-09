@@ -269,8 +269,15 @@ public partial class DrawPage : ContentPage
             return;
         }
 
-        var seed = FollowUpPromptTemplates.Tarot(_currentReading, QuestionEntry.Text, _interpretationRaw);
-        await Navigation.PushAsync(new FollowUpChatPage(seed.SystemPrompt, seed.Context));
+        var input = FollowUpPromptTemplates.TarotExchangeInput(_currentReading, QuestionEntry.Text);
+        var sessionId = App.Sessions.CreateSessionWithInitial(
+            "tarot",
+            App.Settings.InterpretTier,
+            _currentReading,
+            null,
+            input,
+            _interpretationRaw);
+        await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("塔罗追问", "tarot", sessionId)));
     }
 
     private async void OnCopyInterpretationClicked(object? sender, EventArgs e)

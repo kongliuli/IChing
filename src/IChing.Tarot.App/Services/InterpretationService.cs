@@ -106,7 +106,7 @@ public sealed class InterpretationService
             var isFallback = root.TryGetProperty("narrative", out var narrative)
                              && narrative.TryGetProperty("isFallback", out var fb)
                              && fb.GetBoolean();
-            return new InterpretationResult(text, isFallback, isFallback ? "Lab 降级为模板" : null);
+            return new InterpretationResult(ReadingPromptProtocol.NormalizeOutput(text), isFallback, isFallback ? "Lab 降级为模板" : null);
         }
         catch
         {

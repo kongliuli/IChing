@@ -1,4 +1,3 @@
-using System.Text.Json;
 using IChing.App.Services;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Readings;
@@ -7,7 +6,6 @@ namespace IChing.App.Pages;
 
 public partial class BaziPage : ContentPage
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private BaziChart? _currentChart;
     private BaziRuleDigest? _currentDigest;
     private string _currentSummary = string.Empty;
@@ -18,6 +16,42 @@ public partial class BaziPage : ContentPage
     {
         InitializeComponent();
         GenderPicker.SelectedIndex = 1;
+        SizeChanged += (_, _) => UpdateResponsiveLayout();
+    }
+
+    private void UpdateResponsiveLayout()
+    {
+        if (double.IsNaN(Width) || Width <= 0)
+        {
+            return;
+        }
+
+        var wide = Width >= 920;
+        var margin = wide ? 96 : 32;
+        var cap = wide ? 1360 : 680;
+        PageBody.WidthRequest = Math.Min(cap, Math.Max(320, Width - margin));
+
+        ResponsiveGrid.ColumnDefinitions.Clear();
+        ResponsiveGrid.RowDefinitions.Clear();
+        if (wide)
+        {
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(420)));
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(PlaceholderPanel, 1);
+            Grid.SetRow(PlaceholderPanel, 0);
+            Grid.SetColumn(ResultPanel, 1);
+            Grid.SetRow(ResultPanel, 0);
+            return;
+        }
+
+        ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        Grid.SetColumn(PlaceholderPanel, 0);
+        Grid.SetRow(PlaceholderPanel, 1);
+        Grid.SetColumn(ResultPanel, 0);
+        Grid.SetRow(ResultPanel, 1);
     }
 
     private void OnCalculateClicked(object? sender, EventArgs e)
@@ -46,9 +80,10 @@ public partial class BaziPage : ContentPage
             _currentChart = chart;
             _currentDigest = digest;
             _currentFocus = focus;
-            _currentSummary = $"日主 {chart.DayMaster}，{digest.PillarSummary}；{digest.YongShenSummary}";
+            _currentSummary = $"日主 {chart.DayMaster}，{digest.PillarSummary}，{digest.YongShenSummary}";
 
             BaziTitleLabel.Text = $"日主 {chart.DayMaster} · {chart.WallClock}";
+            DayMasterBadge.Text = $"日主 {chart.DayMaster}";
             YearPillarLabel.Text = chart.YearPillar.GanZhi;
             MonthPillarLabel.Text = chart.MonthPillar.GanZhi;
             DayPillarLabel.Text = chart.DayPillar.GanZhi;
@@ -59,6 +94,7 @@ public partial class BaziPage : ContentPage
             DaYunLabel.Text = chart.DaYun is { Count: > 0 }
                 ? "大运：" + string.Join("  ", chart.DaYun.Take(5).Select(x => $"{x.StartAge}-{x.EndAge}岁 {x.GanZhi}"))
                 : "大运：选择性别后显示";
+            PlaceholderPanel.IsVisible = false;
             ResultPanel.IsVisible = true;
             InterpretButton.IsEnabled = true;
 
@@ -69,6 +105,7 @@ public partial class BaziPage : ContentPage
             ErrorLabel.Text = ex.Message;
             ErrorLabel.IsVisible = true;
             ResultPanel.IsVisible = false;
+            PlaceholderPanel.IsVisible = true;
             InterpretButton.IsEnabled = false;
         }
     }
@@ -91,7 +128,8 @@ public partial class BaziPage : ContentPage
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
         InterpretationLabel.Text = string.Empty;
 
-        var result = await App.Remote.InterpretAsync(App.Settings, "八字", BuildPrompt(_currentChart, _currentDigest, _currentFocus));
+        var packet = ReadingPromptPackets.BaziInitial(_currentChart, _currentDigest, _currentFocus);
+        var result = await App.Remote.InterpretAsync(App.Settings, "八字", packet);
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -142,22 +180,6 @@ public partial class BaziPage : ContentPage
             await DisplayAlertAsync("导出失败", ex.Message, "好的");
         }
     }
-
-    private static string BuildPrompt(BaziChart chart, BaziRuleDigest digest, string? focus) =>
-        $"""
-        关注点：{focus ?? "综合"}
-
-        请用简体中文输出三段：
-        1. 命盘重点
-        2. 用神与风险
-        3. 近期建议
-
-        规则摘要：
-        {JsonSerializer.Serialize(digest, JsonOptions)}
-
-        排盘结果：
-        {JsonSerializer.Serialize(chart, JsonOptions)}
-        """;
 
     private static int ReadInt(Entry entry, string name) =>
         int.TryParse(entry.Text, out var value) ? value : throw new InvalidOperationException($"{name}不是有效数字");

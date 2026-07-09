@@ -72,7 +72,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
-		<ProjectReference Include="..\..\samples\TarotEngines\TarotEngines.csproj" />
 	</ItemGroup>
 
 	<!-- ponytail: 复杂 DataTemplate 绑定 Color，SourceGen 解析会炸，退回运行时 inflation -->

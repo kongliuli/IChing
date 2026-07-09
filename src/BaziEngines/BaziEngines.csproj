@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- 进程内官方八字引擎：公共契约由主程序提供，避免 plugins/ 里出现重复副本。 -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+    <ProjectReference Include="..\..\samples\ChartBridge\ChartBridge.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- cnlunar 移植引擎复用 lunar-csharp 历法语义，补充建除十二神与宜忌等摘要。 -->
+    <PackageReference Include="lunar-csharp" Version="1.6.8" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IChing.Lab.Tests" />
+  </ItemGroup>
+
+</Project>

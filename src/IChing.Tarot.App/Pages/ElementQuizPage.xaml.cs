@@ -37,10 +37,10 @@ public partial class ElementQuizPage : ContentPage
             {
                 Text = option,
                 TextColor = Color.FromArgb("#F5F0E8"),
-                BackgroundColor = Color.FromArgb("#221833"),
-                BorderColor = Color.FromArgb("#9A7B2C"),
+                BackgroundColor = Color.FromArgb("#2C213B"),
+                BorderColor = Color.FromArgb("#4B3B61"),
                 BorderWidth = 1,
-                CornerRadius = 12,
+                CornerRadius = 8,
                 Padding = new Thickness(12, 10)
             };
             btn.Clicked += (_, _) => OnOptionSelected(option);

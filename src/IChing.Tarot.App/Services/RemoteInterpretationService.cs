@@ -4,7 +4,6 @@ using System.Text;
 using System.Text.Json;
 using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Tarot;
-using IChing.Lab.Engines.Tarot;
 
 namespace IChing.Tarot.App.Services;
 
@@ -24,16 +23,20 @@ public sealed class RemoteInterpretationService
             return new InterpretationResult(preview.OneLiner, true, "请先在设置中填写 API Key，或启用 Lab API");
         }
 
-        var prompt = BuildDeckauraPrompt(reading, question);
+        var packet = ReadingPromptPackets.TarotInitial(
+            reading,
+            ReadingSummaries.BuildTarotRuleDigest(reading),
+            question);
         var messages = new[]
         {
-            new ChatTurn("system", "你是专业塔罗解读师。牌阵由系统抽取，请勿修改牌名与正逆位，不要编造未列出的牌。"),
-            new ChatTurn("user", prompt)
+            new ChatTurn("system", ReadingPromptProtocol.BuildSystemPrompt(packet)),
+            new ChatTurn("user", ReadingPromptProtocol.BuildUserMessage(packet))
         };
+        var maxTokens = reading.Positions.Count >= 10 ? 700 : 500;
 
         try
         {
-            using var response = await SendAsync(settings, messages, stream: false, maxTokens: reading.Positions.Count >= 10 ? 900 : 600, cancellationToken);
+            using var response = await SendAsync(settings, messages, stream: false, maxTokens, cancellationToken, jsonOutput: true);
             var json = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
@@ -44,9 +47,10 @@ public sealed class RemoteInterpretationService
             }
 
             using var doc = JsonDocument.Parse(json);
+            LogUsage(doc.RootElement, settings, maxTokens, packet.Domain, packet.Mode);
             var text = doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
             return new InterpretationResult(
-                text ?? ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner,
+                ReadingPromptProtocol.NormalizeOutput(text ?? ReadingSummaries.BuildTarotTier0Preview(reading, question).OneLiner),
                 false,
                 null);
         }
@@ -96,7 +100,7 @@ public sealed class RemoteInterpretationService
             yield break;
         }
 
-        using var response = await SendAsync(settings, messages, stream: true, maxTokens: 600, cancellationToken);
+        using var response = await SendAsync(settings, messages, stream: true, maxTokens: 350, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
             yield return $"{(int)response.StatusCode}: {Trim(await response.Content.ReadAsStringAsync(cancellationToken), 180)}";
@@ -134,51 +138,34 @@ public sealed class RemoteInterpretationService
         }
     }
 
-    internal static string BuildDeckauraPrompt(TarotReading reading, string? question)
-    {
-        var digest = TarotReadingEnricher.BuildEnrichedRuleDigest(reading);
-        var digestJson = JsonSerializer.Serialize(digest, new JsonSerializerOptions { WriteIndented = true });
-        var sb = new StringBuilder();
-        sb.AppendLine($"问题：{question ?? "综合解读"}");
-        sb.AppendLine($"牌阵：{reading.SpreadTitleZh}（{reading.SpreadTitle}）");
-        sb.AppendLine();
-        sb.AppendLine("牌位：");
-        foreach (var p in reading.Positions)
-        {
-            var deckaura = TarotDeckData.FindByNameIgnoreCase(p.CardName);
-            sb.AppendLine($"- [{p.PositionTitleZh}] {p.CardName} / {p.CardNameZh} · {(p.Reversed ? "逆位" : "正位")}");
-            sb.AppendLine($"  牌义：{p.Meaning}");
-            if (deckaura is not null)
-            {
-                sb.AppendLine($"  关键词：{deckaura.Keywords} · 元素 {deckaura.Element} · Yes/No {deckaura.YesNo}");
-            }
-        }
-
-        sb.AppendLine();
-        sb.AppendLine("规则摘要：");
-        sb.AppendLine(digestJson);
-        sb.AppendLine();
-        sb.AppendLine("请严格用简体中文、Markdown 分段输出：整体能量、牌位解读、牌阵互动、行动建议。不要寒暄，不要新增牌。");
-        return sb.ToString();
-    }
-
     private static Task<HttpResponseMessage> SendAsync(
         AppSettings settings,
         IReadOnlyList<ChatTurn> messages,
         bool stream,
         int maxTokens,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool jsonOutput = false)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, $"{settings.BaseUrl.TrimEnd('/')}/chat/completions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.ApiKey);
-        request.Content = new StringContent(JsonSerializer.Serialize(new
+        var payload = new Dictionary<string, object?>
         {
-            model = settings.Model,
-            messages = messages.Select(m => new { role = m.Role, content = m.Content }),
-            temperature = 0.7,
-            max_tokens = maxTokens,
-            stream
-        }), Encoding.UTF8, "application/json");
+            ["model"] = settings.Model,
+            ["messages"] = messages.Select(m => new { role = m.Role, content = m.Content }).ToArray(),
+            ["temperature"] = 0.7,
+            ["max_tokens"] = maxTokens,
+            ["stream"] = stream
+        };
+        if (jsonOutput)
+        {
+            payload["response_format"] = new { type = "json_object" };
+        }
+        if (settings.BaseUrl.Contains("deepseek", StringComparison.OrdinalIgnoreCase))
+        {
+            payload["thinking"] = new { type = "disabled" };
+        }
+
+        request.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
         return Http.SendAsync(
             request,
@@ -188,6 +175,42 @@ public sealed class RemoteInterpretationService
 
     private static string Trim(string s, int max) =>
         s.Length <= max ? s : s[..max] + "...";
+
+    private static void LogUsage(JsonElement root, AppSettings settings, int maxTokens, string? domain = null, string? mode = null)
+    {
+        if (!root.TryGetProperty("usage", out var usage))
+        {
+            return;
+        }
+
+        try
+        {
+            var line = JsonSerializer.Serialize(new
+            {
+                at = DateTimeOffset.Now.ToString("O"),
+                domain,
+                mode,
+                base_url = settings.BaseUrl,
+                model = settings.Model,
+                max_tokens = maxTokens,
+                prompt_tokens = GetInt64(usage, "prompt_tokens"),
+                completion_tokens = GetInt64(usage, "completion_tokens"),
+                total_tokens = GetInt64(usage, "total_tokens"),
+                prompt_cache_hit_tokens = GetInt64(usage, "prompt_cache_hit_tokens"),
+                prompt_cache_miss_tokens = GetInt64(usage, "prompt_cache_miss_tokens")
+            });
+            var path = Path.Combine(FileSystem.AppDataDirectory, "deepseek-usage.log");
+            File.AppendAllText(path, line + Environment.NewLine);
+            System.Diagnostics.Debug.WriteLine($"[DeepSeekUsage] {line}");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[DeepSeekUsage] {ex.Message}");
+        }
+    }
+
+    private static long? GetInt64(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var value) && value.TryGetInt64(out var number) ? number : null;
 }
 
 public sealed record InterpretationResult(string Text, bool IsFallback, string? Error);

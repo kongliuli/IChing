@@ -1,4 +1,5 @@
 using IChing.Lab.Core.Rules;
+using IChing.Lab.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IChing.Lab.Api.Controllers;
@@ -8,10 +9,12 @@ namespace IChing.Lab.Api.Controllers;
 public sealed class RulePluginsController : ControllerBase
 {
     private readonly RuleEngine _ruleEngine;
+    private readonly RuleEngineOptionsStore _store;
 
-    public RulePluginsController(RuleEngine ruleEngine)
+    public RulePluginsController(RuleEngine ruleEngine, RuleEngineOptionsStore store)
     {
         _ruleEngine = ruleEngine;
+        _store = store;
     }
 
     [HttpGet]
@@ -39,6 +42,7 @@ public sealed class RulePluginsController : ControllerBase
             return NotFound(new { error = "plugin not found" });
         }
 
+        _store.Save(_ruleEngine.SnapshotOptions());
         return Ok(_ruleEngine.ListPlugins().First(p => p.Id == id));
     }
 }

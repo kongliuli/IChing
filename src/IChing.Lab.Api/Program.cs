@@ -25,7 +25,12 @@ builder.Services.AddRazorComponents()
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton(new RuleEngine(ReadRuleEngineOptions(builder.Configuration)));
+builder.Services.AddSingleton<RuleEngineOptionsStore>();
+builder.Services.AddSingleton(sp =>
+{
+    var store = sp.GetRequiredService<RuleEngineOptionsStore>();
+    return new RuleEngine(store.Load(ReadRuleEngineOptions(builder.Configuration)));
+});
 builder.Services.AddScoped<TarotDemoService>();
 builder.Services.AddScoped<BaziDemoService>();
 builder.Services.AddScoped<LiuyaoDemoService>();

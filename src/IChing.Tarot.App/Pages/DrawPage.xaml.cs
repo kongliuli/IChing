@@ -1,5 +1,5 @@
+using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Tarot;
-using IChing.Lab.Engines.Tarot;
 using IChing.Tarot.App.Services;
 using IChing.Tarot.App.Views;
 
@@ -17,8 +17,44 @@ public partial class DrawPage : ContentPage
     public DrawPage()
     {
         InitializeComponent();
+        SizeChanged += (_, _) => UpdateResponsiveLayout();
         LoadSpreads();
         UpdateHistoryPanel();
+    }
+
+    private void UpdateResponsiveLayout()
+    {
+        if (double.IsNaN(Width) || Width <= 0)
+        {
+            return;
+        }
+
+        var wide = Width >= 980;
+        var margin = wide ? 96 : 32;
+        PageBody.WidthRequest = Math.Min(wide ? 1360 : 680, Math.Max(320, Width - margin));
+
+        ResponsiveGrid.ColumnDefinitions.Clear();
+        ResponsiveGrid.RowDefinitions.Clear();
+        ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+
+        if (wide)
+        {
+            ResponsiveGrid.ColumnDefinitions[0] = new ColumnDefinition(new GridLength(420));
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(LeftColumn, 0);
+            Grid.SetRow(LeftColumn, 0);
+            Grid.SetColumn(RightColumn, 1);
+            Grid.SetRow(RightColumn, 0);
+            return;
+        }
+
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        Grid.SetColumn(LeftColumn, 0);
+        Grid.SetRow(LeftColumn, 0);
+        Grid.SetColumn(RightColumn, 0);
+        Grid.SetRow(RightColumn, 1);
     }
 
     private void LoadSpreads()
@@ -57,13 +93,13 @@ public partial class DrawPage : ContentPage
     private void OnAdvancedToggleClicked(object? sender, EventArgs e)
     {
         AdvancedPanel.IsVisible = !AdvancedPanel.IsVisible;
-        AdvancedToggleButton.Text = AdvancedPanel.IsVisible ? "▾ 高级选项" : "▸ 高级选项";
+        AdvancedToggleButton.Text = AdvancedPanel.IsVisible ? "隐藏高级选项" : "显示高级选项";
     }
 
     private void OnSpreadToggleClicked(object? sender, EventArgs e)
     {
         SpreadBoardPanel.IsVisible = !SpreadBoardPanel.IsVisible;
-        SpreadToggleButton.Text = SpreadBoardPanel.IsVisible ? "▾ 牌阵布局" : "▸ 牌阵布局";
+        SpreadToggleButton.Text = SpreadBoardPanel.IsVisible ? "隐藏牌阵" : "显示牌阵";
     }
 
     private async void OnDrawClicked(object? sender, EventArgs e)
@@ -79,7 +115,7 @@ public partial class DrawPage : ContentPage
 
         DrawButton.IsEnabled = false;
         var drawLabel = DrawButton.Text;
-        DrawButton.Text = "洗牌中…";
+        DrawButton.Text = "洗牌中...";
 
         try
         {
@@ -89,7 +125,7 @@ public partial class DrawPage : ContentPage
             }
             catch
             {
-                // ponytail: 部分桌面环境不支持触觉反馈
+                // ponytail: some desktop targets do not support haptics.
             }
 
             await Task.Delay(180);
@@ -109,6 +145,10 @@ public partial class DrawPage : ContentPage
 
             await MainScroll.ScrollToAsync(ReadingPanel, ScrollToPosition.Start, true);
         }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("抽牌失败", UserFacingZh.Error(ex.Message), "好的");
+        }
         finally
         {
             DrawButton.Text = drawLabel;
@@ -122,22 +162,22 @@ public partial class DrawPage : ContentPage
     {
         ReadingPanel.IsVisible = true;
         ReadingPanel.Opacity = 0;
-        ReadingPanel.Scale = 0.94;
+        ReadingPanel.Scale = 0.96;
         ReadingTitleLabel.Text = reading.Question is { Length: > 0 } q
-            ? $"「{q}」· {reading.SpreadTitleZh}"
+            ? $"《{q}》· {reading.SpreadTitleZh}"
             : reading.SpreadTitleZh;
         ReadingMetaLabel.Text =
-            $"引擎 {UserFacingZh.EngineLabel(_engineId)} · 种子 {reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · 牌库覆盖 {TarotReadingEnricher.DeckauraCoveragePercent(reading)}%";
+            $"引擎 {UserFacingZh.EngineLabel(_engineId)} · 种子 {reading.Seed?.ToString() ?? "随机"} · {reading.Positions.Count} 张 · 牌义覆盖 {TarotReadingStats.CoveragePercent(reading)}%";
 
         var cards = await CardDisplayMapper.FromReadingAsync(reading);
         _displayCards = cards;
         SpreadBoardPanel.IsVisible = true;
-        SpreadToggleButton.Text = "▾ 牌阵布局";
+        SpreadToggleButton.Text = "隐藏牌阵";
         SpreadBoardLayout.Render(SpreadBoardHost, reading.SpreadId, cards);
 
         await Task.WhenAll(
-            ReadingPanel.FadeToAsync(1, 320),
-            ReadingPanel.ScaleToAsync(1, 320, Easing.CubicOut));
+            ReadingPanel.FadeToAsync(1, 260),
+            ReadingPanel.ScaleToAsync(1, 260, Easing.CubicOut));
     }
 
     private async void OnHistorySelected(object? sender, SelectionChangedEventArgs e)
@@ -166,14 +206,14 @@ public partial class DrawPage : ContentPage
 
         if (!App.Settings.IsConfigured)
         {
-            await DisplayAlertAsync("需要 API Key", "请先在「设置」页填写 API Key 后再解读。", "去设置");
+            await DisplayAlertAsync("需要 API Key", "请先在“设置”页填写 API Key 后再解读。", "去设置");
             await Shell.Current.GoToAsync("//settings");
             return;
         }
 
         InterpretButton.IsEnabled = false;
         var interpretLabel = InterpretButton.Text;
-        InterpretButton.Text = "解读中…";
+        InterpretButton.Text = "解读中...";
         LoadingIndicator.IsVisible = true;
         LoadingIndicator.IsRunning = true;
 
@@ -184,21 +224,27 @@ public partial class DrawPage : ContentPage
                 _currentReading,
                 QuestionEntry.Text);
 
-            var sections = InterpretationSectionParser.Parse(result.Text);
-            _interpretationRaw = result.Text;
+            var displayText = ReadingPromptProtocol.NormalizeOutput(result.Text);
+            var sections = InterpretationSectionParser.Parse(displayText);
+            _interpretationRaw = displayText;
             _interpretationSections = sections.ToList();
-            if (sections.Count == 0)
+            if (string.IsNullOrWhiteSpace(displayText))
             {
                 InterpretationPanel.IsVisible = false;
             }
             else
             {
                 InterpretationPanel.IsVisible = true;
+                InterpretationWebView.Source = new HtmlWebViewSource
+                {
+                    Html = ReadingHtmlFormatter.ToTarotDocument("塔罗解读报告", _currentReading.SpreadTitleZh, displayText, _currentReading)
+                };
                 InterpretationBoardLayout.Render(InterpretationBoardHost, sections, _currentReading);
             }
+
             InterpretationStatusLabel.Text = result.IsFallback
-                ? $"⚠ 降级/部分失败：{(string.IsNullOrWhiteSpace(result.Error) ? "已使用规则摘要" : UserFacingZh.Error(result.Error))}"
-                : $"✓ 解读成功 · {UserFacingZh.ProviderLabel(App.Settings.Provider)} / {App.Settings.Model}";
+                ? $"降级/部分失败：{(string.IsNullOrWhiteSpace(result.Error) ? "已使用规则摘要" : UserFacingZh.Error(result.Error))}"
+                : $"解读成功 · {UserFacingZh.ProviderLabel(App.Settings.Provider)} / {App.Settings.Model}";
             InterpretationStatusLabel.TextColor = result.IsFallback
                 ? Color.FromArgb("#E06C75")
                 : Color.FromArgb("#7FD992");

@@ -8,15 +8,14 @@
              Background="{StaticResource PageGradient}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20,24" Spacing="14">
-            <Border Stroke="{StaticResource StrokeSoft}"
-                    StrokeThickness="1"
-                    Background="{StaticResource CardGradient}"
-                    Padding="16"
-                    StrokeShape="RoundRectangle 12">
+        <VerticalStackLayout Padding="22,24,22,34"
+                             Spacing="14"
+                             MaximumWidthRequest="980"
+                             HorizontalOptions="Center">
+            <Border Style="{StaticResource TarotCardPanel}">
                 <VerticalStackLayout Spacing="8">
                     <Label x:Name="TitleLabel"
-                           FontSize="20"
+                           FontSize="22"
                            FontAttributes="Bold"
                            TextColor="{StaticResource PurpleLight}" />
                     <Label x:Name="MetaLabel"

@@ -96,4 +96,55 @@ public class ReadingSummaryTests
 
         Assert.DoesNotContain("sk-test-secret", json);
     }
+
+    [Fact]
+    public void PromptPacket_UsesCompactEnvelope()
+    {
+        var tarot = TarotEngine.Draw("past-present-future", "career", 42);
+        var packet = ReadingPromptPackets.TarotInitial(tarot, ReadingSummaries.BuildTarotRuleDigest(tarot), tarot.Question);
+        var json = ReadingPromptProtocol.BuildUserMessage(packet);
+
+        Assert.Contains("\"schema\": \"reading-request.v1\"", json);
+        Assert.Contains("\"outputSchema\": \"reading-output.v1\"", json);
+        Assert.Contains("\"computedFacts\"", json);
+        Assert.DoesNotContain("systemDirectives", json);
+        Assert.DoesNotContain("\"imageUrl\"", json);
+    }
+
+    [Fact]
+    public void PromptSystem_IncludesTemplateAndPluginDirectives()
+    {
+        var tarot = TarotEngine.Draw("past-present-future", "career", 42);
+        var packet = ReadingPromptPackets.TarotInitial(tarot, ReadingSummaries.BuildTarotRuleDigest(tarot), tarot.Question);
+        var system = ReadingPromptProtocol.BuildSystemPrompt(packet);
+
+        Assert.Contains("Template and plugin system directives", system);
+        Assert.Contains("Plugin", system);
+    }
+
+    [Fact]
+    public void PromptTemplate_MergesPluginSections()
+    {
+        var template = ReadingPromptTemplateManager.Get(
+            "bazi",
+            "initial",
+            [new OutputSectionSpec("plugin1", "插件提醒")]);
+
+        Assert.Contains(template.OutputSections, s => s.Title == "整体判断");
+        Assert.Contains(template.OutputSections, s => s.Title == "插件提醒");
+    }
+
+    [Fact]
+    public void PromptOutput_NormalizesJsonToMarkdown()
+    {
+        var raw = """
+        {"summary":"ok","sections":[{"key":"overview","title":"Overview","body":"body"}],"warnings":["watch"]}
+        """;
+
+        var text = ReadingPromptProtocol.NormalizeOutput(raw);
+
+        Assert.Contains("## 总结", text);
+        Assert.Contains("## Overview", text);
+        Assert.Contains("- watch", text);
+    }
 }

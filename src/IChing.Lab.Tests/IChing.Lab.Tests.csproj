@@ -28,10 +28,10 @@
     <ProjectReference Include="..\IChing.Lab.Inference\IChing.Lab.Inference.csproj" />
     <ProjectReference Include="..\IChing.Lab.PluginLoader\IChing.Lab.PluginLoader.csproj" />
     <ProjectReference Include="..\..\samples\OpenAiCompatibleEngine\OpenAiCompatibleEngine.csproj" />
-    <ProjectReference Include="..\..\samples\TarotEngines\TarotEngines.csproj" />
-    <ProjectReference Include="..\..\samples\LiuyaoEngines\LiuyaoEngines.csproj" />
-    <ProjectReference Include="..\..\samples\BaziEngines\BaziEngines.csproj" />
-    <ProjectReference Include="..\..\samples\CalendarEngines\CalendarEngines.csproj" />
+    <ProjectReference Include="..\TarotEngines\TarotEngines.csproj" />
+    <ProjectReference Include="..\LiuyaoEngines\LiuyaoEngines.csproj" />
+    <ProjectReference Include="..\BaziEngines\BaziEngines.csproj" />
+    <ProjectReference Include="..\CalendarEngines\CalendarEngines.csproj" />
     <ProjectReference Include="..\..\samples\SamplePlugin\SamplePlugin.csproj" />
   </ItemGroup>
 

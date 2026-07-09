@@ -8,21 +8,20 @@
              Background="{StaticResource PageGradient}">
 
     <ScrollView x:Name="MainScroll">
-        <VerticalStackLayout Padding="20,28" Spacing="18">
-            <Label Text="四元素倾向测试"
-                   FontSize="24"
-                   FontAttributes="Bold"
-                   TextColor="{StaticResource Gold}" />
-            <Label x:Name="ProgressLabel"
-                   Text="第 1 / 8 题"
-                   TextColor="{StaticResource TextSecondary}" FontSize="13" />
+        <VerticalStackLayout Padding="22,26,22,34"
+                             Spacing="18"
+                             MaximumWidthRequest="820"
+                             HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="5">
+                <Label Text="四元素倾向测试" Style="{StaticResource PageTitle}" />
+                <Label x:Name="ProgressLabel" Style="{StaticResource PageKicker}" />
+            </VerticalStackLayout>
 
-            <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}" Padding="16"
-                    StrokeShape="RoundRectangle 16">
+            <Border Style="{StaticResource TarotCardPanel}">
                 <VerticalStackLayout Spacing="12">
                     <Label x:Name="QuestionLabel"
-                           FontSize="16"
+                           FontSize="17"
+                           FontAttributes="Bold"
                            TextColor="{StaticResource TextPrimary}"
                            LineBreakMode="WordWrap" />
                     <VerticalStackLayout x:Name="OptionsHost" Spacing="8" />
@@ -31,11 +30,7 @@
 
             <Border x:Name="ResultPanel"
                     IsVisible="False"
-                    Stroke="{StaticResource Purple}"
-                    StrokeThickness="1"
-                    Background="{StaticResource CardGradient}"
-                    Padding="16"
-                    StrokeShape="RoundRectangle 16">
+                    Style="{StaticResource TarotCardPanel}">
                 <VerticalStackLayout Spacing="12">
                     <Label x:Name="ResultTitleLabel"
                            FontSize="22"
@@ -45,21 +40,15 @@
                            FontSize="14"
                            TextColor="{StaticResource TextPrimary}"
                            LineBreakMode="WordWrap" />
-                    <Button Text="保存长图"
-                            Clicked="OnSaveImageClicked"
-                            TextColor="{StaticResource Gold}"
-                            BackgroundColor="{StaticResource SurfaceAlt}"
-                            BorderColor="{StaticResource GoldDim}"
-                            BorderWidth="1"
-                            CornerRadius="24"
-                            Padding="14,12" />
-                    <Button Text="重新测试"
-                            Clicked="OnRestartClicked"
-                            TextColor="#1A1208"
-                            FontAttributes="Bold"
-                            BackgroundColor="{StaticResource Gold}"
-                            CornerRadius="24"
-                            Padding="14,12" />
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Text="保存长图"
+                                Clicked="OnSaveImageClicked"
+                                Style="{StaticResource OutlineButton}" />
+                        <Button Grid.Column="1"
+                                Text="重新测试"
+                                Clicked="OnRestartClicked"
+                                Style="{StaticResource GoldButton}" />
+                    </Grid>
                 </VerticalStackLayout>
             </Border>
         </VerticalStackLayout>

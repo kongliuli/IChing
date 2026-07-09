@@ -4,21 +4,34 @@
              x:Class="IChing.Tarot.App.Pages.FollowUpChatPage"
              Title="追问"
              Background="{StaticResource PageGradient}">
-    <Grid RowDefinitions="*,Auto" Padding="14" RowSpacing="10">
+    <Grid RowDefinitions="*,Auto"
+          Padding="16"
+          RowSpacing="10">
         <ScrollView x:Name="ChatScroll">
-            <VerticalStackLayout x:Name="ChatHost" Spacing="10" />
+            <VerticalStackLayout x:Name="ChatHost"
+                                 Spacing="10"
+                                 MaximumWidthRequest="860"
+                                 HorizontalOptions="Center" />
         </ScrollView>
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="8">
-            <Entry x:Name="QuestionEntry"
-                   Placeholder="继续追问，最多三轮"
-                   TextColor="{StaticResource TextPrimary}"
-                   BackgroundColor="{StaticResource SurfaceAlt}" />
-            <Button Grid.Column="1"
-                    x:Name="SendButton"
-                    Text="发送"
-                    Clicked="OnSendClicked"
-                    TextColor="#1A1208"
-                    BackgroundColor="{StaticResource Gold}" />
-        </Grid>
+        <Border Grid.Row="1"
+                Padding="10"
+                MaximumWidthRequest="860"
+                HorizontalOptions="Center"
+                BackgroundColor="{StaticResource Surface}"
+                Stroke="{StaticResource StrokeSoft}"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 8">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Entry x:Name="QuestionEntry"
+                       Placeholder="继续追问，最多三轮"
+                       TextColor="{StaticResource TextPrimary}"
+                       BackgroundColor="{StaticResource SurfaceAlt}" />
+                <Button Grid.Column="1"
+                        x:Name="SendButton"
+                        Text="发送"
+                        Clicked="OnSendClicked"
+                        Style="{StaticResource GoldButton}" />
+            </Grid>
+        </Border>
     </Grid>
 </ContentPage>

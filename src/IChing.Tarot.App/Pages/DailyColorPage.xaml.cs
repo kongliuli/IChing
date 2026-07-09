@@ -32,7 +32,7 @@ public partial class DailyColorPage : ContentPage
             Color = Color.FromArgb(_today.Hex),
             HeightRequest = 160,
             Margin = new Thickness(24, 8),
-            CornerRadius = 12
+            CornerRadius = 8
         });
         root.Add(ExportService.BuildTextBlock(_today.Name, _today.Hint, highlight: true));
         root.Add(ExportService.BuildFooter());

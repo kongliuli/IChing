@@ -74,10 +74,10 @@ public partial class PersonalityQuizPage : ContentPage
             {
                 Text = q.Options[i].Text,
                 TextColor = Color.FromArgb("#F5F0E8"),
-                BackgroundColor = Color.FromArgb("#221833"),
-                BorderColor = Color.FromArgb("#9A7B2C"),
+                BackgroundColor = Color.FromArgb("#2C213B"),
+                BorderColor = Color.FromArgb("#4B3B61"),
                 BorderWidth = 1,
-                CornerRadius = 12,
+                CornerRadius = 8,
                 Padding = new Thickness(12, 10)
             };
             btn.Clicked += (_, _) => OnOptionSelected(optionIndex);
@@ -153,7 +153,7 @@ public partial class PersonalityQuizPage : ContentPage
         {
             Text = bar.Title,
             FontSize = 12,
-            TextColor = Color.FromArgb("#B8AE9E")
+            TextColor = Color.FromArgb("#D8CEDF")
         });
 
         var barRow = new Microsoft.Maui.Controls.Grid
@@ -175,6 +175,14 @@ public partial class PersonalityQuizPage : ContentPage
 
         if (!string.IsNullOrEmpty(bar.RightLabel))
         {
+            var captionRow = new Microsoft.Maui.Controls.Grid
+            {
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition(GridLength.Star),
+                    new ColumnDefinition(GridLength.Star)
+                }
+            };
             var leftCaption = new Label
             {
                 Text = $"{bar.LeftLabel} {bar.LeftPercent}%",
@@ -186,15 +194,7 @@ public partial class PersonalityQuizPage : ContentPage
                 Text = $"{bar.RightLabel} {rightPct}%",
                 FontSize = 11,
                 HorizontalTextAlignment = TextAlignment.End,
-                TextColor = Color.FromArgb("#B8AE9E")
-            };
-            var captionRow = new Microsoft.Maui.Controls.Grid
-            {
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition(GridLength.Star),
-                    new ColumnDefinition(GridLength.Star)
-                }
+                TextColor = Color.FromArgb("#D8CEDF")
             };
             captionRow.Add(leftCaption);
             captionRow.Add(rightCaption);
@@ -223,10 +223,13 @@ public partial class PersonalityQuizPage : ContentPage
             {
                 Text = section.Content,
                 FontSize = 13,
-                TextColor = Color.FromArgb("#C9C0D4"),
+                TextColor = Color.FromArgb("#D8CEDF"),
                 LineBreakMode = LineBreakMode.WordWrap
             };
-            ResultSectionsHost.Add(CollapsibleSection.Create(section.Title, body, expanded: section.Title is "类型概览" or "兴趣概览" or "得分分布"));
+            ResultSectionsHost.Add(CollapsibleSection.Create(
+                section.Title,
+                body,
+                expanded: section.Title is "类型概览" or "兴趣概览" or "得分分布"));
         }
     }
 

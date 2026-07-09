@@ -1,4 +1,3 @@
-using System.Text.Json;
 using IChing.App.Services;
 using IChing.Lab.Core.Liuyao;
 using IChing.Lab.Core.Readings;
@@ -7,7 +6,6 @@ namespace IChing.App.Pages;
 
 public partial class LiuyaoPage : ContentPage
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private LiuyaoNajiaResult? _currentChart;
     private LiuyaoRuleDigest? _currentDigest;
     private string _currentSummary = string.Empty;
@@ -19,6 +17,42 @@ public partial class LiuyaoPage : ContentPage
     {
         InitializeComponent();
         MethodPicker.SelectedIndex = 0;
+        SizeChanged += (_, _) => UpdateResponsiveLayout();
+    }
+
+    private void UpdateResponsiveLayout()
+    {
+        if (double.IsNaN(Width) || Width <= 0)
+        {
+            return;
+        }
+
+        var wide = Width >= 920;
+        var margin = wide ? 96 : 32;
+        var cap = wide ? 1360 : 680;
+        PageBody.WidthRequest = Math.Min(cap, Math.Max(320, Width - margin));
+
+        ResponsiveGrid.ColumnDefinitions.Clear();
+        ResponsiveGrid.RowDefinitions.Clear();
+        if (wide)
+        {
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(new GridLength(420)));
+            ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+            ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+            Grid.SetColumn(PlaceholderPanel, 1);
+            Grid.SetRow(PlaceholderPanel, 0);
+            Grid.SetColumn(ResultPanel, 1);
+            Grid.SetRow(ResultPanel, 0);
+            return;
+        }
+
+        ResponsiveGrid.ColumnDefinitions.Add(new ColumnDefinition(GridLength.Star));
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        ResponsiveGrid.RowDefinitions.Add(new RowDefinition(GridLength.Auto));
+        Grid.SetColumn(PlaceholderPanel, 0);
+        Grid.SetRow(PlaceholderPanel, 1);
+        Grid.SetColumn(ResultPanel, 0);
+        Grid.SetRow(ResultPanel, 1);
     }
 
     private void OnCastClicked(object? sender, EventArgs e)
@@ -46,7 +80,7 @@ public partial class LiuyaoPage : ContentPage
             _currentDigest = digest;
             _currentQuestion = question;
             _currentFocus = focus;
-            _currentSummary = $"{original}，{changed}；{digest.YongShenSummary}";
+            _currentSummary = $"{original}，{changed}，{digest.YongShenSummary}";
 
             HexagramLabel.Text = $"{original} · {changed}";
             DigestLabel.Text =
@@ -54,9 +88,12 @@ public partial class LiuyaoPage : ContentPage
             LinesView.ItemsSource = chart.Lines
                 .OrderByDescending(l => l.Index)
                 .Select(l => new LineRow(
-                    $"{l.Position} · {l.YinYang}{(l.IsChanging ? " 动" : "")}",
-                    $"{l.SixKin} {l.StemBranch} {l.SixSpirit} {l.Role}".Trim()))
+                    l.Position,
+                    LineGlyph(l.YinYang, l.IsChanging),
+                    $"{l.SixKin} {l.StemBranch} {l.SixSpirit} {l.Role}".Trim(),
+                    l.IsChanging ? "动爻" : string.Empty))
                 .ToList();
+            PlaceholderPanel.IsVisible = false;
             ResultPanel.IsVisible = true;
             InterpretButton.IsEnabled = true;
 
@@ -67,6 +104,7 @@ public partial class LiuyaoPage : ContentPage
             ErrorLabel.Text = ex.Message;
             ErrorLabel.IsVisible = true;
             ResultPanel.IsVisible = false;
+            PlaceholderPanel.IsVisible = true;
             InterpretButton.IsEnabled = false;
         }
     }
@@ -89,7 +127,8 @@ public partial class LiuyaoPage : ContentPage
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
         InterpretationLabel.Text = string.Empty;
 
-        var result = await App.Remote.InterpretAsync(App.Settings, "六爻", BuildPrompt(_currentChart, _currentDigest, _currentQuestion, _currentFocus));
+        var packet = ReadingPromptPackets.LiuyaoInitial(_currentChart, _currentDigest, _currentQuestion, _currentFocus);
+        var result = await App.Remote.InterpretAsync(App.Settings, "六爻", packet);
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -141,29 +180,15 @@ public partial class LiuyaoPage : ContentPage
         }
     }
 
-    private static string BuildPrompt(
-        LiuyaoNajiaResult chart,
-        LiuyaoRuleDigest digest,
-        string? question,
-        string? focus) =>
-        $"""
-        问题：{question ?? "未填写"}
-        关注点：{focus ?? "综合"}
-
-        请用简体中文输出三段：
-        1. 卦象核心
-        2. 用神、世应、动爻判断
-        3. 可执行建议
-
-        规则摘要：
-        {JsonSerializer.Serialize(digest, JsonOptions)}
-
-        起卦结果：
-        {JsonSerializer.Serialize(chart, JsonOptions)}
-        """;
+    private static string LineGlyph(string yinYang, bool changing)
+    {
+        var yin = yinYang.Contains('阴') || yinYang.Contains("yin", StringComparison.OrdinalIgnoreCase);
+        var glyph = yin ? "━━  ━━" : "━━━━━";
+        return changing ? $"{glyph}  ○" : glyph;
+    }
 
     private static string? Blank(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-    private sealed record LineRow(string Title, string Detail);
+    private sealed record LineRow(string Position, string Glyph, string Detail, string Marker);
 }

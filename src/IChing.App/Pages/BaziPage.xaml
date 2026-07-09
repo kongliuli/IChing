@@ -2,169 +2,245 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="IChing.App.Pages.BaziPage"
+             Shell.NavBarIsVisible="False"
              Title="八字">
     <ScrollView>
-        <VerticalStackLayout Padding="20,24,20,32"
-                             Spacing="14"
-                             MaximumWidthRequest="760"
-                             HorizontalOptions="Fill">
-            <VerticalStackLayout Spacing="4">
-                <Label Text="八字"
-                       FontSize="30"
-                       FontAttributes="Bold"
-                       TextColor="{StaticResource Ink}" />
-                <Label Text="乾 坤 震 巽 坎 离 艮 兑"
-                       FontSize="12"
-                       TextColor="{StaticResource Cinnabar}" />
-                <BoxView HeightRequest="2"
-                         WidthRequest="48"
-                         HorizontalOptions="Start"
-                         Color="{StaticResource Cinnabar}" />
-            </VerticalStackLayout>
-
-            <Border Stroke="{StaticResource StrokeSoft}"
-                    StrokeThickness="1"
-                    BackgroundColor="{StaticResource Surface}"
-                    Padding="14"
-                    StrokeShape="RoundRectangle 8">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="出生信息"
-                           FontSize="13"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource Jade}" />
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Entry x:Name="YearEntry" Text="1990" Placeholder="年" Keyboard="Numeric" />
-                        <Entry x:Name="MonthEntry" Grid.Column="1" Text="5" Placeholder="月" Keyboard="Numeric" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Entry x:Name="DayEntry" Text="20" Placeholder="日" Keyboard="Numeric" />
-                        <Entry x:Name="HourEntry" Grid.Column="1" Text="10" Placeholder="时" Keyboard="Numeric" />
-                    </Grid>
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Entry x:Name="MinuteEntry" Text="0" Placeholder="分" Keyboard="Numeric" />
-                        <Picker x:Name="GenderPicker" Grid.Column="1" Title="性别">
-                            <Picker.Items>
-                                <x:String>女</x:String>
-                                <x:String>男</x:String>
-                            </Picker.Items>
-                        </Picker>
-                    </Grid>
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Entry x:Name="CityEntry" Placeholder="城市，可空" />
-                        <Entry x:Name="LongitudeEntry" Grid.Column="1" Placeholder="经度，可空" Keyboard="Numeric" />
-                    </Grid>
-                    <Entry x:Name="FocusEntry" Text="事业" Placeholder="关注点" />
-                    <Button Text="排盘"
-                            Clicked="OnCalculateClicked"
-                            TextColor="{StaticResource White}"
-                            BackgroundColor="{StaticResource Cinnabar}" />
-                    <Label x:Name="ErrorLabel"
-                           IsVisible="False"
-                           FontSize="12"
-                           TextColor="{StaticResource Danger}" />
+        <VerticalStackLayout x:Name="PageBody"
+                             Padding="22,24,22,36"
+                             Spacing="18"
+                             MaximumWidthRequest="1360"
+                             HorizontalOptions="Center">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="八字排盘" Style="{StaticResource PageTitle}" />
+                    <Label Text="天干地支 · 五行旺衰 · 用神取向"
+                           Style="{StaticResource PageKicker}" />
+                    <BoxView HeightRequest="2"
+                             WidthRequest="56"
+                             HorizontalOptions="Start"
+                             Color="{StaticResource Cinnabar}" />
                 </VerticalStackLayout>
-            </Border>
+                <Border Grid.Column="1"
+                        WidthRequest="58"
+                        HeightRequest="58"
+                        Stroke="{StaticResource Cinnabar}"
+                        StrokeThickness="2"
+                        BackgroundColor="{StaticResource Surface}"
+                        StrokeShape="RoundRectangle 8"
+                        HorizontalOptions="End">
+                    <Image Source="iching_emblem.svg"
+                           WidthRequest="42"
+                           HeightRequest="42"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+            </Grid>
 
-            <Border x:Name="ResultPanel"
-                    IsVisible="False"
-                    Stroke="{StaticResource StrokeSoft}"
-                    StrokeThickness="1"
-                    BackgroundColor="{StaticResource SurfaceRaised}"
-                    Padding="14"
-                    StrokeShape="RoundRectangle 8">
-                <VerticalStackLayout Spacing="12">
-                    <Label x:Name="BaziTitleLabel"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource Cinnabar}" />
-                    <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
-                        <Border Padding="8" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="年柱" FontSize="11" TextColor="{StaticResource Muted}" />
-                                <Label x:Name="YearPillarLabel" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                            </VerticalStackLayout>
-                        </Border>
-                        <Border Grid.Column="1" Padding="8" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="月柱" FontSize="11" TextColor="{StaticResource Muted}" />
-                                <Label x:Name="MonthPillarLabel" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                            </VerticalStackLayout>
-                        </Border>
-                        <Border Grid.Column="2" Padding="8" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="日柱" FontSize="11" TextColor="{StaticResource Muted}" />
-                                <Label x:Name="DayPillarLabel" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                            </VerticalStackLayout>
-                        </Border>
-                        <Border Grid.Column="3" Padding="8" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
-                            <VerticalStackLayout Spacing="2">
-                                <Label Text="时柱" FontSize="11" TextColor="{StaticResource Muted}" />
-                                <Label x:Name="HourPillarLabel" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
-                            </VerticalStackLayout>
-                        </Border>
-                    </Grid>
-                    <Label x:Name="BaziSummaryLabel"
-                           FontSize="13"
-                           TextColor="{StaticResource TextSecondary}" />
-                    <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
-                    <Label x:Name="YongshenLabel"
-                           FontSize="14"
-                           TextColor="{StaticResource TextPrimary}" />
-                    <Label x:Name="DaYunLabel"
-                           FontSize="12"
-                           TextColor="{StaticResource Muted}" />
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <Button x:Name="InterpretButton"
-                                Text="AI 解读"
-                                IsEnabled="False"
-                                Clicked="OnInterpretClicked"
-                                TextColor="{StaticResource White}"
-                                BackgroundColor="{StaticResource Jade}" />
-                        <ActivityIndicator x:Name="InterpretIndicator"
-                                           Grid.Column="1"
-                                           IsRunning="False"
-                                           IsVisible="False"
-                                           Color="{StaticResource Jade}" />
-                    </Grid>
-                    <Border x:Name="InterpretationPanel"
-                            IsVisible="False"
-                            Padding="12"
-                            BackgroundColor="{StaticResource Surface}"
-                            Stroke="{StaticResource StrokeSoft}"
-                            StrokeThickness="1"
-                            StrokeShape="RoundRectangle 8">
-                        <VerticalStackLayout Spacing="10">
-                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                                <Label x:Name="InterpretStatusLabel"
-                                       FontSize="12"
-                                       FontAttributes="Bold"
-                                       TextColor="{StaticResource Muted}"
-                                       VerticalOptions="Center" />
-                                <Button x:Name="ExportButton"
-                                        Grid.Column="1"
-                                        Text="导出图片"
-                                        IsVisible="False"
-                                        Clicked="OnExportClicked"
-                                        TextColor="{StaticResource White}"
-                                        BackgroundColor="{StaticResource Cinnabar}" />
-                                <Button x:Name="FollowUpButton"
-                                        Grid.Column="2"
-                                        Text="追问"
-                                        IsVisible="False"
-                                        Clicked="OnFollowUpClicked"
-                                        TextColor="{StaticResource White}"
-                                        BackgroundColor="{StaticResource Jade}" />
-                            </Grid>
-                            <Label x:Name="InterpretationLabel"
+            <Grid x:Name="ResponsiveGrid"
+                  ColumnDefinitions="420,*"
+                  RowDefinitions="Auto"
+                  ColumnSpacing="16"
+                  RowSpacing="16">
+                <Border x:Name="InputPanel"
+                        Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="12">
+                        <Label Text="出生信息" Style="{StaticResource SectionTitle}" />
+                        <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                            <Entry x:Name="YearEntry" Text="1990" Placeholder="年" Keyboard="Numeric" />
+                            <Entry x:Name="MonthEntry" Grid.Column="1" Text="5" Placeholder="月" Keyboard="Numeric" />
+                            <Entry x:Name="DayEntry" Grid.Row="1" Text="20" Placeholder="日" Keyboard="Numeric" />
+                            <Entry x:Name="HourEntry" Grid.Row="1" Grid.Column="1" Text="10" Placeholder="时" Keyboard="Numeric" />
+                            <Entry x:Name="MinuteEntry" Grid.Row="2" Text="0" Placeholder="分" Keyboard="Numeric" />
+                            <Picker x:Name="GenderPicker" Grid.Row="2" Grid.Column="1" Title="性别">
+                                <Picker.Items>
+                                    <x:String>女</x:String>
+                                    <x:String>男</x:String>
+                                </Picker.Items>
+                            </Picker>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Entry x:Name="CityEntry" Placeholder="城市，可空" />
+                            <Entry x:Name="LongitudeEntry" Grid.Column="1" Placeholder="经度，可空" Keyboard="Numeric" />
+                        </Grid>
+                        <Entry x:Name="FocusEntry" Text="事业" Placeholder="关注点，如事业、关系、财运" />
+
+                        <Button Text="排盘"
+                                Clicked="OnCalculateClicked"
+                                Style="{StaticResource PrimaryButton}" />
+                        <Label x:Name="ErrorLabel"
+                               IsVisible="False"
+                               FontSize="12"
+                               TextColor="{StaticResource Danger}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="PlaceholderPanel"
+                        Grid.Column="1"
+                        Style="{StaticResource RaisedCard}">
+                    <VerticalStackLayout Spacing="16">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="命盘预览"
+                                   FontSize="23"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Cinnabar}" />
+                            <Label Text="填写出生信息后生成四柱、五行、用神与大运摘要。"
                                    FontSize="13"
-                                   TextColor="{StaticResource TextPrimary}" />
-                            <WebView x:Name="ReadingWebView"
-                                     IsVisible="False"
-                                     HeightRequest="760" />
+                                   TextColor="{StaticResource TextSecondary}" />
                         </VerticalStackLayout>
-                    </Border>
-                </VerticalStackLayout>
-            </Border>
+
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="年柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="月柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="2" Spacing="4">
+                                <Label Text="日柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="3" Spacing="4">
+                                <Label Text="时柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                <Label Text="—" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" Color="{StaticResource StrokeSoft}" />
+
+                        <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="10">
+                            <Grid ColumnDefinitions="78,*" ColumnSpacing="10">
+                                <Label Text="核心" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="日主、月令、格局" TextColor="{StaticResource TextPrimary}" />
+                            </Grid>
+                            <Grid Grid.Row="1" ColumnDefinitions="78,*" ColumnSpacing="10">
+                                <Label Text="取用" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="用神、忌神、五行平衡" TextColor="{StaticResource TextPrimary}" />
+                            </Grid>
+                            <Grid Grid.Row="2" ColumnDefinitions="78,*" ColumnSpacing="10">
+                                <Label Text="输出" Style="{StaticResource Caption}" />
+                                <Label Grid.Column="1" Text="本地排盘后可追加 AI 解读" TextColor="{StaticResource TextPrimary}" />
+                            </Grid>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border x:Name="ResultPanel"
+                        Grid.Column="1"
+                        IsVisible="False"
+                        Style="{StaticResource RaisedCard}">
+                    <VerticalStackLayout Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="2">
+                                <Label x:Name="BaziTitleLabel"
+                                       FontSize="23"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Cinnabar}" />
+                                <Label x:Name="BaziSummaryLabel"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextSecondary}" />
+                            </VerticalStackLayout>
+                            <Border Grid.Column="1"
+                                    Padding="10,6"
+                                    BackgroundColor="{StaticResource SurfaceAlt}"
+                                    Stroke="{StaticResource StrokeSoft}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8"
+                                    VerticalOptions="Start">
+                                <Label x:Name="DayMasterBadge"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Jade}" />
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                            <Border Padding="10" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                                <VerticalStackLayout Spacing="3">
+                                    <Label Text="年柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                    <Label x:Name="YearPillarLabel" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="1" Padding="10" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                                <VerticalStackLayout Spacing="3">
+                                    <Label Text="月柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                    <Label x:Name="MonthPillarLabel" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="2" Padding="10" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                                <VerticalStackLayout Spacing="3">
+                                    <Label Text="日柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                    <Label x:Name="DayPillarLabel" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                            <Border Grid.Column="3" Padding="10" BackgroundColor="{StaticResource SurfaceAlt}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                                <VerticalStackLayout Spacing="3">
+                                    <Label Text="时柱" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                                    <Label x:Name="HourPillarLabel" FontSize="22" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+
+                        <Border Padding="12" BackgroundColor="{StaticResource Surface}" Stroke="{StaticResource StrokeSoft}" StrokeThickness="1" StrokeShape="RoundRectangle 8">
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="用神与运势" Style="{StaticResource SectionTitle}" />
+                                <Label x:Name="YongshenLabel" FontSize="14" TextColor="{StaticResource TextPrimary}" />
+                                <Label x:Name="DaYunLabel" FontSize="12" TextColor="{StaticResource Muted}" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <Button x:Name="InterpretButton"
+                                    Text="AI 解读"
+                                    IsEnabled="False"
+                                    Clicked="OnInterpretClicked"
+                                    Style="{StaticResource JadeButton}" />
+                            <ActivityIndicator x:Name="InterpretIndicator"
+                                               Grid.Column="1"
+                                               IsRunning="False"
+                                               IsVisible="False"
+                                               Color="{StaticResource Jade}" />
+                        </Grid>
+
+                        <Border x:Name="InterpretationPanel"
+                                IsVisible="False"
+                                Padding="14"
+                                BackgroundColor="{StaticResource Surface}"
+                                Stroke="{StaticResource StrokeSoft}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 8">
+                            <VerticalStackLayout Spacing="10">
+                                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                    <Label x:Name="InterpretStatusLabel"
+                                           Style="{StaticResource Caption}"
+                                           FontAttributes="Bold"
+                                           VerticalOptions="Center" />
+                                    <Button x:Name="ExportButton"
+                                            Grid.Column="1"
+                                            Text="导出图片"
+                                            IsVisible="False"
+                                            Clicked="OnExportClicked"
+                                            Style="{StaticResource PrimaryButton}" />
+                                    <Button x:Name="FollowUpButton"
+                                            Grid.Column="2"
+                                            Text="追问"
+                                            IsVisible="False"
+                                            Clicked="OnFollowUpClicked"
+                                            Style="{StaticResource JadeButton}" />
+                                </Grid>
+                                <Label x:Name="InterpretationLabel"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <WebView x:Name="ReadingWebView"
+                                         IsVisible="False"
+                                         HeightRequest="760" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

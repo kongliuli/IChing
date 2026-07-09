@@ -1,11 +1,9 @@
-using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using IChing.Lab.Core.Tarot;
 
 namespace IChing.Tarot.App.Services;
 
-/// <summary>面向用户的中文文案：错误信息、解读标题、牌面行等。</summary>
 public static partial class UserFacingZh
 {
     private static readonly (string En, string Zh)[] HeadingMap =
@@ -34,7 +32,6 @@ public static partial class UserFacingZh
         }
 
         var text = raw.Trim();
-
         if (int.TryParse(text, out var codeOnly) && codeOnly is >= 100 and <= 599)
         {
             return HttpStatus(codeOnly);
@@ -104,8 +101,7 @@ public static partial class UserFacingZh
         }
 
         t = t.Replace("Upright", "正位", StringComparison.OrdinalIgnoreCase)
-            .Replace("Reversed", "逆位", StringComparison.OrdinalIgnoreCase)
-            .Replace(" · ", " · ", StringComparison.Ordinal);
+            .Replace("Reversed", "逆位", StringComparison.OrdinalIgnoreCase);
 
         if (reading is not null)
         {
@@ -166,10 +162,10 @@ public static partial class UserFacingZh
         }
         catch
         {
-            // ponytail: 非 JSON 则走短语映射
+            // ponytail: non-json error bodies fall through to phrase mapping.
         }
 
-        return TranslateKnownPhrase(body.Length > 120 ? body[..120] + "…" : body);
+        return TranslateKnownPhrase(body.Length > 120 ? body[..120] + "..." : body);
     }
 
     private static string TranslateKnownPhrase(string text)
@@ -241,13 +237,7 @@ public static partial class UserFacingZh
             return "连接测试成功";
         }
 
-        // 已是中文为主则原样返回
-        if (ContainsCjk(t))
-        {
-            return t;
-        }
-
-        return $"请求失败：{t}";
+        return ContainsCjk(t) ? t : $"请求失败：{t}";
     }
 
     private static bool ContainsCjk(string s) =>

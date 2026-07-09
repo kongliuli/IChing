@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\src\IChing.Lab.Core\IChing.Lab.Core.csproj" />
-    <ProjectReference Include="..\..\TarotEngines\TarotEngines.csproj" />
+    <ProjectReference Include="..\..\..\src\TarotEngines\TarotEngines.csproj" />
   </ItemGroup>
 
 </Project>

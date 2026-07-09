@@ -47,6 +47,31 @@ public sealed class LocalSessionStore
         return sessionId;
     }
 
+    public object? GetSessionChart(string sessionId)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT domain, chart_json FROM sessions WHERE session_id = $id LIMIT 1;";
+        cmd.Parameters.AddWithValue("$id", sessionId);
+        using var reader = cmd.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        return SessionChartLoader.Deserialize(reader.GetString(0), reader.GetString(1));
+    }
+
+    public void SetLabSessionId(string sessionId, string labSessionId)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "UPDATE sessions SET lab_session_id = $lab WHERE session_id = $id;";
+        cmd.Parameters.AddWithValue("$lab", labSessionId);
+        cmd.Parameters.AddWithValue("$id", sessionId);
+        cmd.ExecuteNonQuery();
+    }
+
     public FollowUpSessionSeed? GetFollowUpSeed(string sessionId)
     {
         using var conn = Open();
@@ -165,6 +190,25 @@ public sealed class LocalSessionStore
               created_at TEXT NOT NULL);
             """;
         cmd.ExecuteNonQuery();
+        EnsureLabSessionColumn(conn);
+    }
+
+    private static void EnsureLabSessionColumn(SqliteConnection conn)
+    {
+        using var info = conn.CreateCommand();
+        info.CommandText = "PRAGMA table_info(sessions);";
+        using var reader = info.ExecuteReader();
+        while (reader.Read())
+        {
+            if (string.Equals(reader.GetString(1), "lab_session_id", StringComparison.Ordinal))
+            {
+                return;
+            }
+        }
+
+        using var alter = conn.CreateCommand();
+        alter.CommandText = "ALTER TABLE sessions ADD COLUMN lab_session_id TEXT;";
+        alter.ExecuteNonQuery();
     }
 
     private void TrimSessions(SqliteConnection conn)

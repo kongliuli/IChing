@@ -184,6 +184,14 @@ public partial class BaziPage : ContentPage
             _currentDigest,
             input,
             _currentInterpretation);
+        await FollowUpSessionRegistrar.RegisterLabIfNeededAsync(
+            App.Settings,
+            sessionId,
+            "bazi",
+            App.Settings.InterpretTier,
+            input,
+            _currentInterpretation,
+            _currentChart);
         await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("八字追问", "bazi", sessionId)));
     }
 

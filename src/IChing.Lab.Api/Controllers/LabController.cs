@@ -1,6 +1,7 @@
 using System.Text.Json;
 using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Abstractions.Prompts;
+using IChing.Lab.Abstractions.Readings;
 using IChing.Lab.Api.Contracts;
 using IChing.Lab.Api.Services;
 using IChing.Lab.Core.Bazi;
@@ -103,11 +104,36 @@ public partial class LabController : ControllerBase
     }
 
     [HttpPost("bazi/interpret")]
-    public IActionResult BaziInterpret([FromBody] BaziInterpretRequest req)
+    [Obsolete("Use POST /lab/bazi/read?tier=1")]
+    public async Task<IActionResult> BaziInterpret([FromBody] BaziInterpretRequest req)
     {
-        var (chart, engineId) = _charts.CalculateBazi(LabBaziMapper.ToInput(req));
-        var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 256);
-        return Ok(new { chart, interpretation = result, engine = new { paipan = engineId } });
+        Response.Headers.Append("Deprecation", "true");
+        Response.Headers.Append("Link", "</lab/bazi/read?tier=1>; rel=\"successor-version\"");
+        var read = await _reads.ExecuteBaziRead(1, new BaziReadRequest(
+            req.Year, req.Month, req.Day, req.Hour,
+            req.Minute, req.Second, req.Longitude, req.City, req.Gender, req.Sect,
+            req.FlowYear, req.FlowMonth, req.FlowCalendarMonth, req.FlowDay,
+            req.Focus, req.MaxTokens));
+        if (read is not OkObjectResult ok || ok.Value is not ReadingEnvelopeV2 envelope)
+        {
+            return read;
+        }
+
+        var output = envelope.Exchange.Output;
+        var text = output?.Structured?.Summary
+                   ?? output?.RawText
+                   ?? envelope.Tier0Preview.OneLiner;
+        return Ok(new
+        {
+            chart = envelope.Chart,
+            interpretation = new
+            {
+                engine = output?.EngineId ?? "iching-lab",
+                text,
+                isFallback = output?.IsFallback ?? false
+            },
+            engine = new { paipan = output?.EngineId ?? "iching-lab" }
+        });
     }
 
     [HttpPost("bazi/hepan")]
@@ -126,10 +152,15 @@ public partial class LabController : ControllerBase
     public IActionResult Cities() => Ok(CityLookup.List());
 
     [HttpPost("interpret")]
+    [Obsolete("Use POST /lab/{domain}/read?tier=1")]
     public IActionResult Interpret([FromBody] InterpretRequest req)
     {
-        var result = _interpretation.Interpret(req.Chart, req.Focus, req.MaxTokens ?? 256);
-        return Ok(result);
+        Response.Headers.Append("Deprecation", "true");
+        return StatusCode(410, new
+        {
+            error = "deprecated",
+            use = "POST /lab/bazi/read?tier=1 (or liuyao/tarot read endpoints)"
+        });
     }
 
     [HttpGet("interpret/status")]
@@ -167,11 +198,12 @@ public partial class LabController : ControllerBase
         _reads.ExecuteTarotRead(tier, req);
 
     [HttpPost("tarot/interpret")]
-    public IActionResult TarotInterpret([FromBody] TarotDrawRequest req)
+    [Obsolete("Use POST /lab/tarot/read?tier=0")]
+    public async Task<IActionResult> TarotInterpret([FromBody] TarotDrawRequest req)
     {
-        var (reading, engineId) = _charts.DrawTarotReading(req.SpreadId, req.Question, req.Seed);
-        var narrative = TarotNarrative.Build(reading);
-        return Ok(new { reading, narrative, engine = new { paipan = engineId } });
+        Response.Headers.Append("Deprecation", "true");
+        Response.Headers.Append("Link", "</lab/tarot/read?tier=0>; rel=\"successor-version\"");
+        return await _reads.ExecuteTarotRead(0, new TarotReadRequest(req.SpreadId, req.Question, req.Seed, null));
     }
 
     [HttpGet("tarot/spreads")]

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Readings;
 using IChing.Lab.Api.Contracts;
@@ -11,6 +12,7 @@ namespace IChing.Lab.Api.Services;
 public sealed class LabChatService
 {
     private const int MaxSessions = 100;
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly ConcurrentDictionary<string, ServerChatSession> _sessions = new();
     private readonly LabReadService _reads;
     private readonly ChartInterpretationOrchestrator _orchestration;
@@ -60,6 +62,7 @@ public sealed class LabChatService
         TrimSessions();
         var sessionId = Guid.NewGuid().ToString("N");
         var structured = ReadingOutputParser.TryParseStructured(req.InitialOutput, req.Domain);
+        var chartJson = req.Chart is null ? null : JsonSerializer.Serialize(req.Chart, JsonOptions);
         _sessions[sessionId] = new ServerChatSession(
             sessionId,
             req.Domain,
@@ -69,7 +72,8 @@ public sealed class LabChatService
             structured,
             Guid.NewGuid().ToString("N"),
             [],
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            chartJson);
         return new OkObjectResult(new { sessionId });
     }
 
@@ -149,5 +153,6 @@ public sealed class LabChatService
         ReadingStructuredOutput? InitialStructured,
         string LastExchangeId,
         IReadOnlyList<DialogueTurn> History,
-        DateTimeOffset CreatedAt);
+        DateTimeOffset CreatedAt,
+        string? ChartJson);
 }

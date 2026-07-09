@@ -277,6 +277,14 @@ public partial class DrawPage : ContentPage
             null,
             input,
             _interpretationRaw);
+        await FollowUpSessionRegistrar.RegisterLabIfNeededAsync(
+            App.Settings,
+            sessionId,
+            "tarot",
+            App.Settings.InterpretTier,
+            input,
+            _interpretationRaw,
+            _currentReading);
         await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("塔罗追问", "tarot", sessionId)));
     }
 

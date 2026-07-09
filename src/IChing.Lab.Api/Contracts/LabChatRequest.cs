@@ -11,6 +11,7 @@ public sealed record LabChatRequest(
     int? MaxTokens = null,
     ExchangeInput? Input = null,
     string? InitialOutput = null,
+    object? Chart = null,
     BaziReadRequest? Bazi = null,
     LiuyaoReadRequest? Liuyao = null,
     TarotReadRequest? Tarot = null);

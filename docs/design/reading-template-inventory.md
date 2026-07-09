@@ -47,3 +47,7 @@
 - [x] 追问 `ReadingExchange` + `ExchangePromptAdapter.ToFollowUpPacket`
 - [x] Lab `POST /lab/chat`（register / initial / followup）
 - [x] Tarot App 追问 Exchange 化（`LocalSessionStore` + `ExchangePromptAdapter`）
+- [x] 追问 HTML 渲染（`FollowUpReadingPresenter` + session chart）
+- [x] 测评页 Producer HTML（`QuizReadingProducerBridge`）
+- [x] Legacy interpret → read 端点 / 410；`Orchestrator.Interpret` 模板化
+- [x] App↔Lab session register（`ReadingSessionBridge` + chart）

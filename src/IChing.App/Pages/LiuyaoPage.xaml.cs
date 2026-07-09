@@ -182,6 +182,14 @@ public partial class LiuyaoPage : ContentPage
             _currentDigest,
             input,
             _currentInterpretation);
+        await FollowUpSessionRegistrar.RegisterLabIfNeededAsync(
+            App.Settings,
+            sessionId,
+            "liuyao",
+            App.Settings.InterpretTier,
+            input,
+            _currentInterpretation,
+            _currentChart);
         await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("六爻追问", "liuyao", sessionId)));
     }
 

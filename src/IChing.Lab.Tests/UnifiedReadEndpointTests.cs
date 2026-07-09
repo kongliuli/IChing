@@ -69,6 +69,28 @@ public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactor
     }
 
     [Fact]
+    public async Task LabChat_RegisterWithChart_AcceptsSession()
+    {
+        var register = await _client.PostAsJsonAsync("/lab/chat", new
+        {
+            mode = "register",
+            domain = "tarot",
+            tier = 1,
+            input = new
+            {
+                question = "复合?",
+                focus = (string?)null,
+                computedFacts = new[] { "spread: 三张" },
+                ruleDigest = new[] { "含义" },
+                pluginContext = Array.Empty<object>()
+            },
+            initialOutput = "初始",
+            chart = new { spreadTitleZh = "过去现在未来", positions = Array.Empty<object>() }
+        });
+        Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+    }
+
+    [Fact]
     public async Task CreditsConsume_WhenAccountsDisabled_ReturnsOkSkipped()
     {
         var response = await _client.PostAsJsonAsync(

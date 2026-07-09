@@ -3,6 +3,7 @@ using IChing.Lab.Abstractions.Readings;
 using IChing.Lab.Client;
 using IChing.Lab.Core.Integrations;
 using IChing.Lab.Core.Readings;
+using IChing.Lab.Presentation;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace IChing.App.Pages;
@@ -11,6 +12,7 @@ public partial class FollowUpChatPage : ContentPage
 {
     private readonly FollowUpChatArgs _args;
     private readonly FollowUpSessionSeed _seed;
+    private readonly object? _chart;
     private readonly List<DialogueTurn> _history = [];
     private ReadingStructuredOutput? _initialStructured;
     private int _rounds;
@@ -23,6 +25,7 @@ public partial class FollowUpChatPage : ContentPage
         var seed = App.Sessions.GetFollowUpSeed(args.SessionId)
                    ?? throw new InvalidOperationException($"session not found: {args.SessionId}");
         _seed = seed;
+        _chart = App.Sessions.GetSessionChart(args.SessionId);
         _initialStructured = ReadingOutputParser.TryParseStructured(seed.InitialOutputJson, seed.Domain);
         var preview = ExchangeContextCompactor.BuildFollowUpContext(seed.Input, _initialStructured, [], null);
         AddBubble("当前上下文", preview, incoming: true);
@@ -86,6 +89,7 @@ public partial class FollowUpChatPage : ContentPage
         }
 
         var body = raw.ToString();
+        UpgradeBubbleToHtml(answer, FollowUpReadingPresenter.ToDocument(_args.Domain, _seed.Tier, _seed.Input, _chart, body));
         _history.Add(new DialogueTurn("user", text));
         _history.Add(new DialogueTurn("assistant", body));
         App.Sessions.AppendExchange(_args.SessionId, new StoredExchange(
@@ -100,6 +104,21 @@ public partial class FollowUpChatPage : ContentPage
 
         SendButton.IsEnabled = _rounds < 3;
         QuestionEntry.IsEnabled = _rounds < 3;
+    }
+
+    private static void UpgradeBubbleToHtml(Label label, string html)
+    {
+        if (label.Parent is not VerticalStackLayout layout)
+        {
+            return;
+        }
+
+        label.IsVisible = false;
+        layout.Children.Add(new WebView
+        {
+            HeightRequest = 420,
+            Source = new HtmlWebViewSource { Html = html }
+        });
     }
 
     private Label AddBubble(string title, string text, bool incoming)

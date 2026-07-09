@@ -116,8 +116,13 @@ public partial class PersonalityQuizPage : ContentPage
         ResultCodeLabel.Text = _result.Code;
         ResultTitleLabel.Text = _result.Title;
         ResultSummaryLabel.Text = _result.Summary;
-        RenderDimensionBars(_result.DimensionBars);
-        RenderSections(_result.Sections);
+        ResultWebView.Source = new HtmlWebViewSource
+        {
+            Html = QuizReadingProducerBridge.ToHtml(_result, _quiz.Scoring)
+        };
+        ResultWebView.IsVisible = true;
+        DimensionBarsHost.IsVisible = false;
+        ResultSectionsHost.IsVisible = false;
         ResultPanel.IsVisible = true;
         ProgressLabel.Text = "测评完成";
         await MainScroll.ScrollToAsync(ResultPanel, ScrollToPosition.Start, true);
@@ -240,6 +245,9 @@ public partial class PersonalityQuizPage : ContentPage
         _result = null;
         DimensionBarsHost.Children.Clear();
         ResultSectionsHost.Children.Clear();
+        ResultWebView.IsVisible = false;
+        DimensionBarsHost.IsVisible = true;
+        ResultSectionsHost.IsVisible = true;
         ShowQuestion();
     }
 

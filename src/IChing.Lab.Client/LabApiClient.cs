@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using IChing.Lab.Abstractions.Readings;
 
 namespace IChing.Lab.Client;
 
@@ -77,5 +78,44 @@ public sealed class LabApiClient
         {
             return false;
         }
+    }
+
+    public static async Task<string?> RegisterChatSessionAsync(
+        string baseUrl,
+        string domain,
+        int tier,
+        ExchangeInput input,
+        string? initialOutput,
+        object? chart,
+        string? bearerToken = null,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{baseUrl.TrimEnd('/')}/lab/chat";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(new
+            {
+                mode = "register",
+                domain,
+                tier,
+                input,
+                initialOutput,
+                chart
+            })
+        };
+        if (!string.IsNullOrWhiteSpace(bearerToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+        }
+
+        using var response = await SharedHttp.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+        return doc.RootElement.TryGetProperty("sessionId", out var id) ? id.GetString() : null;
     }
 }

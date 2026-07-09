@@ -57,6 +57,9 @@
                                FontSize="14"
                                TextColor="{StaticResource TextPrimary}"
                                LineBreakMode="WordWrap" />
+                        <WebView x:Name="ResultWebView"
+                                 IsVisible="False"
+                                 HeightRequest="480" />
                         <VerticalStackLayout x:Name="DimensionBarsHost" Spacing="10" />
                         <VerticalStackLayout x:Name="ResultSectionsHost" Spacing="4" />
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">

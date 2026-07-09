@@ -183,21 +183,41 @@ public sealed class ChartInterpretationOrchestrator
     }
 
     /// <summary>
-    /// 单 pass 解读：构建 prompt → 调用降级链生成，按 plugins:fallbackChain 顺序自动尝试各引擎。
+    /// 单 pass 解读：走 bazi-tier1-default 模板 + JSON v2 契约；无 builder 时降级为紧凑 Qwen prompt。
     /// </summary>
     public InterpretResult Interpret(object chartJson, string? focus = null, int maxTokens = 256)
     {
-        var chart = JsonSerializer.Serialize(CompactForPrompt(chartJson));
-        var prompt = QwenChatTemplate.Wrap(
-            "你是命理解读助手。以下命盘由系统计算，请勿修改干支数据。",
-            $"""
-            请用中文写一段不超过200字的解读。
-            关注角度：{focus ?? "综合"}
-            命盘JSON：
-            {chart}
-            """);
+        const string domain = "bazi";
+        var templateId = IChing.Lab.Core.Readings.Templates.ReadingTemplateRegistry.ResolveInitial(domain, 1).TemplateId;
+        var builder = SelectPromptBuilder(templateId);
+        var compact = CompactForPrompt(chartJson);
+        string promptText;
+        if (builder is not null)
+        {
+            var input = new IChing.Lab.Abstractions.Readings.ExchangeInput(null, focus, [], [], []);
+            var exchange = IChing.Lab.Core.Readings.ReadingExchangeFactory.CreateInitial(domain, 1, input, null, templateId);
+            var ctx = IChing.Lab.Core.Readings.ExchangePromptAdapter.FromExchange(exchange, compact) with { MaxTokens = maxTokens };
+            promptText = IChing.Lab.Core.Readings.ReadingJsonOutputContract.Append(
+                domain,
+                builder.Build(ctx).PromptText,
+                templateId);
+        }
+        else
+        {
+            var chart = JsonSerializer.Serialize(compact);
+            promptText = IChing.Lab.Core.Readings.ReadingJsonOutputContract.Append(
+                domain,
+                QwenChatTemplate.Wrap(
+                    "你是命理解读助手。以下命盘由系统计算，请勿修改干支数据。",
+                    $"""
+                    关注角度：{focus ?? "综合"}
+                    命盘JSON：
+                    {chart}
+                    """),
+                templateId);
+        }
 
-        var gen = GenerateWithFallbackAsync(prompt, new GenerateOptions(MaxTokens: maxTokens), CancellationToken.None)
+        var gen = GenerateWithFallbackAsync(promptText, new GenerateOptions(MaxTokens: maxTokens), CancellationToken.None)
             .GetAwaiter().GetResult();
         return new InterpretResult(gen.EngineId, gen.Text, gen.IsFallback);
     }

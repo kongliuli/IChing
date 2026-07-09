@@ -1,8 +1,11 @@
+using IChing.Lab.Core.Integrations;
+
 namespace IChing.App.Services;
 
-public sealed class AppSettings
+public sealed class AppSettings : IOpenAiChatCredentials
 {
     public const string DefaultBaseUrl = "https://api.deepseek.com/v1";
+    public const string DefaultLabApiUrl = "http://localhost:5000";
 
     public string Provider
     {
@@ -28,6 +31,30 @@ public sealed class AppSettings
         set => Preferences.Default.Set("iching_api_key", value);
     }
 
+    public string LabApiUrl
+    {
+        get => Preferences.Default.Get("iching_lab_api_url", DefaultLabApiUrl);
+        set => Preferences.Default.Set("iching_lab_api_url", value);
+    }
+
+    public bool UseLabApi
+    {
+        get => Preferences.Default.Get("iching_use_lab_api", false);
+        set => Preferences.Default.Set("iching_use_lab_api", value);
+    }
+
+    public int InterpretTier
+    {
+        get => Preferences.Default.Get("iching_interpret_tier", 1);
+        set => Preferences.Default.Set("iching_interpret_tier", Math.Clamp(value, 0, 2));
+    }
+
+    public string AuthToken
+    {
+        get => Preferences.Default.Get("iching_auth_token", string.Empty);
+        set => Preferences.Default.Set("iching_auth_token", value);
+    }
+
     public double Temperature
     {
         get => Preferences.Default.Get("iching_temperature", 0.6);
@@ -41,6 +68,8 @@ public sealed class AppSettings
     }
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey);
+
+    public bool IsLabConfigured => !string.IsNullOrWhiteSpace(LabApiUrl);
 
     public void ApplyProviderPreset(string provider)
     {

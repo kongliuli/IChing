@@ -1,9 +1,5 @@
 using IChing.Lab.Abstractions.Engines;
-using IChing.Lab.Core.Engines;
-using IChing.Lab.Engines.Bazi;
-using IChing.Lab.Engines.Calendar;
-using IChing.Lab.Engines.Liuyao;
-using IChing.Lab.Engines.Tarot;
+using IChing.Lab.Composition;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IChing.Lab.Tests;
@@ -11,32 +7,16 @@ namespace IChing.Lab.Tests;
 /// <summary>
 /// 排盘引擎发现测试：验证四域（bazi/liuyao/tarot/calendar）各至少 5 个 IChartEngine 注册，
 /// 且每条引擎元数据的 source / algorithmBasis 非空，确保插件模块装配完整、metadata 已填充。
-/// 通过直接构造各 Module 的 ServiceProvider 装配 4 个内置包装器 + 5 个插件引擎，避免启动完整 Web 宿主。
 /// </summary>
 public class EngineDiscoveryTests
 {
-    /// <summary>
-    /// 装配全部已注册的 IChartEngine：4 个内置包装器（BaziChartEngine/LiuyaoChartEngine/TarotChartEngine/CalendarEngine）
-    /// 加上 4 个域各 5 个插件引擎（BaziEnginesModule / LiuyaoEnginesModule / TarotEnginesModule / CalendarEnginesModule），
-    /// 共 24 个 IChartEngine 实例。
-    /// </summary>
     private static IReadOnlyList<IChartEngine> BuildAllEngines()
     {
         var services = new ServiceCollection();
-        // 4 个内置包装器（与 Program.cs 注册顺序一致）
-        services.AddSingleton<IChartEngine, BaziChartEngine>();
-        services.AddSingleton<IChartEngine, LiuyaoChartEngine>();
-        services.AddSingleton<IChartEngine, TarotChartEngine>();
-        services.AddSingleton<IChartEngine, CalendarEngine>();
-        // 4 个域各 5 个插件引擎
-        new BaziEnginesModule().Register(services);
-        new LiuyaoEnginesModule().Register(services);
-        new TarotEnginesModule().Register(services);
-        new CalendarEnginesModule().Register(services);
+        services.AddLabChartEngines();
         return services.BuildServiceProvider().GetRequiredService<IEnumerable<IChartEngine>>().ToList();
     }
 
-    /// <summary>四域各至少 5 条 IChartEngine 注册（实际每域 6 条：1 内置 + 5 插件）。</summary>
     [Fact]
     public void AllDomains_HaveAtLeastFiveEngines()
     {
@@ -55,7 +35,6 @@ public class EngineDiscoveryTests
         Assert.True(byDomain["calendar"].Count >= 5, $"calendar 域引擎数应 ≥5，实际 {byDomain["calendar"].Count}");
     }
 
-    /// <summary>每条引擎元数据的 source / algorithmBasis 字段非空，确保 /lab/engines 返回完整 metadata。</summary>
     [Fact]
     public void EveryEngine_MetadataSourceAndAlgorithmBasis_NonEmpty()
     {
@@ -71,7 +50,6 @@ public class EngineDiscoveryTests
         }
     }
 
-    /// <summary>每条引擎的 Domain / EngineId 字段非空，且同域 EngineId 唯一。</summary>
     [Fact]
     public void EveryEngine_DomainAndEngineId_UniquePerDomain()
     {

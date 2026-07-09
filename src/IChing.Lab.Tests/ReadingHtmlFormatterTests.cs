@@ -1,4 +1,4 @@
-using IChing.Lab.Core.Readings;
+using IChing.Lab.Presentation;
 using IChing.Lab.Core.Tarot;
 
 namespace IChing.Lab.Tests;

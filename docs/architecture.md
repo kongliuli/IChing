@@ -5,7 +5,10 @@
 ```text
 src/
   IChing.Lab.Abstractions/   公共插件和引擎契约
-  IChing.Lab.Core/           八字、六爻、塔罗、日历、规则引擎
+  IChing.Lab.Core/           八字、六爻、塔罗、日历、规则引擎（无 HTML 呈现）
+  IChing.Lab.Composition/    Lab DI 装配（ChartEngines + Inference + Plugins）
+  IChing.Lab.Presentation/   解读 HTML 呈现（ReadingHtmlFormatter）
+  IChing.Lab.Client/         MAUI 用 Lab Tier API 轻量 HTTP 客户端
   BaziEngines/               官方八字排盘引擎
   LiuyaoEngines/             官方六爻排盘引擎
   TarotEngines/              官方塔罗引擎
@@ -13,8 +16,11 @@ src/
   IChing.Lab.PluginLoader/   外部插件加载
   IChing.Lab.Inference/      Prompt、ONNX、本地 fallback、推理编排
   IChing.Lab.Api/            HTTP API、Blazor Demo、规则插件管理
-  IChing.App/                八字 + 六爻 MAUI App
-  IChing.Tarot.App/          塔罗 MAUI App
+    Controllers/LabController.cs   薄路由层（~180 行）
+    Contracts/                     API DTO
+    Services/                      排盘查询、解读编排、健康探针
+  IChing.App/                八字 + 六爻 MAUI App（排盘 Core；解读 Lab API 或远程 LLM）
+  IChing.Tarot.App/          塔罗 MAUI App（Lab API 或远程 LLM）
   IChing.Lab.Tests/          测试
 ```
 
@@ -41,4 +47,7 @@ API 层提供运行时启停与权重调整，并保存到 `App_Data/rule-engine
 
 - 八字和六爻合并在 `IChing.App`，避免维护两个重复 App。
 - 塔罗保留独立 App，因为它有探索页、牌面资源、人格测评和导出等独立体验。
-- 旧 WPF `IChing.Desktop` 暂停，默认跳过构建。
+- MAUI App 排盘仍走 Core 静态 API；Tier 1+ 解读优先 `IChing.Lab.Client` 调用 Lab `/lab/{domain}/read`，失败或未配置时降级远程 OpenAI 兼容 HTTP。Follow-up 追问仍走直连 LLM。
+- Lab.Api Tier 1+ 可通过 `Accounts:Enabled` 在解读前调用 Accounts `/api/credits/consume`（默认关闭）。
+- Lab.Api 通过 `IChing.Lab.Composition` 统一装配引擎、推理与外部插件。
+- 旧 WPF `IChing.Desktop` 暂停，默认不参与构建。

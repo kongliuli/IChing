@@ -12,6 +12,8 @@ public partial class LiuyaoPage : ContentPage
     private string? _currentQuestion;
     private string? _currentFocus;
     private string? _currentInterpretation;
+    private int? _currentSeed;
+    private string _currentMethod = "coin";
 
     public LiuyaoPage()
     {
@@ -67,7 +69,9 @@ public partial class LiuyaoPage : ContentPage
         try
         {
             var seed = int.TryParse(SeedEntry.Text, out var parsed) ? parsed : (int?)null;
-            var chart = MethodPicker.SelectedIndex == 1
+            _currentMethod = MethodPicker.SelectedIndex == 1 ? "time" : "coin";
+            _currentSeed = seed;
+            var chart = _currentMethod == "time"
                 ? LiuyaoNajiaService.Time(DateTimeOffset.Now)
                 : LiuyaoNajiaService.Coin(DateTimeOffset.Now, seed);
             var question = Blank(QuestionEntry.Text);
@@ -128,7 +132,14 @@ public partial class LiuyaoPage : ContentPage
         InterpretationLabel.Text = string.Empty;
 
         var packet = ReadingPromptPackets.LiuyaoInitial(_currentChart, _currentDigest, _currentQuestion, _currentFocus);
-        var result = await App.Remote.InterpretAsync(App.Settings, "六爻", packet);
+        var labBody = new
+        {
+            method = _currentMethod,
+            seed = _currentSeed,
+            question = _currentQuestion,
+            focus = _currentFocus
+        };
+        var result = await App.Interpretation.InterpretLiuyaoAsync(App.Settings, labBody, packet);
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -138,7 +149,7 @@ public partial class LiuyaoPage : ContentPage
         {
             InterpretStatusLabel.Text = "AI 解读不可用";
             InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Danger"];
-            InterpretationLabel.Text = result.Error ?? "远程 API 未返回内容";
+            InterpretationLabel.Text = result.Error ?? "解读未返回内容";
             return;
         }
 

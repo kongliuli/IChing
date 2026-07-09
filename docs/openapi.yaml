@@ -1,3 +1,4 @@
+# LEGACY: Java MVP 草案，与当前 .NET Lab API / Accounts API 不符。请以 docs/lab-api.md 为准。
 openapi: 3.0.3
 info:
   title: IChing MVP API

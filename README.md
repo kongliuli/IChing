@@ -31,5 +31,5 @@
 ## 快速验证
 
 ```bash
-dotnet test src/IChing.Lab.Tests/IChing.Lab.Tests.csproj --no-restore
+dotnet test src/IChing.Lab.Tests/IChing.Lab.Tests.csproj --filter "Category!=Integration" --no-restore
 ```

@@ -22,9 +22,21 @@ dotnet run
 | POST | `/api/credits/consume` | 扣减额度 `{ amount, readingId? }`；同一 readingId 24h 内不重复扣 |
 | POST | `/api/orders/mock-pay` | Mock 支付 `{ productType, amount }`；`membership` 赠 30 次，其他赠 10 次 |
 
-## 与 Lab 集成（后续）
+## 与 Lab 集成
 
-Lab API 可在 Tier 1+ 请求前调用 Accounts `/api/credits/consume`；Tier 0 不扣额度。
+Lab.Api 在 Tier ≥ `Accounts:RequireForTierGte`（默认 1）时，于解读前调用 Accounts `POST /api/credits/consume`；Tier 0 不扣额度。
+
+配置（`appsettings.json`）：
+
+```json
+"Accounts": {
+  "Enabled": false,
+  "BaseUrl": "http://localhost:5002",
+  "RequireForTierGte": 1
+}
+```
+
+MAUI App 向 Lab 请求时在 `Authorization: Bearer` 头携带登录 Token；未登录且 Lab 启用 Accounts 时返回 401/402。
 
 ## 存储
 

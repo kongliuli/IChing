@@ -34,5 +34,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
+    <ProjectReference Include="..\IChing.Lab.Client\IChing.Lab.Client.csproj" />
+    <ProjectReference Include="..\IChing.Lab.Presentation\IChing.Lab.Presentation.csproj" />
   </ItemGroup>
 </Project>

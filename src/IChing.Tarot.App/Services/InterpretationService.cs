@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
-using System.Text.Json;
+using IChing.Lab.Client;
+using IChing.Lab.Core.Integrations;
 using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Tarot;
 
@@ -10,7 +10,6 @@ namespace IChing.Tarot.App.Services;
 /// </summary>
 public sealed class InterpretationService
 {
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromMinutes(3) };
     private readonly RemoteInterpretationService _remote = new();
 
     public Task<InterpretationResult> InterpretAsync(
@@ -53,16 +52,18 @@ public sealed class InterpretationService
         return Tier0Result(reading, question, settings.IsConfigured ? "Lab 与远程解读均不可用" : "请配置 Lab API 或远程 API Key");
     }
 
-    public Task<ConnectionTestResult> TestConnectionAsync(
+    public async Task<ConnectionTestResult> TestConnectionAsync(
         AppSettings settings,
         CancellationToken cancellationToken = default)
     {
         if (settings.UseLabApi && settings.IsLabConfigured)
         {
-            return TestLabAsync(settings, cancellationToken);
+            return await LabApiClient.HealthAsync(settings.LabApiUrl, cancellationToken)
+                ? new ConnectionTestResult(true, "Lab API 在线")
+                : new ConnectionTestResult(false, "Lab API 不可达");
         }
 
-        return _remote.TestConnectionAsync(settings, cancellationToken);
+        return await _remote.TestConnectionAsync(settings, cancellationToken);
     }
 
     private static InterpretationResult Tier0Result(TarotReading reading, string? question, string? error = null)
@@ -78,7 +79,6 @@ public sealed class InterpretationService
         int tier,
         CancellationToken cancellationToken)
     {
-        var url = $"{settings.LabApiUrl.TrimEnd('/')}/lab/tarot/read?tier={tier}";
         var payload = new
         {
             spreadId = reading.SpreadId,
@@ -88,64 +88,33 @@ public sealed class InterpretationService
 
         try
         {
-            using var response = await Http.PostAsJsonAsync(url, payload, cancellationToken);
-            var json = await response.Content.ReadAsStringAsync(cancellationToken);
-            if (!response.IsSuccessStatusCode)
+            using var doc = await LabApiClient.PostReadAsync(
+                settings.LabApiUrl,
+                "tarot",
+                tier,
+                payload,
+                settings.AuthToken,
+                cancellationToken);
+            if (doc is null)
             {
                 return null;
             }
 
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            var text = TryGetText(root);
+            var text = LabReadResponseParser.TryGetNarrativeText(doc.RootElement);
             if (string.IsNullOrWhiteSpace(text))
             {
                 return null;
             }
 
-            var isFallback = root.TryGetProperty("narrative", out var narrative)
-                             && narrative.TryGetProperty("isFallback", out var fb)
-                             && fb.GetBoolean();
-            return new InterpretationResult(ReadingPromptProtocol.NormalizeOutput(text), isFallback, isFallback ? "Lab 降级为模板" : null);
+            var isFallback = LabReadResponseParser.TryGetIsFallback(doc.RootElement);
+            return new InterpretationResult(
+                ReadingPromptProtocol.NormalizeOutput(text),
+                isFallback,
+                isFallback ? "Lab 降级为模板" : null);
         }
         catch
         {
             return null;
-        }
-    }
-
-    private static string? TryGetText(JsonElement root)
-    {
-        if (root.TryGetProperty("narrative", out var narrative)
-            && narrative.TryGetProperty("text", out var textProp)
-            && textProp.ValueKind == JsonValueKind.String)
-        {
-            return textProp.GetString();
-        }
-
-        if (root.TryGetProperty("tier0Preview", out var preview)
-            && preview.TryGetProperty("oneLiner", out var oneLiner)
-            && oneLiner.ValueKind == JsonValueKind.String)
-        {
-            return oneLiner.GetString();
-        }
-
-        return null;
-    }
-
-    private static async Task<ConnectionTestResult> TestLabAsync(AppSettings settings, CancellationToken cancellationToken)
-    {
-        var url = $"{settings.LabApiUrl.TrimEnd('/')}/health";
-        try
-        {
-            using var response = await Http.GetAsync(url, cancellationToken);
-            return response.IsSuccessStatusCode
-                ? new ConnectionTestResult(true, "Lab API 在线")
-                : new ConnectionTestResult(false, UserFacingZh.HttpStatus((int)response.StatusCode));
-        }
-        catch (Exception ex)
-        {
-            return new ConnectionTestResult(false, UserFacingZh.Error(ex.Message));
         }
     }
 }

@@ -320,73 +320,14 @@ public sealed class ChartInterpretationOrchestrator
                 ElapsedMs: 0);
         }
 
-        var options = new LabModels.GenerateOptions(MaxTokens: maxTokens);
+        var options = new GenerateOptions(MaxTokens: maxTokens);
         return engine.GenerateAsync(prompt, options, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     // ---- 以下为 prompt 压缩与塔罗翻译辅助方法（编排逻辑，不含模型加载） ----
 
     private static object CompactForPrompt(object chartJson) =>
-        chartJson is BaziChart chart ? CompactBaziForPrompt(chart) : chartJson;
-
-    private static object CompactBaziForPrompt(BaziChart chart) => new
-    {
-        chart.Engine,
-        chart.WallClock,
-        chart.TrueSolarTime,
-        chart.Solar,
-        chart.Lunar,
-        chart.DayMaster,
-        pillars = new
-        {
-            year = CompactPillar(chart.YearPillar),
-            month = CompactPillar(chart.MonthPillar),
-            day = CompactPillar(chart.DayPillar),
-            hour = CompactPillar(chart.HourPillar)
-        },
-        chart.WuXingSummary,
-        chart.Yun,
-        daYun = chart.DaYun?.Take(5),
-        flowYear = chart.FlowYear is null ? null : new
-        {
-            chart.FlowYear.Year,
-            chart.FlowYear.GanZhi,
-            chart.FlowYear.Age,
-            chart.FlowYear.DaYunGanZhi,
-            selectedMonth = chart.FlowYear.SelectedMonth is null ? null : new
-            {
-                chart.FlowYear.SelectedMonth.Index,
-                chart.FlowYear.SelectedMonth.MonthInChinese,
-                chart.FlowYear.SelectedMonth.GanZhi,
-                chart.FlowYear.SelectedMonth.JieQiStart,
-                chart.FlowYear.SelectedMonth.StartSolar,
-                chart.FlowYear.SelectedMonth.JieQiEnd,
-                chart.FlowYear.SelectedMonth.EndSolar
-            },
-            chart.FlowYear.SelectedDay
-        },
-        yongShen = new
-        {
-            chart.YongShen.Strength,
-            geJu = chart.YongShen.GeJu.Pattern,
-            geJuBreak = chart.YongShen.GeJu.Break?.Summary,
-            chart.YongShen.PrimaryYongShen,
-            chart.YongShen.SecondaryYongShen,
-            chart.YongShen.FavoredElements,
-            chart.YongShen.Summary
-        }
-    };
-
-    private static object CompactPillar(BaziPillar p) => new
-    {
-        p.GanZhi,
-        p.Gan,
-        p.Zhi,
-        p.WuXing,
-        p.NaYin,
-        p.ShiShenGan,
-        p.HideGan
-    };
+        BaziChartPromptCompactor.Compact(chartJson);
 
     private static IReadOnlyList<string> ExtractTarotCardNames(string prompt) =>
         prompt.Split('\n')

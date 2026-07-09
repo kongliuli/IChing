@@ -1,7 +1,7 @@
 # 插件化设计调研：排盘算法 / Prompt Builder / 解读引擎
 
-> **状态**：调研稿（仅文档，不动代码）
-> **日期**：2026-07-03
+> **状态**：已实现（Core 插件接口 + PluginLoader + 四域 Engines + Composition 装配）
+> **日期**：2026-07-03（调研） / 2026-07-09（实现同步）
 > **范围**：将 `IChing.Lab.*` 三大耦合点抽象为可插拔接口，便于外部接入与替换
 > **原则**：保持 [inference-layer-design.md](./inference-layer-design.md) 已锁定的「计算 deterministic，解读 generative」边界
 

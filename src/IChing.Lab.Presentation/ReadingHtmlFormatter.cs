@@ -1,8 +1,9 @@
 using System.Net;
 using System.Text;
+using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Tarot;
 
-namespace IChing.Lab.Core.Readings;
+namespace IChing.Lab.Presentation;
 
 public static class ReadingHtmlFormatter
 {

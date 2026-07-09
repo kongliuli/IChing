@@ -1,4 +1,5 @@
 using IChing.App.Services;
+using IChing.Lab.Core.Integrations;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace IChing.App.Pages;

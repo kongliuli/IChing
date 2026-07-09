@@ -129,7 +129,19 @@ public partial class BaziPage : ContentPage
         InterpretationLabel.Text = string.Empty;
 
         var packet = ReadingPromptPackets.BaziInitial(_currentChart, _currentDigest, _currentFocus);
-        var result = await App.Remote.InterpretAsync(App.Settings, "八字", packet);
+        var labBody = new
+        {
+            year = ReadInt(YearEntry, "年"),
+            month = ReadInt(MonthEntry, "月"),
+            day = ReadInt(DayEntry, "日"),
+            hour = ReadInt(HourEntry, "时"),
+            minute = ReadInt(MinuteEntry, "分"),
+            longitude = ReadDoubleOrNull(LongitudeEntry),
+            city = Blank(CityEntry.Text),
+            gender = GenderPicker.SelectedIndex < 0 ? (int?)null : GenderPicker.SelectedIndex,
+            focus = _currentFocus
+        };
+        var result = await App.Interpretation.InterpretBaziAsync(App.Settings, labBody, packet);
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -139,7 +151,7 @@ public partial class BaziPage : ContentPage
         {
             InterpretStatusLabel.Text = "AI 解读不可用";
             InterpretStatusLabel.TextColor = (Color)Application.Current.Resources["Danger"];
-            InterpretationLabel.Text = result.Error ?? "远程 API 未返回内容";
+            InterpretationLabel.Text = result.Error ?? "解读未返回内容";
             return;
         }
 

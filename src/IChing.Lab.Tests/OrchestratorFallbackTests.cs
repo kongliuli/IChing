@@ -1,13 +1,16 @@
 using IChing.Lab.Abstractions.Engines;
 using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Prompts;
+using IChing.Lab.Api.Contracts;
 using IChing.Lab.Api.Controllers;
+using IChing.Lab.Api.Services;
 using IChing.Lab.Core.Rules;
 using IChing.Lab.Core.Engines;
 using IChing.Lab.Core.Services;
 using IChing.Lab.Inference;
 using IChing.Lab.Inference.Engines;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -61,6 +64,32 @@ public class OrchestratorFallbackTests
             ["plugins:inferenceEngines:1:default"] = "false"
         };
         return new ConfigurationBuilder().Add(new InMemorySource(dict)).Build();
+    }
+
+    private static LabController BuildController(
+        ChartInterpretationOrchestrator orchestrator,
+        IConfiguration config,
+        IEnumerable<IInferenceEngine> inferenceEngines,
+        IEnumerable<IChartEngine>? chartEngines = null,
+        IEnumerable<IPromptBuilder>? promptBuilders = null)
+    {
+        chartEngines ??= Enumerable.Empty<IChartEngine>();
+        promptBuilders ??= Enumerable.Empty<IPromptBuilder>();
+        var router = new ChartEngineRouter(chartEngines);
+        var charts = new LabChartQueryService(router, config);
+        var accounts = new AccountsCreditsGateway(
+            new StubHttpClientFactory(),
+            config,
+            NullLogger<AccountsCreditsGateway>.Instance);
+        var reads = new LabReadService(
+            orchestrator,
+            charts,
+            new RuleEngine(),
+            accounts,
+            new HttpContextAccessor(),
+            promptBuilders);
+        var health = new LabHealthService(chartEngines, inferenceEngines, config);
+        return new LabController(orchestrator, chartEngines, charts, reads, health);
     }
 
     /// <summary>
@@ -158,15 +187,7 @@ public class OrchestratorFallbackTests
         var orchestrator = new ChartInterpretationOrchestrator(
             inferenceEngines, Enumerable.Empty<IPromptBuilder>(), config, OrchestratorLogger);
 
-        var chartRouter = new ChartEngineRouter(Enumerable.Empty<IChartEngine>());
-        var controller = new LabController(
-            orchestrator,
-            chartRouter,
-            Enumerable.Empty<IChartEngine>(),
-            Enumerable.Empty<IPromptBuilder>(),
-            inferenceEngines,
-            config,
-            new RuleEngine());
+        var controller = BuildController(orchestrator, config, inferenceEngines);
 
         var actionResult = controller.HealthEngines();
         var ok = Assert.IsType<OkObjectResult>(actionResult);
@@ -193,15 +214,7 @@ public class OrchestratorFallbackTests
         var orchestrator = new ChartInterpretationOrchestrator(
             inferenceEngines, Enumerable.Empty<IPromptBuilder>(), config, OrchestratorLogger);
 
-        var chartRouter = new ChartEngineRouter(Enumerable.Empty<IChartEngine>());
-        var controller = new LabController(
-            orchestrator,
-            chartRouter,
-            Enumerable.Empty<IChartEngine>(),
-            Enumerable.Empty<IPromptBuilder>(),
-            inferenceEngines,
-            config,
-            new RuleEngine());
+        var controller = BuildController(orchestrator, config, inferenceEngines);
 
         var actionResult = controller.HealthEngines();
         var ok = Assert.IsType<OkObjectResult>(actionResult);
@@ -239,15 +252,10 @@ public class OrchestratorFallbackTests
         var orchestrator = new ChartInterpretationOrchestrator(
             Enumerable.Empty<IInferenceEngine>(), Enumerable.Empty<IPromptBuilder>(), config, OrchestratorLogger);
 
-        var chartRouter = new ChartEngineRouter(Enumerable.Empty<IChartEngine>());
-        var controller = new LabController(
+        var controller = BuildController(
             orchestrator,
-            chartRouter,
-            Enumerable.Empty<IChartEngine>(),
-            Enumerable.Empty<IPromptBuilder>(),
-            Enumerable.Empty<IInferenceEngine>(),
             config,
-            new RuleEngine());
+            Enumerable.Empty<IInferenceEngine>());
 
         var actionResult = controller.Health();
         Assert.IsType<OkObjectResult>(actionResult);
@@ -311,5 +319,10 @@ public class OrchestratorFallbackTests
                 Data[kv.Key] = kv.Value;
             }
         }
+    }
+
+    private sealed class StubHttpClientFactory : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new();
     }
 }

@@ -68,6 +68,7 @@ public class BaziLiuyaoRoutingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task Sidecar_BaziEndpoint_WhenRunning_ReturnsChart()
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
@@ -102,6 +103,7 @@ public class BaziLiuyaoRoutingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task Sidecar_TarotEndpoint_WhenRunning_ReturnsEnrichedReading()
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
@@ -137,6 +139,7 @@ public class BaziLiuyaoRoutingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task Sidecar_CalendarEndpoint_WhenRunning_ReturnsHuangLiDay()
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
@@ -171,6 +174,7 @@ public class BaziLiuyaoRoutingTests
     }
 
     [Fact]
+    [Trait("Category", "Integration")]
     public async Task Sidecar_LiuyaoEndpoint_WhenRunning_ReturnsHexagram()
     {
         using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };

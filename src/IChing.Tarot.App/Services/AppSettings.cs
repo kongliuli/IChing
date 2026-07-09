@@ -1,6 +1,8 @@
+using IChing.Lab.Core.Integrations;
+
 namespace IChing.Tarot.App.Services;
 
-public sealed class AppSettings
+public sealed class AppSettings : IOpenAiChatCredentials
 {
     public const string PrefApiKey = "api_key";
     public const string PrefBaseUrl = "api_base_url";
@@ -64,6 +66,12 @@ public sealed class AppSettings
     public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey);
 
     public bool IsLabConfigured => !string.IsNullOrWhiteSpace(LabApiUrl);
+
+    public string AuthToken
+    {
+        get => Preferences.Default.Get("api_auth_token", string.Empty);
+        set => Preferences.Default.Set("api_auth_token", value);
+    }
 
     public void ApplyProviderPreset(string provider)
     {

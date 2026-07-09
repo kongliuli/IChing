@@ -12,16 +12,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+    <ProjectReference Include="..\IChing.Lab.Composition\IChing.Lab.Composition.csproj" />
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
     <ProjectReference Include="..\IChing.Lab.Inference\IChing.Lab.Inference.csproj" />
-    <ProjectReference Include="..\IChing.Lab.PluginLoader\IChing.Lab.PluginLoader.csproj" />
-    <ProjectReference Include="..\BaziEngines\BaziEngines.csproj" />
-    <ProjectReference Include="..\LiuyaoEngines\LiuyaoEngines.csproj" />
+    <ProjectReference Include="..\IChing.Lab.Presentation\IChing.Lab.Presentation.csproj" />
     <ProjectReference Include="..\TarotEngines\TarotEngines.csproj" />
-    <ProjectReference Include="..\CalendarEngines\CalendarEngines.csproj" />
   </ItemGroup>
 
-  <!-- 将仓库根 prompts/ 下的模板文件复制到输出目录的 prompts/，供运行时热加载；加载失败时回退到内嵌默认。 -->
   <ItemGroup>
     <None Include="..\..\prompts\**\*.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" LinkBase="prompts" />
   </ItemGroup>

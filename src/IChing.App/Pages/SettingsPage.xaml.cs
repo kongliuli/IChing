@@ -79,7 +79,7 @@ public partial class SettingsPage : ContentPage
         TestIndicator.IsRunning = true;
         try
         {
-            var result = await App.Remote.TestAsync(App.Settings);
+            var result = await App.Interpretation.TestAsync(App.Settings);
             StatusLabel.Text = result.Ok ? $"连接成功 · {App.Settings.Model}" : $"连接失败：{result.Error}";
             StatusLabel.TextColor = result.Ok ? (Color)Application.Current!.Resources["Success"] : (Color)Application.Current!.Resources["Danger"];
         }

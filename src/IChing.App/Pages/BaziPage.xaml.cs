@@ -176,9 +176,15 @@ public partial class BaziPage : ContentPage
             return;
         }
 
-        var seed = FollowUpPromptTemplates.Bazi(_currentChart, _currentDigest, _currentFocus, _currentInterpretation);
-        var sessionId = App.Sessions.CreateSession("bazi", App.Settings.InterpretTier, _currentChart, _currentDigest);
-        await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("八字追问", "bazi", sessionId, seed.SystemPrompt, seed.Context)));
+        var input = FollowUpPromptTemplates.BaziExchangeInput(_currentChart, _currentDigest, _currentFocus);
+        var sessionId = App.Sessions.CreateSessionWithInitial(
+            "bazi",
+            App.Settings.InterpretTier,
+            _currentChart,
+            _currentDigest,
+            input,
+            _currentInterpretation);
+        await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("八字追问", "bazi", sessionId)));
     }
 
     private async void OnExportClicked(object? sender, EventArgs e)

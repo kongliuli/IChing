@@ -1,5 +1,7 @@
 using Microsoft.Data.Sqlite;
 using System.Text.Json;
+using IChing.Lab.Abstractions.Readings;
+using IChing.Lab.Core.Readings;
 
 namespace IChing.App.Services;
 
@@ -19,12 +21,92 @@ public sealed class LocalSessionStore
         EnsureSchema();
     }
 
-    public string CreateSession(string domain, int tier, object chart, object? facts = null)
+    public string CreateSessionWithInitial(
+        string domain,
+        int tier,
+        object chart,
+        object? facts,
+        ExchangeInput input,
+        string? initialOutput)
     {
         var sessionId = Guid.NewGuid().ToString("N");
         var chartJson = JsonSerializer.Serialize(chart, JsonOptions);
         var factsJson = facts is null ? null : JsonSerializer.Serialize(facts, JsonOptions);
         using var conn = Open();
+        InsertSession(conn, sessionId, domain, tier, chartJson, factsJson);
+        AppendExchange(conn, new StoredExchange(
+            Guid.NewGuid().ToString("N"),
+            sessionId,
+            null,
+            "initial",
+            tier,
+            FollowUpExchangeBuilder.SerializeInput(input),
+            initialOutput,
+            DateTimeOffset.UtcNow));
+        TrimSessions(conn);
+        return sessionId;
+    }
+
+    public FollowUpSessionSeed? GetFollowUpSeed(string sessionId)
+    {
+        using var conn = Open();
+        using var sessionCmd = conn.CreateCommand();
+        sessionCmd.CommandText =
+            "SELECT domain, tier FROM sessions WHERE session_id = $id LIMIT 1;";
+        sessionCmd.Parameters.AddWithValue("$id", sessionId);
+        using var reader = sessionCmd.ExecuteReader();
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+        var domain = reader.GetString(0);
+        var tier = reader.GetInt32(1);
+        reader.Close();
+
+        using var exCmd = conn.CreateCommand();
+        exCmd.CommandText =
+            """
+            SELECT exchange_id, input_json, output_json FROM exchanges
+            WHERE session_id = $id AND mode = 'initial'
+            ORDER BY created_at ASC LIMIT 1;
+            """;
+        exCmd.Parameters.AddWithValue("$id", sessionId);
+        using var exReader = exCmd.ExecuteReader();
+        if (!exReader.Read())
+        {
+            return null;
+        }
+
+        var initialId = exReader.GetString(0);
+        var input = FollowUpExchangeBuilder.DeserializeInput(exReader.GetString(1));
+        var outputJson = exReader.IsDBNull(2) ? null : exReader.GetString(2);
+        exReader.Close();
+        if (input is null)
+        {
+            return null;
+        }
+
+        using var lastCmd = conn.CreateCommand();
+        lastCmd.CommandText =
+            "SELECT exchange_id FROM exchanges WHERE session_id = $id ORDER BY created_at DESC LIMIT 1;";
+        lastCmd.Parameters.AddWithValue("$id", sessionId);
+        var lastId = lastCmd.ExecuteScalar() as string ?? initialId;
+
+        return new FollowUpSessionSeed(domain, tier, input, outputJson, initialId, lastId);
+    }
+
+    public void AppendExchange(string sessionId, StoredExchange exchange) =>
+        AppendExchange(Open(), exchange with { SessionId = sessionId });
+
+    private static void InsertSession(
+        SqliteConnection conn,
+        string sessionId,
+        string domain,
+        int tier,
+        string chartJson,
+        string? factsJson)
+    {
         using var cmd = conn.CreateCommand();
         cmd.CommandText =
             """
@@ -38,14 +120,10 @@ public sealed class LocalSessionStore
         cmd.Parameters.AddWithValue("$facts", (object?)factsJson ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$created", DateTimeOffset.UtcNow.ToString("O"));
         cmd.ExecuteNonQuery();
-        TrimSessions(conn);
-        return sessionId;
     }
 
-    public void AppendExchange(string sessionId, StoredExchange exchange)
+    private static void AppendExchange(SqliteConnection conn, StoredExchange exchange)
     {
-        var outputJson = exchange.OutputJson ?? (object)DBNull.Value;
-        using var conn = Open();
         using var cmd = conn.CreateCommand();
         cmd.CommandText =
             """
@@ -53,12 +131,12 @@ public sealed class LocalSessionStore
             VALUES ($id, $session, $parent, $mode, $tier, $input, $output, $created);
             """;
         cmd.Parameters.AddWithValue("$id", exchange.ExchangeId);
-        cmd.Parameters.AddWithValue("$session", sessionId);
+        cmd.Parameters.AddWithValue("$session", exchange.SessionId);
         cmd.Parameters.AddWithValue("$parent", (object?)exchange.ParentExchangeId ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$mode", exchange.Mode);
         cmd.Parameters.AddWithValue("$tier", exchange.Tier);
         cmd.Parameters.AddWithValue("$input", exchange.InputJson);
-        cmd.Parameters.AddWithValue("$output", outputJson);
+        cmd.Parameters.AddWithValue("$output", (object?)exchange.OutputJson ?? DBNull.Value);
         cmd.Parameters.AddWithValue("$created", exchange.CreatedAt.ToString("O"));
         cmd.ExecuteNonQuery();
     }
@@ -95,14 +173,10 @@ public sealed class LocalSessionStore
         cmd.CommandText =
             $"""
             DELETE FROM exchanges WHERE session_id IN (
-              SELECT session_id FROM sessions
-              ORDER BY created_at DESC
-              LIMIT -1 OFFSET {MaxSessions}
+              SELECT session_id FROM sessions ORDER BY created_at DESC LIMIT -1 OFFSET {MaxSessions}
             );
             DELETE FROM sessions WHERE session_id IN (
-              SELECT session_id FROM sessions
-              ORDER BY created_at DESC
-              LIMIT -1 OFFSET {MaxSessions}
+              SELECT session_id FROM sessions ORDER BY created_at DESC LIMIT -1 OFFSET {MaxSessions}
             );
             """;
         cmd.ExecuteNonQuery();
@@ -118,6 +192,7 @@ public sealed class LocalSessionStore
 
 public sealed record StoredExchange(
     string ExchangeId,
+    string SessionId,
     string? ParentExchangeId,
     string Mode,
     int Tier,
@@ -125,9 +200,12 @@ public sealed record StoredExchange(
     string? OutputJson,
     DateTimeOffset CreatedAt);
 
-public sealed record FollowUpChatArgs(
-    string Title,
+public sealed record FollowUpSessionSeed(
     string Domain,
-    string SessionId,
-    string SystemPrompt,
-    string Context);
+    int Tier,
+    ExchangeInput Input,
+    string? InitialOutputJson,
+    string InitialExchangeId,
+    string LastExchangeId);
+
+public sealed record FollowUpChatArgs(string Title, string Domain, string SessionId);

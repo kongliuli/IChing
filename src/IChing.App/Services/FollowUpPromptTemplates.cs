@@ -35,18 +35,13 @@ public static class FollowUpPromptTemplates
             RuleDigest: [digest.ShiYaoSummary, digest.YongShenSummary],
             PluginContext: []);
 
-    public static (string SystemPrompt, string Context) Bazi(
-        BaziChart chart,
-        BaziRuleDigest digest,
-        string? focus,
-        string interpretation) =>
-        FollowUpPromptBuilder.Build("bazi", BaziInput(chart, digest, focus), null, interpretation);
+    public static ExchangeInput BaziExchangeInput(BaziChart chart, BaziRuleDigest digest, string? focus) =>
+        BaziInput(chart, digest, focus);
 
-    public static (string SystemPrompt, string Context) Liuyao(
+    public static ExchangeInput LiuyaoExchangeInput(
         LiuyaoNajiaResult chart,
         LiuyaoRuleDigest digest,
         string? question,
-        string? focus,
-        string interpretation) =>
-        FollowUpPromptBuilder.Build("liuyao", LiuyaoInput(chart, digest, question, focus), null, interpretation);
+        string? focus) =>
+        LiuyaoInput(chart, digest, question, focus);
 }

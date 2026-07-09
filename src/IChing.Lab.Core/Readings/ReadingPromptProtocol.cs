@@ -451,6 +451,29 @@ public static class ReadingPromptTemplateManager
                 ["Interpret only from the serialized tarot spread, positions, cards, and plugin facts; never add or replace cards."],
                 [
                     new("overview", "整体能量")
+                ]),
+            ["bazi:followup"] = new(
+                "bazi",
+                "followup",
+                ["Follow-up only: do not change computedFacts, pillars, or yongshen. Answer the user question briefly."],
+                [
+                    new("overview", "追问答复"),
+                    new("advice", "行动建议")
+                ]),
+            ["liuyao:followup"] = new(
+                "liuyao",
+                "followup",
+                ["Follow-up only: do not change hexagrams, lines, shi/ying. Answer the user question briefly."],
+                [
+                    new("overview", "追问答复"),
+                    new("advice", "行动建议")
+                ]),
+            ["tarot:followup"] = new(
+                "tarot",
+                "followup",
+                ["Follow-up only: do not add or replace cards. Answer the user question briefly."],
+                [
+                    new("overview", "追问答复")
                 ])
         };
 

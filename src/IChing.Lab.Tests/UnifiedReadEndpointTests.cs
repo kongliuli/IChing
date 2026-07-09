@@ -35,6 +35,40 @@ public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactor
     }
 
     [Fact]
+    public async Task LabChat_RegisterAndFollowUp_ReturnsExchange()
+    {
+        var register = await _client.PostAsJsonAsync("/lab/chat", new
+        {
+            mode = "register",
+            domain = "bazi",
+            tier = 1,
+            input = new
+            {
+                question = (string?)null,
+                focus = "综合",
+                computedFacts = new[] { "pillars: 甲子 丙寅 戊辰 庚午" },
+                ruleDigest = new[] { "summary" },
+                pluginContext = Array.Empty<object>()
+            },
+            initialOutput = "初始解读文本"
+        });
+        Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+        var regJson = await register.Content.ReadAsStringAsync();
+        Assert.Contains("sessionId", regJson);
+
+        using var doc = System.Text.Json.JsonDocument.Parse(regJson);
+        var sessionId = doc.RootElement.GetProperty("sessionId").GetString();
+        var follow = await _client.PostAsJsonAsync("/lab/chat", new
+        {
+            mode = "followup",
+            sessionId,
+            userQuestion = "今年运势如何？",
+            tier = 1
+        });
+        Assert.Equal(HttpStatusCode.OK, follow.StatusCode);
+    }
+
+    [Fact]
     public async Task CreditsConsume_WhenAccountsDisabled_ReturnsOkSkipped()
     {
         var response = await _client.PostAsJsonAsync(

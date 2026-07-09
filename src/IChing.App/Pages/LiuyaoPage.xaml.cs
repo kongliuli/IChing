@@ -174,9 +174,15 @@ public partial class LiuyaoPage : ContentPage
             return;
         }
 
-        var seed = FollowUpPromptTemplates.Liuyao(_currentChart, _currentDigest, _currentQuestion, _currentFocus, _currentInterpretation);
-        var sessionId = App.Sessions.CreateSession("liuyao", App.Settings.InterpretTier, _currentChart, _currentDigest);
-        await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("六爻追问", "liuyao", sessionId, seed.SystemPrompt, seed.Context)));
+        var input = FollowUpPromptTemplates.LiuyaoExchangeInput(_currentChart, _currentDigest, _currentQuestion, _currentFocus);
+        var sessionId = App.Sessions.CreateSessionWithInitial(
+            "liuyao",
+            App.Settings.InterpretTier,
+            _currentChart,
+            _currentDigest,
+            input,
+            _currentInterpretation);
+        await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("六爻追问", "liuyao", sessionId)));
     }
 
     private async void OnExportClicked(object? sender, EventArgs e)

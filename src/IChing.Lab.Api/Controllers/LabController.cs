@@ -22,19 +22,22 @@ public partial class LabController : ControllerBase
     private readonly LabChartQueryService _charts;
     private readonly LabReadService _reads;
     private readonly LabHealthService _health;
+    private readonly LabChatService _chat;
 
     public LabController(
         ChartInterpretationOrchestrator interpretation,
         IEnumerable<IChartEngine> engines,
         LabChartQueryService charts,
         LabReadService reads,
-        LabHealthService health)
+        LabHealthService health,
+        LabChatService chat)
     {
         _interpretation = interpretation;
         _engines = engines;
         _charts = charts;
         _reads = reads;
         _health = health;
+        _chat = chat;
     }
 
     [HttpGet("engines")]

@@ -89,7 +89,8 @@ public class OrchestratorFallbackTests
             new HttpContextAccessor(),
             promptBuilders);
         var health = new LabHealthService(chartEngines, inferenceEngines, config);
-        return new LabController(orchestrator, chartEngines, charts, reads, health);
+        var chat = new LabChatService(reads, orchestrator, accounts, new HttpContextAccessor());
+        return new LabController(orchestrator, chartEngines, charts, reads, health, chat);
     }
 
     /// <summary>

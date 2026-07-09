@@ -1,3 +1,4 @@
+using System.Text.Json;
 using IChing.Lab.Abstractions.Readings;
 using IChing.Lab.Core.Readings.Producers;
 
@@ -35,6 +36,38 @@ public static class ReadingExchangeFactory
         return new ReadingExchange(meta, input, render, Dialogue: null, output);
     }
 
+    public static ReadingExchange CreateFollowUp(
+        ExchangeInput immutableInput,
+        string domain,
+        int tier,
+        string sessionId,
+        string? parentExchangeId,
+        string userQuestion,
+        IReadOnlyList<DialogueTurn> history,
+        ReadingStructuredOutput? initialStructured = null)
+    {
+        var meta = new ExchangeMeta(
+            ReadingSchemas.ExchangeV1,
+            Guid.NewGuid().ToString("N"),
+            sessionId,
+            parentExchangeId,
+            domain,
+            "followup",
+            tier,
+            "zh-CN",
+            DateTimeOffset.UtcNow);
+
+        var render = new ExchangeRenderSpec(
+            ReadingSchemas.OutputV2,
+            [],
+            [],
+            "core-followup-json",
+            "remote-json");
+
+        var dialogue = new ExchangeDialogue(history, userQuestion, MaxRounds: 3);
+        return new ReadingExchange(meta, immutableInput, render, dialogue, Output: null);
+    }
+
     public static ReadingExchange CreateEntertainment(QuizProducerInput quiz)
     {
         var meta = new ExchangeMeta(
@@ -67,5 +100,45 @@ public static class ReadingExchangeFactory
             false);
 
         return new ReadingExchange(meta, input, render, Dialogue: null, output);
+    }
+}
+
+public static class FollowUpExchangeBuilder
+{
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    public static (string SystemPrompt, string UserContext) BuildRemotePrompt(
+        ReadingExchange exchange,
+        ReadingStructuredOutput? initialStructured,
+        string? rawInitialText = null)
+    {
+        var history = exchange.Dialogue?.History ?? [];
+        var question = exchange.Dialogue?.UserQuestion;
+        var structured = initialStructured ?? ReadingOutputParser.TryParseStructured(rawInitialText, exchange.Meta.Domain);
+        var context = ExchangeContextCompactor.BuildFollowUpContext(
+            exchange.Input,
+            structured,
+            history,
+            question);
+        var (system, _) = FollowUpPromptBuilder.Build(
+            exchange.Meta.Domain,
+            exchange.Input,
+            structured,
+            rawInitialText,
+            history);
+        return (system, context);
+    }
+
+    public static string SerializeInput(ExchangeInput input) =>
+        JsonSerializer.Serialize(input, JsonOptions);
+
+    public static ExchangeInput? DeserializeInput(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        return JsonSerializer.Deserialize<ExchangeInput>(json, JsonOptions);
     }
 }

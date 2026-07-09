@@ -36,6 +36,19 @@ public static class BaziRulePlugins
             var selected = chart.FlowYear.SelectedMonth is null ? "" : $"; flow month {chart.FlowYear.SelectedMonth.GanZhi}";
             var text = $"flow year {chart.FlowYear.Year} {chart.FlowYear.GanZhi}; da-yun {chart.FlowYear.DaYunGanZhi}{selected}";
             return [new RuleDigestItem("bazi.flow.current", "Flow", text, 80)];
+        }),
+        new("bazi.school.ziping.geju", "bazi", "Ziping geju", "Uses built-in geju pattern from YongShen analyzer.", 90, false, ctx =>
+        {
+            var chart = (BaziChart)ctx.Chart;
+            var geju = chart.YongShen.GeJu;
+            if (string.IsNullOrWhiteSpace(geju.Pattern))
+            {
+                return [];
+            }
+
+            var text = $"pattern {geju.Pattern}; strength {chart.YongShen.Strength}"
+                + (geju.Break?.Summary is { Length: > 0 } s ? $"; break {s}" : string.Empty);
+            return [new RuleDigestItem("bazi.school.ziping.geju", "Geju", text, 90)];
         })
     ];
 }

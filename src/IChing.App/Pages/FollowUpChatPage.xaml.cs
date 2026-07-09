@@ -1,6 +1,8 @@
 using IChing.App.Services;
+using IChing.Lab.Abstractions.Readings;
 using IChing.Lab.Client;
 using IChing.Lab.Core.Integrations;
+using IChing.Lab.Core.Readings;
 using Microsoft.Maui.Controls.Shapes;
 
 namespace IChing.App.Pages;
@@ -8,7 +10,9 @@ namespace IChing.App.Pages;
 public partial class FollowUpChatPage : ContentPage
 {
     private readonly FollowUpChatArgs _args;
-    private readonly List<DialogueTurnState> _history = [];
+    private readonly FollowUpSessionSeed _seed;
+    private readonly List<DialogueTurn> _history = [];
+    private ReadingStructuredOutput? _initialStructured;
     private int _rounds;
 
     public FollowUpChatPage(FollowUpChatArgs args)
@@ -16,12 +20,12 @@ public partial class FollowUpChatPage : ContentPage
         InitializeComponent();
         _args = args;
         Title = args.Title;
-        AddBubble("当前上下文", args.Context, incoming: true);
-    }
-
-    public FollowUpChatPage(string title, string systemPrompt, string context)
-        : this(new FollowUpChatArgs(title, "unknown", Guid.NewGuid().ToString("N"), systemPrompt, context))
-    {
+        var seed = App.Sessions.GetFollowUpSeed(args.SessionId)
+                   ?? throw new InvalidOperationException($"session not found: {args.SessionId}");
+        _seed = seed;
+        _initialStructured = ReadingOutputParser.TryParseStructured(seed.InitialOutputJson, seed.Domain);
+        var preview = ExchangeContextCompactor.BuildFollowUpContext(seed.Input, _initialStructured, [], null);
+        AddBubble("当前上下文", preview, incoming: true);
     }
 
     private async void OnSendClicked(object? sender, EventArgs e)
@@ -54,44 +58,48 @@ public partial class FollowUpChatPage : ContentPage
         QuestionEntry.Text = string.Empty;
         AddBubble("你", text, incoming: false);
 
+        var exchange = ReadingExchangeFactory.CreateFollowUp(
+            _seed.Input,
+            _seed.Domain,
+            _seed.Tier,
+            _args.SessionId,
+            _seed.LastExchangeId,
+            text,
+            _history,
+            _initialStructured);
+
+        var packet = ExchangePromptAdapter.ToFollowUpPacket(exchange, _initialStructured, _seed.InitialOutputJson);
+        var messages = new List<ChatTurn>
+        {
+            new("system", ReadingPromptProtocol.BuildSystemPrompt(packet)),
+            new("user", ReadingPromptProtocol.BuildUserMessage(packet))
+        };
+
         SendButton.IsEnabled = false;
         var answer = AddBubble("继续解答", string.Empty, incoming: true);
-        await foreach (var chunk in App.Remote.StreamAsync(App.Settings, BuildRequestMessages(text)))
+        var raw = new System.Text.StringBuilder();
+        await foreach (var chunk in App.Remote.StreamAsync(App.Settings, messages))
         {
-            answer.Text += chunk;
+            raw.Append(chunk);
+            answer.Text = ReadingPromptProtocol.NormalizeOutput(raw.ToString());
             await ChatScroll.ScrollToAsync(ChatHost, ScrollToPosition.End, false);
         }
 
-        _history.Add(new DialogueTurnState("user", text));
-        _history.Add(new DialogueTurnState("assistant", answer.Text));
+        var body = raw.ToString();
+        _history.Add(new DialogueTurn("user", text));
+        _history.Add(new DialogueTurn("assistant", body));
         App.Sessions.AppendExchange(_args.SessionId, new StoredExchange(
             exchangeId,
-            null,
+            _args.SessionId,
+            _seed.LastExchangeId,
             "followup",
-            1,
-            "{}",
-            answer.Text,
+            _seed.Tier,
+            FollowUpExchangeBuilder.SerializeInput(_seed.Input),
+            body,
             DateTimeOffset.UtcNow));
 
         SendButton.IsEnabled = _rounds < 3;
         QuestionEntry.IsEnabled = _rounds < 3;
-    }
-
-    private IReadOnlyList<ChatTurn> BuildRequestMessages(string currentQuestion)
-    {
-        var messages = new List<ChatTurn>
-        {
-            new("system", _args.SystemPrompt),
-            new("assistant", _args.Context)
-        };
-
-        foreach (var turn in _history.TakeLast(4))
-        {
-            messages.Add(new(turn.Role, turn.Content));
-        }
-
-        messages.Add(new("user", currentQuestion));
-        return messages;
     }
 
     private Label AddBubble(string title, string text, bool incoming)
@@ -126,6 +134,4 @@ public partial class FollowUpChatPage : ContentPage
         });
         return label;
     }
-
-    private sealed record DialogueTurnState(string Role, string Content);
 }

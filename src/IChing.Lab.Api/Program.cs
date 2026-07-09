@@ -28,6 +28,7 @@ builder.Services.AddHttpClient(nameof(AccountsCreditsGateway));
 builder.Services.AddSingleton<AccountsCreditsGateway>();
 builder.Services.AddSingleton<LabChartQueryService>();
 builder.Services.AddSingleton<LabReadService>();
+builder.Services.AddSingleton<LabChatService>();
 builder.Services.AddSingleton<LabHealthService>();
 
 var dataProtectionKeysPath = Path.Combine(builder.Environment.ContentRootPath, "App_Data", "DataProtectionKeys");

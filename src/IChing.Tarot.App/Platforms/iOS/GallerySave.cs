@@ -22,15 +22,15 @@ public static class GallerySave
 
             try
             {
-                var data = NSData.FromFile(filePath);
-                if (data is null)
+                var image = UIImage.FromFile(filePath);
+                if (image is null)
                 {
                     tcs.TrySetResult(null);
                     return;
                 }
 
                 PHPhotoLibrary.SharedPhotoLibrary.PerformChanges(
-                    () => PHAssetCreationRequest.FromImage(data),
+                    () => PHAssetCreationRequest.FromImage(image),
                     (ok, _) => tcs.TrySetResult(ok ? filePath : null));
             }
             catch

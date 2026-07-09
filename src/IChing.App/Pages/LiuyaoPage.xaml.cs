@@ -1,4 +1,3 @@
-using System.Text.Json;
 using IChing.App.Services;
 using IChing.Lab.Core.Liuyao;
 using IChing.Lab.Core.Readings;
@@ -7,7 +6,6 @@ namespace IChing.App.Pages;
 
 public partial class LiuyaoPage : ContentPage
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private LiuyaoNajiaResult? _currentChart;
     private LiuyaoRuleDigest? _currentDigest;
     private string _currentSummary = string.Empty;
@@ -129,7 +127,8 @@ public partial class LiuyaoPage : ContentPage
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
         InterpretationLabel.Text = string.Empty;
 
-        var result = await App.Remote.InterpretAsync(App.Settings, "六爻", BuildPrompt(_currentChart, _currentDigest, _currentQuestion, _currentFocus));
+        var packet = ReadingPromptPackets.LiuyaoInitial(_currentChart, _currentDigest, _currentQuestion, _currentFocus);
+        var result = await App.Remote.InterpretAsync(App.Settings, "六爻", packet);
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -180,27 +179,6 @@ public partial class LiuyaoPage : ContentPage
             await DisplayAlertAsync("导出失败", ex.Message, "好的");
         }
     }
-
-    private static string BuildPrompt(
-        LiuyaoNajiaResult chart,
-        LiuyaoRuleDigest digest,
-        string? question,
-        string? focus) =>
-        $"""
-        问题：{question ?? "未填写"}
-        关注点：{focus ?? "综合"}
-
-        请用简体中文输出三段：
-        1. 卦象核心
-        2. 用神、世应、动爻判断
-        3. 可执行建议
-
-        规则摘要：
-        {JsonSerializer.Serialize(digest, JsonOptions)}
-
-        起卦结果：
-        {JsonSerializer.Serialize(chart, JsonOptions)}
-        """;
 
     private static string LineGlyph(string yinYang, bool changing)
     {

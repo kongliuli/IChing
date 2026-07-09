@@ -3,10 +3,10 @@ using Microsoft.Maui.Controls.Shapes;
 
 namespace IChing.Tarot.App.Views;
 
-/// <summary>按牌阵 id 渲染不同空间布局（非统一竖列表）。</summary>
+/// <summary>Render each spread with a stable board layout instead of one long list.</summary>
 public static class SpreadBoardLayout
 {
-    // ponytail: RWS 牌面约 2:3（宽:高）
+    // ponytail: RWS cards are close to 2:3 width:height.
     private const double CardAspect = 1.5;
 
     public static void Render(Grid host, string spreadId, IReadOnlyList<CardDisplayItem> cards)
@@ -23,7 +23,8 @@ public static class SpreadBoardLayout
             return;
         }
 
-        var maxCols = MaxColumns(spreadId);
+        var pageWidth = PageWidth(host);
+        var maxCols = MaxColumns(spreadId, pageWidth);
         var cardWidth = ResolveCardWidth(host, maxCols, spreadId == "single-card");
 
         switch (spreadId)
@@ -34,10 +35,13 @@ public static class SpreadBoardLayout
             case "past-present-future":
             case "situation-action-outcome":
             case "mind-body-spirit":
-                RenderColumns(host, cards, 3, cardWidth);
+                RenderColumns(host, cards, pageWidth < 520 ? 1 : 3, cardWidth);
                 break;
             case "choice":
                 RenderGrid(host, cards, 2, 2, cardWidth);
+                break;
+            case "six-card":
+                RenderColumns(host, cards, pageWidth < 560 ? 2 : 3, cardWidth);
                 break;
             case "relationship":
                 RenderRelationship(host, cards, cardWidth);
@@ -49,26 +53,43 @@ public static class SpreadBoardLayout
                 RenderWeekAhead(host, cards, cardWidth * 0.85);
                 break;
             case "celtic-cross":
-                RenderCelticCross(host, cards, cardWidth * 0.9);
+                RenderCelticCross(host, cards, cardWidth * 0.9, pageWidth);
                 break;
             default:
-                RenderColumns(host, cards, Math.Min(3, cards.Count), cardWidth);
+                RenderColumns(host, cards, Math.Min(pageWidth < 520 ? 1 : 3, cards.Count), cardWidth);
                 break;
         }
     }
 
-    private static int MaxColumns(string spreadId) => spreadId switch
+    private static int MaxColumns(string spreadId, double pageWidth) => spreadId switch
     {
         "single-card" => 1,
-        "celtic-cross" => 5,
+        "celtic-cross" => pageWidth < 620 ? 1 : 5,
         "horseshoe" => 4,
         "week-ahead" => 4,
+        "six-card" => pageWidth < 560 ? 2 : 3,
         "relationship" => 3,
         "choice" => 2,
-        _ => 3
+        _ => pageWidth < 520 ? 1 : 3
     };
 
     private static double ResolveCardWidth(Grid host, int columns, bool hero)
+    {
+        var pageWidth = PageWidth(host);
+        var inset = 16.0;
+        var spacing = 10.0;
+        var cols = Math.Max(1, columns);
+        var width = (pageWidth - inset - spacing * (cols - 1)) / cols;
+
+        if (hero)
+        {
+            return Math.Clamp(Math.Min(width, pageWidth * 0.45), 128, 250);
+        }
+
+        return Math.Clamp(width, 86, 180);
+    }
+
+    private static double PageWidth(Grid host)
     {
         var pageWidth = host.Width > 0
             ? host.Width
@@ -78,17 +99,7 @@ public static class SpreadBoardLayout
             pageWidth = DeviceDisplay.MainDisplayInfo.Width / DeviceDisplay.MainDisplayInfo.Density;
         }
 
-        var inset = 16.0;
-        var spacing = 10.0;
-        var cols = Math.Max(1, columns);
-        var width = (pageWidth - inset - spacing * (cols - 1)) / cols;
-
-        if (hero)
-        {
-            return Math.Clamp(Math.Min(width, pageWidth * 0.45), 120, 240);
-        }
-
-        return Math.Clamp(width, 80, 180);
+        return pageWidth;
     }
 
     private static void RenderSingle(Grid host, CardDisplayItem card, double cardWidth)
@@ -149,35 +160,38 @@ public static class SpreadBoardLayout
 
     private static void RenderWeekAhead(Grid host, IReadOnlyList<CardDisplayItem> cards, double cardWidth)
     {
-        var scroll = new ScrollView { Orientation = ScrollOrientation.Horizontal, HorizontalOptions = LayoutOptions.Fill };
         var row = new HorizontalStackLayout { Spacing = 10 };
         foreach (var card in cards)
         {
             row.Add(CreateMiniCard(card, cardWidth));
         }
 
-        scroll.Content = row;
-        AddRows(host, 1);
-        AddCols(host, 1);
-        Grid.SetRow(scroll, 0);
-        Grid.SetColumn(scroll, 0);
-        host.Add(scroll);
+        AddHorizontalScroll(host, row);
     }
 
-    /// <summary>凯尔特十字：左十字 + 右侧 staff 柱。</summary>
-    private static void RenderCelticCross(Grid host, IReadOnlyList<CardDisplayItem> cards, double cardWidth)
+    private static void RenderCelticCross(Grid host, IReadOnlyList<CardDisplayItem> cards, double cardWidth, double pageWidth)
     {
+        if (pageWidth < 620)
+        {
+            var row = new HorizontalStackLayout { Spacing = 10 };
+            foreach (var card in cards)
+            {
+                row.Add(CreateMiniCard(card, Math.Clamp(pageWidth * 0.32, 94, 128)));
+            }
+
+            AddHorizontalScroll(host, row);
+            return;
+        }
+
         AddRows(host, 5);
         AddCols(host, 5);
 
         void Put(int index, int row, int col)
         {
-            if (index >= cards.Count)
+            if (index < cards.Count)
             {
-                return;
+                Place(host, CreateMiniCard(cards[index], cardWidth), row, col);
             }
-
-            Place(host, CreateMiniCard(cards[index], cardWidth), row, col);
         }
 
         Put(4, 0, 1);
@@ -202,6 +216,17 @@ public static class SpreadBoardLayout
         Put(8, 1, 4);
         Put(7, 2, 4);
         Put(6, 3, 4);
+    }
+
+    private static void AddHorizontalScroll(Grid host, View content)
+    {
+        var scroll = new ScrollView { Orientation = ScrollOrientation.Horizontal, HorizontalOptions = LayoutOptions.Fill };
+        scroll.Content = content;
+        AddRows(host, 1);
+        AddCols(host, 1);
+        Grid.SetRow(scroll, 0);
+        Grid.SetColumn(scroll, 0);
+        host.Add(scroll);
     }
 
     private static void AddRows(Grid host, int count)

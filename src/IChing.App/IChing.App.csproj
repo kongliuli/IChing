@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiImage Include="Resources\Images\*.svg" />
     <MauiFont Include="..\IChing.Tarot.App\Resources\Fonts\OpenSans-Regular.ttf" />
     <MauiFont Include="..\IChing.Tarot.App\Resources\Fonts\OpenSans-Semibold.ttf" />
   </ItemGroup>

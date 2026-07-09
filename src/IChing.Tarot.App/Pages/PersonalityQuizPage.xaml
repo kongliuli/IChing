@@ -8,35 +8,33 @@
              Background="{StaticResource PageGradient}">
 
     <ScrollView x:Name="MainScroll">
-        <VerticalStackLayout Padding="20,20" Spacing="16">
+        <VerticalStackLayout Padding="22,24,22,34"
+                             Spacing="16"
+                             MaximumWidthRequest="860"
+                             HorizontalOptions="Center">
             <ActivityIndicator x:Name="LoadingIndicator"
                                IsRunning="True"
                                IsVisible="True"
                                Color="{StaticResource Gold}" />
 
             <VerticalStackLayout x:Name="QuizHost" IsVisible="False" Spacing="16">
-                <Label x:Name="TitleLabel"
-                       FontSize="24"
-                       FontAttributes="Bold"
-                       TextColor="{StaticResource Gold}" />
-                <Label x:Name="SubtitleLabel"
-                       FontSize="13"
-                       TextColor="{StaticResource TextSecondary}"
-                       LineBreakMode="WordWrap" />
-                <Label x:Name="DisclaimerLabel"
-                       FontSize="11"
-                       TextColor="{StaticResource Muted}"
-                       LineBreakMode="WordWrap" />
-                <Label x:Name="ProgressLabel"
-                       FontSize="13"
-                       TextColor="{StaticResource TextSecondary}" />
+                <VerticalStackLayout Spacing="5">
+                    <Label x:Name="TitleLabel" Style="{StaticResource PageTitle}" />
+                    <Label x:Name="SubtitleLabel" Style="{StaticResource PageKicker}" />
+                    <Label x:Name="DisclaimerLabel"
+                           FontSize="11"
+                           TextColor="{StaticResource Muted}"
+                           LineBreakMode="WordWrap" />
+                    <Label x:Name="ProgressLabel"
+                           FontSize="13"
+                           TextColor="{StaticResource TextSecondary}" />
+                </VerticalStackLayout>
 
-                <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
-                        BackgroundColor="{StaticResource Surface}" Padding="16"
-                        StrokeShape="RoundRectangle 16">
+                <Border Style="{StaticResource TarotCardPanel}">
                     <VerticalStackLayout Spacing="12">
                         <Label x:Name="QuestionLabel"
-                               FontSize="16"
+                               FontSize="17"
+                               FontAttributes="Bold"
                                TextColor="{StaticResource TextPrimary}"
                                LineBreakMode="WordWrap" />
                         <VerticalStackLayout x:Name="OptionsHost" Spacing="8" />
@@ -45,14 +43,10 @@
 
                 <Border x:Name="ResultPanel"
                         IsVisible="False"
-                        Stroke="{StaticResource Purple}"
-                        StrokeThickness="1"
-                        Background="{StaticResource CardGradient}"
-                        Padding="16"
-                        StrokeShape="RoundRectangle 16">
+                        Style="{StaticResource TarotCardPanel}">
                     <VerticalStackLayout Spacing="12">
                         <Label x:Name="ResultCodeLabel"
-                               FontSize="28"
+                               FontSize="30"
                                FontAttributes="Bold"
                                TextColor="{StaticResource Gold}" />
                         <Label x:Name="ResultTitleLabel"
@@ -65,21 +59,15 @@
                                LineBreakMode="WordWrap" />
                         <VerticalStackLayout x:Name="DimensionBarsHost" Spacing="10" />
                         <VerticalStackLayout x:Name="ResultSectionsHost" Spacing="4" />
-                        <Button Text="保存长图"
-                                Clicked="OnSaveImageClicked"
-                                TextColor="{StaticResource Gold}"
-                                BackgroundColor="{StaticResource SurfaceAlt}"
-                                BorderColor="{StaticResource GoldDim}"
-                                BorderWidth="1"
-                                CornerRadius="24"
-                                Padding="14,12" />
-                        <Button Text="重新测试"
-                                Clicked="OnRestartClicked"
-                                TextColor="#1A1208"
-                                FontAttributes="Bold"
-                                BackgroundColor="{StaticResource Gold}"
-                                CornerRadius="24"
-                                Padding="14,12" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="保存长图"
+                                    Clicked="OnSaveImageClicked"
+                                    Style="{StaticResource OutlineButton}" />
+                            <Button Grid.Column="1"
+                                    Text="重新测试"
+                                    Clicked="OnRestartClicked"
+                                    Style="{StaticResource GoldButton}" />
+                        </Grid>
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>

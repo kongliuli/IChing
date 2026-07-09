@@ -28,12 +28,11 @@
                         BackgroundColor="{StaticResource Surface}"
                         StrokeShape="RoundRectangle 8"
                         HorizontalOptions="End">
-                    <Label Text="卦"
-                           FontSize="30"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource Cinnabar}"
-                           HorizontalTextAlignment="Center"
-                           VerticalTextAlignment="Center" />
+                    <Image Source="liuyao_emblem.svg"
+                           WidthRequest="42"
+                           HeightRequest="42"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
                 </Border>
             </Grid>
 

@@ -52,11 +52,11 @@ public partial class ExplorePage : ContentPage
     {
         var card = new Border
         {
-            Stroke = Color.FromArgb("#9A7B2C"),
+            Stroke = Color.FromArgb("#4B3B61"),
             StrokeThickness = 1,
-            BackgroundColor = Color.FromArgb("#161022"),
+            BackgroundColor = Color.FromArgb("#21182D"),
             Padding = 16,
-            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 16 }
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 }
         };
 
         var stack = new VerticalStackLayout { Spacing = 12 };
@@ -85,7 +85,7 @@ public partial class ExplorePage : ContentPage
             TextColor = Color.FromArgb("#1A1208"),
             FontAttributes = FontAttributes.Bold,
             BackgroundColor = Color.FromArgb("#D4AF37"),
-            CornerRadius = 24,
+            CornerRadius = 8,
             Padding = new Thickness(14, 12)
         };
         btn.Clicked += async (_, _) => await ExploreModuleRouter.NavigateAsync(this, item);

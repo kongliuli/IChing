@@ -1,4 +1,3 @@
-using System.Text.Json;
 using IChing.App.Services;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Readings;
@@ -7,7 +6,6 @@ namespace IChing.App.Pages;
 
 public partial class BaziPage : ContentPage
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private BaziChart? _currentChart;
     private BaziRuleDigest? _currentDigest;
     private string _currentSummary = string.Empty;
@@ -130,7 +128,8 @@ public partial class BaziPage : ContentPage
         InterpretStatusLabel.TextColor = (Color)Application.Current!.Resources["Muted"];
         InterpretationLabel.Text = string.Empty;
 
-        var result = await App.Remote.InterpretAsync(App.Settings, "八字", BuildPrompt(_currentChart, _currentDigest, _currentFocus));
+        var packet = ReadingPromptPackets.BaziInitial(_currentChart, _currentDigest, _currentFocus);
+        var result = await App.Remote.InterpretAsync(App.Settings, "八字", packet);
 
         InterpretIndicator.IsRunning = false;
         InterpretIndicator.IsVisible = false;
@@ -181,22 +180,6 @@ public partial class BaziPage : ContentPage
             await DisplayAlertAsync("导出失败", ex.Message, "好的");
         }
     }
-
-    private static string BuildPrompt(BaziChart chart, BaziRuleDigest digest, string? focus) =>
-        $"""
-        关注点：{focus ?? "综合"}
-
-        请用简体中文输出三段：
-        1. 命盘重点
-        2. 用神与风险
-        3. 近期建议
-
-        规则摘要：
-        {JsonSerializer.Serialize(digest, JsonOptions)}
-
-        排盘结果：
-        {JsonSerializer.Serialize(chart, JsonOptions)}
-        """;
 
     private static int ReadInt(Entry entry, string name) =>
         int.TryParse(entry.Text, out var value) ? value : throw new InvalidOperationException($"{name}不是有效数字");

@@ -11,7 +11,7 @@
                              HorizontalOptions="Center">
             <VerticalStackLayout Spacing="5">
                 <Label Text="设置" Style="{StaticResource PageTitle}" />
-                <Label Text="远程解读 · 本地保存"
+                <Label Text="远程解读 / 本地保存"
                        Style="{StaticResource PageKicker}" />
                 <BoxView HeightRequest="2"
                          WidthRequest="56"

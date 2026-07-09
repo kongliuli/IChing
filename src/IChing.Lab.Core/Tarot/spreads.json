@@ -3,7 +3,7 @@
     {
       "id": "single-card",
       "title": "Single Card",
-      "titleZh": "单张牌",
+      "titleZh": "单牌",
       "description": "快速抓取当前问题的核心原型或今日提醒，适合日签、是非倾向和轻量自检。",
       "category": "daily",
       "difficulty": "easiest",
@@ -86,6 +86,23 @@
       ]
     },
     {
+      "id": "six-card",
+      "title": "Six Card",
+      "titleZh": "六牌阵",
+      "description": "用六张牌拆解现状、阻碍、内心、外部、建议与结果，适合关系和复杂决策。",
+      "category": "decision",
+      "difficulty": "intermediate",
+      "majorOnly": false,
+      "positions": [
+        { "key": "situation", "title": "Situation", "titleZh": "现状", "context": "当前局面" },
+        { "key": "obstacle", "title": "Obstacle", "titleZh": "阻碍", "context": "主要阻碍" },
+        { "key": "inner", "title": "Inner", "titleZh": "内心", "context": "内在动机" },
+        { "key": "external", "title": "External", "titleZh": "外部", "context": "外部影响" },
+        { "key": "advice", "title": "Advice", "titleZh": "建议", "context": "可采取的做法" },
+        { "key": "outcome", "title": "Outcome", "titleZh": "结果", "context": "可能结果" }
+      ]
+    },
+    {
       "id": "horseshoe",
       "title": "Horseshoe",
       "titleZh": "马蹄牌阵",
@@ -138,7 +155,7 @@
         { "key": "near-future", "title": "Near Future", "titleZh": "近期未来", "context": "近期趋势" },
         { "key": "approach", "title": "Your Approach", "titleZh": "你的态度", "context": "你的态度与做法" },
         { "key": "external", "title": "External Influences", "titleZh": "外部影响", "context": "外部环境与他人" },
-        { "key": "hopes-fears", "title": "Hopes and Fears", "titleZh": "希望与担忧", "context": "希望与担心" },
+        { "key": "hopes-fears", "title": "Hopes and Fears", "titleZh": "希望与担心", "context": "希望与担心" },
         { "key": "outcome", "title": "Final Outcome", "titleZh": "最终结果", "context": "最终结果" }
       ]
     }

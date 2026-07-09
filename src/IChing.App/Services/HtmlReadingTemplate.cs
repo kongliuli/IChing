@@ -29,7 +29,7 @@ public static class HtmlReadingTemplate
             {Block("命盘摘要", $"{chart.WuXingSummary.Dominant}；{digest.PillarSummary}")}
             {Block("用神判断", digest.YongShenSummary)}
             {Block("大运概览", chart.DaYun is { Count: > 0 } ? string.Join("　", chart.DaYun.Take(5).Select(x => $"{x.StartAge}-{x.EndAge}岁 {x.GanZhi}")) : "未计算大运")}
-            {Block("AI 解读", interpretation)}
+            {HtmlBlock("AI 解读", interpretation)}
             """);
 
     public static string BuildLiuyao(LiuyaoNajiaResult chart, LiuyaoRuleDigest digest, string? question, string? interpretation)
@@ -59,7 +59,7 @@ public static class HtmlReadingTemplate
             </section>
             {Block("世应与用神", $"{digest.ShiYaoSummary}\n{digest.YingYaoSummary}\n{digest.YongShenSummary}")}
             <section class="card"><h2>六爻</h2><div class="lines">{lines}</div></section>
-            {Block("AI 解读", interpretation)}
+            {HtmlBlock("AI 解读", interpretation)}
             """);
     }
 
@@ -100,6 +100,13 @@ public static class HtmlReadingTemplate
             .pillar span { display:block; color:var(--muted); font-size:12px; }
             .pillar b { display:block; margin-top:4px; font-size:24px; }
             .card { padding:16px; margin-bottom:14px; }
+            .card .section { padding:12px 0 0; margin:12px 0 0; border-top:1px solid var(--line); }
+            .card .section:first-of-type { margin-top:0; }
+            .card .section h2 { color:var(--red); }
+            .card .section h3 { margin:0 0 8px; color:var(--jade); font-size:15px; }
+            .card .section ul { margin:0; padding:0; list-style:none; }
+            .card .section li { position:relative; margin:0 0 6px; padding-left:16px; line-height:1.7; }
+            .card .section li:before { content:""; position:absolute; left:2px; top:.75em; width:5px; height:5px; border-radius:50%; background:var(--jade); }
             .lines { display:grid; gap:8px; }
             .line { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); }
             .line:last-child { border-bottom:0; }
@@ -119,6 +126,11 @@ public static class HtmlReadingTemplate
         string.IsNullOrWhiteSpace(text)
             ? string.Empty
             : $"""<section class="card"><h2>{H(title)}</h2><p>{H(text).Replace("\n", "<br>")}</p></section>""";
+
+    private static string HtmlBlock(string title, string? markdown) =>
+        string.IsNullOrWhiteSpace(markdown)
+            ? string.Empty
+            : $"""<section class="card"><h2>{H(title)}</h2>{ReadingHtmlFormatter.ToFragment(markdown)}</section>""";
 
     private static string Pillar(string label, string value) =>
         $"""<div class="pillar"><span>{H(label)}</span><b>{H(value)}</b></div>""";

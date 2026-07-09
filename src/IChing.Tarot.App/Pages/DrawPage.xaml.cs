@@ -1,3 +1,4 @@
+using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Tarot;
 using IChing.Tarot.App.Services;
 using IChing.Tarot.App.Views;
@@ -223,16 +224,21 @@ public partial class DrawPage : ContentPage
                 _currentReading,
                 QuestionEntry.Text);
 
-            var sections = InterpretationSectionParser.Parse(result.Text);
-            _interpretationRaw = result.Text;
+            var displayText = ReadingPromptProtocol.NormalizeOutput(result.Text);
+            var sections = InterpretationSectionParser.Parse(displayText);
+            _interpretationRaw = displayText;
             _interpretationSections = sections.ToList();
-            if (sections.Count == 0)
+            if (string.IsNullOrWhiteSpace(displayText))
             {
                 InterpretationPanel.IsVisible = false;
             }
             else
             {
                 InterpretationPanel.IsVisible = true;
+                InterpretationWebView.Source = new HtmlWebViewSource
+                {
+                    Html = ReadingHtmlFormatter.ToTarotDocument("塔罗解读报告", _currentReading.SpreadTitleZh, displayText, _currentReading)
+                };
                 InterpretationBoardLayout.Render(InterpretationBoardHost, sections, _currentReading);
             }
 

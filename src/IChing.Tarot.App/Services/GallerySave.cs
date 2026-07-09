@@ -6,7 +6,7 @@ public static class GallerySave
     public static Task<string?> TrySaveAsync(string filePath, CancellationToken ct = default) =>
 #if ANDROID
         Platforms.Android.GallerySave.SaveAsync(filePath, ct);
-#elif IOS || MACCATALYST
+#elif IOS
         Platforms.iOS.GallerySave.SaveAsync(filePath, ct);
 #else
         Task.FromResult<string?>(null);

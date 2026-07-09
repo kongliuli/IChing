@@ -14,7 +14,11 @@
 
     <ScrollView>
 
-        <VerticalStackLayout x:Name="RootStack" Padding="20,28" Spacing="18">
+        <VerticalStackLayout x:Name="RootStack"
+                             Padding="22,26,22,34"
+                             Spacing="18"
+                             MaximumWidthRequest="980"
+                             HorizontalOptions="Center">
 
             <Label x:Name="HeaderTitleLabel"
 

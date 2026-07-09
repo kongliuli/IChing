@@ -12,7 +12,7 @@
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                 <VerticalStackLayout Spacing="5">
                     <Label Text="历史记录" Style="{StaticResource PageTitle}" />
-                    <Label Text="本地保存 · 最近三十条"
+                    <Label Text="本地保存 / 最近三十条"
                            Style="{StaticResource PageKicker}" />
                     <BoxView HeightRequest="2"
                              WidthRequest="56"
@@ -38,11 +38,7 @@
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="0,0,0,10"
-                                Padding="14"
-                                BackgroundColor="{StaticResource Surface}"
-                                Stroke="{StaticResource StrokeSoft}"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 8">
+                                Style="{StaticResource Card}">
                             <VerticalStackLayout Spacing="6">
                                 <Label Text="{Binding DisplayLine}"
                                        FontAttributes="Bold"

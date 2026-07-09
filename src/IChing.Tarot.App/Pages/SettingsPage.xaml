@@ -6,7 +6,10 @@
              Background="{StaticResource PageGradient}">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20,24" Spacing="16">
+        <VerticalStackLayout Padding="22,24,22,34"
+                             Spacing="16"
+                             MaximumWidthRequest="920"
+                             HorizontalOptions="Center">
             <Label Text="解读 API 设置"
                    FontSize="24"
                    FontAttributes="Bold"
@@ -17,7 +20,7 @@
 
             <Border Stroke="{StaticResource StrokeSoft}" StrokeThickness="1"
                     Background="{StaticResource CardGradient}" Padding="18"
-                    StrokeShape="RoundRectangle 12">
+                    StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="服务商预设" TextColor="{StaticResource TextSecondary}" FontSize="13" />
                     <Picker x:Name="ProviderPicker"
@@ -71,7 +74,7 @@
                                 TextColor="#1A1208"
                                 FontAttributes="Bold"
                                 BackgroundColor="{StaticResource Gold}"
-                                CornerRadius="12"
+                                CornerRadius="8"
                                 Padding="14,12" />
                         <Button Grid.Column="1"
                                 Text="测试连接"
@@ -81,7 +84,7 @@
                                 BackgroundColor="{StaticResource SurfaceAlt}"
                                 BorderColor="{StaticResource StrokeSoft}"
                                 BorderWidth="1"
-                                CornerRadius="12"
+                                CornerRadius="8"
                                 Padding="14,12" />
                     </Grid>
 
@@ -98,7 +101,7 @@
 
             <Border Stroke="{StaticResource GoldDim}" StrokeThickness="1"
                     BackgroundColor="{StaticResource Surface}" Padding="16"
-                    StrokeShape="RoundRectangle 16">
+                    StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="14">
                     <Label Text="牌面图缓存"
                            FontSize="18"
@@ -121,7 +124,7 @@
                                 TextColor="#1A1208"
                                 FontAttributes="Bold"
                                 BackgroundColor="{StaticResource Gold}"
-                                CornerRadius="24"
+                                CornerRadius="8"
                                 Padding="14,12" />
                         <Button Grid.Column="1"
                                 x:Name="ClearCacheButton"
@@ -131,7 +134,7 @@
                                 BackgroundColor="{StaticResource SurfaceAlt}"
                                 BorderColor="{StaticResource GoldDim}"
                                 BorderWidth="1"
-                                CornerRadius="24"
+                                CornerRadius="8"
                                 Padding="14,12" />
                     </Grid>
 
@@ -146,7 +149,7 @@
                     IsVisible="False"
                     Stroke="{StaticResource StrokeSoft}" StrokeThickness="1"
                     BackgroundColor="{StaticResource SurfaceRaised}" Padding="18"
-                    StrokeShape="RoundRectangle 12">
+                    StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Lab API（可选）"
                            FontSize="18"
@@ -179,7 +182,7 @@
                     IsVisible="False"
                     Stroke="{StaticResource GoldDim}" StrokeThickness="1"
                     BackgroundColor="{StaticResource Surface}" Padding="16"
-                    StrokeShape="RoundRectangle 16">
+                    StrokeShape="RoundRectangle 8">
                 <VerticalStackLayout Spacing="12">
                     <Label Text="Android 工具"
                            FontSize="18"
@@ -196,7 +199,7 @@
                             BackgroundColor="{StaticResource SurfaceAlt}"
                             BorderColor="{StaticResource GoldDim}"
                             BorderWidth="1"
-                            CornerRadius="24"
+                            CornerRadius="8"
                             Padding="14,12" />
                     <Label Text="探索模块配置"
                            FontAttributes="Bold"

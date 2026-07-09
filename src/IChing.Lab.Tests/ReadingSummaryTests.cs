@@ -105,7 +105,7 @@ public class ReadingSummaryTests
         var json = ReadingPromptProtocol.BuildUserMessage(packet);
 
         Assert.Contains("\"schema\": \"reading-request.v1\"", json);
-        Assert.Contains("\"outputSchema\": \"reading-output.v1\"", json);
+        Assert.Contains("\"outputSchema\": \"reading-output.v2\"", json);
         Assert.Contains("\"computedFacts\"", json);
         Assert.DoesNotContain("systemDirectives", json);
         Assert.DoesNotContain("\"imageUrl\"", json);

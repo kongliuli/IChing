@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using IChing.Lab.Abstractions.Readings;
 using IChing.Lab.Core.Bazi;
 using IChing.Lab.Core.Liuyao;
 using IChing.Lab.Core.Rules;
@@ -55,8 +56,9 @@ public static class ReadingPromptProtocol
         The user message is a JSON envelope. Treat computedFacts, ruleDigest, and pluginContext as already-computed facts.
         Do not recalculate, replace, rename, or invent stems, branches, hexagrams, lines, cards, positions, dates, or plugin facts.
         Return only one valid JSON object. No markdown, no code fence, no extra prose.
-        Output schema reading-output.v1:
+        Output schema reading-output.v2:
         {
+          "schema": "reading-output.v2",
           "summary": "one concise overall judgment",
           "sections": [
             { "key": "overview", "title": "section title", "body": "section body" }
@@ -596,7 +598,7 @@ public static class ReadingPromptPackets
         var template = ReadingPromptTemplateManager.Get("bazi", "initial", PluginOutputSections(plugins));
         return new(
             Schema: "reading-request.v1",
-            OutputSchema: "reading-output.v1",
+            OutputSchema: ReadingSchemas.OutputV2,
             Domain: "bazi",
             Mode: "initial",
             Language: "zh-CN",
@@ -636,7 +638,7 @@ public static class ReadingPromptPackets
         var template = ReadingPromptTemplateManager.Get("liuyao", "initial", PluginOutputSections(plugins));
         return new(
             Schema: "reading-request.v1",
-            OutputSchema: "reading-output.v1",
+            OutputSchema: ReadingSchemas.OutputV2,
             Domain: "liuyao",
             Mode: "initial",
             Language: "zh-CN",
@@ -676,7 +678,7 @@ public static class ReadingPromptPackets
                 .Append(new OutputSectionSpec("advice", "行动建议")));
         return new(
             Schema: "reading-request.v1",
-            OutputSchema: "reading-output.v1",
+            OutputSchema: ReadingSchemas.OutputV2,
             Domain: "tarot",
             Mode: "initial",
             Language: "zh-CN",

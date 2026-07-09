@@ -2,6 +2,7 @@ using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Prompts;
 using IChing.Lab.Api.Contracts;
 using IChing.Lab.Core.Readings;
+using IChing.Lab.Core.Readings.Templates;
 using IChing.Lab.Core.Rules;
 using IChing.Lab.Core.Tarot;
 using IChing.Lab.Engines.Tarot;
@@ -59,13 +60,26 @@ public sealed class LabReadService
             return OkEnvelope("bazi", tier, chart, digest, preview, null, engineId);
         }
 
-        var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 512);
+        var template = ReadingTemplateRegistry.ResolveInitial("bazi", tier);
+        var gen = await RunTemplateInferenceAsync(
+            "bazi",
+            template.TemplateId,
+            new PromptContext(
+                Chart: chart,
+                RuleDigest: digest,
+                Question: null,
+                Focus: req.Focus,
+                MaxTokens: req.MaxTokens ?? 512,
+                Engine: _interpretation.ResolveEngineMetadata("bazi", engineId),
+                ModuleFocuses: _interpretation.ResolveModuleFocuses("bazi", engineId)),
+            req.MaxTokens ?? 512,
+            cancellationToken);
         return OkEnvelope("bazi", tier, chart, digest, preview, new
         {
-            text = result.Text,
-            textEn = result.TextEn,
-            isFallback = result.IsFallback
-        }, engineId, result.Engine);
+            text = gen.IsFallback ? preview.OneLiner : gen.Text,
+            isFallback = gen.IsFallback,
+            fallbackReason = gen.FallbackReason
+        }, engineId, gen.EngineId, template.TemplateId);
     }
 
     public async Task<IActionResult> ExecuteLiuyaoRead(int tier, LiuyaoReadRequest req, CancellationToken cancellationToken = default)
@@ -90,25 +104,25 @@ public sealed class LabReadService
             return OkEnvelope("liuyao", tier, chart, digest, preview, null, engineId);
         }
 
-        var liuyaoBuilder = ResolvePromptBuilder("liuyao-tier1-default");
-        var liuyaoCtx = new PromptContext(
-            Chart: chart,
-            RuleDigest: digest,
-            Question: req.Question ?? "综合",
-            Focus: req.Focus,
-            MaxTokens: req.MaxTokens ?? 512,
-            Engine: _interpretation.ResolveEngineMetadata("liuyao", engineId));
-        var prompt = liuyaoBuilder.Build(liuyaoCtx).PromptText;
-        var gen = await _interpretation.GenerateWithFallbackAsync(
-            prompt,
-            new GenerateOptions(MaxTokens: req.MaxTokens ?? 512),
-            CancellationToken.None);
+        var template = ReadingTemplateRegistry.ResolveInitial("liuyao", tier);
+        var gen = await RunTemplateInferenceAsync(
+            "liuyao",
+            template.TemplateId,
+            new PromptContext(
+                Chart: chart,
+                RuleDigest: digest,
+                Question: req.Question ?? "综合",
+                Focus: req.Focus,
+                MaxTokens: req.MaxTokens ?? 512,
+                Engine: _interpretation.ResolveEngineMetadata("liuyao", engineId)),
+            req.MaxTokens ?? 512,
+            cancellationToken);
         return OkEnvelope("liuyao", tier, chart, digest, preview, new
         {
             text = gen.IsFallback ? preview.OneLiner : gen.Text,
             isFallback = gen.IsFallback,
             fallbackReason = gen.FallbackReason
-        }, engineId, gen.EngineId);
+        }, engineId, gen.EngineId, template.TemplateId);
     }
 
     public async Task<IActionResult> ExecuteTarotRead(int tier, TarotReadRequest req, CancellationToken cancellationToken = default)
@@ -140,21 +154,24 @@ public sealed class LabReadService
         var positions = reading.Positions
             .Select(p => new TarotPositionPrompt(p.PositionTitleZh, p.PositionContext, p.CardNameZh, p.Reversed, p.Meaning))
             .ToList();
-        var (templateId, useTranslatePass, wordLimit, maxTokens) =
-            ResolveTarotPrompt(engineId, tier, reading.SpreadId);
+        var tarotResolution = ReadingTemplateRegistry.ResolveTarot(engineId, tier, reading.SpreadId);
+        var templateId = tarotResolution.Descriptor.TemplateId;
         var tarotBuilder = ResolvePromptBuilder(templateId);
         var tarotCtx = new PromptContext(
-            Chart: new TarotPromptInput(reading.SpreadTitleZh, positions, wordLimit),
+            Chart: new TarotPromptInput(reading.SpreadTitleZh, positions, tarotResolution.WordLimit),
             RuleDigest: digest,
             Question: req.Question ?? "General reading",
             Focus: null,
-            MaxTokens: req.MaxTokens ?? maxTokens,
+            MaxTokens: req.MaxTokens ?? tarotResolution.MaxTokens,
             Engine: _interpretation.ResolveEngineMetadata("tarot", engineId));
-        var prompt = tarotBuilder.Build(tarotCtx).PromptText;
+        var prompt = ReadingJsonOutputContract.Append(
+            "tarot",
+            tarotBuilder.Build(tarotCtx).PromptText,
+            templateId);
 
         object narrative;
-        var tokenBudget = req.MaxTokens ?? maxTokens;
-        if (useTranslatePass)
+        var tokenBudget = req.MaxTokens ?? tarotResolution.MaxTokens;
+        if (tarotResolution.Descriptor.NeedsTranslationPass)
         {
             var result = _interpretation.InterpretTarotEnglishThenChinese(prompt, tokenBudget, tokenBudget);
             narrative = new
@@ -171,7 +188,7 @@ public sealed class LabReadService
             var gen = await _interpretation.GenerateWithFallbackAsync(
                 prompt,
                 new GenerateOptions(MaxTokens: tokenBudget),
-                CancellationToken.None);
+                cancellationToken);
             narrative = new
             {
                 text = string.IsNullOrWhiteSpace(gen.Text) ? preview.OneLiner : gen.Text,
@@ -183,6 +200,21 @@ public sealed class LabReadService
         }
 
         return OkEnvelope("tarot", tier, reading, digest, preview, narrative, engineId, templateId);
+    }
+
+    private async Task<GenerationResult> RunTemplateInferenceAsync(
+        string domain,
+        string templateId,
+        PromptContext ctx,
+        int maxTokens,
+        CancellationToken cancellationToken)
+    {
+        var builder = ResolvePromptBuilder(templateId);
+        var prompt = ReadingJsonOutputContract.Append(domain, builder.Build(ctx).PromptText, templateId);
+        return await _interpretation.GenerateWithFallbackAsync(
+            prompt,
+            new GenerateOptions(MaxTokens: maxTokens),
+            cancellationToken);
     }
 
     private async Task<IActionResult?> EnsureCreditsAsync(int tier, string readingId, CancellationToken cancellationToken)
@@ -235,26 +267,5 @@ public sealed class LabReadService
             paipanEngine,
             promptTemplateId: promptTemplateId);
         return new OkObjectResult(envelope);
-    }
-
-    private static (string TemplateId, bool UseTranslatePass, int WordLimit, int MaxTokens) ResolveTarotPrompt(
-        string engineId,
-        int tier,
-        string spreadId)
-    {
-        if (tier == 2 && string.Equals(spreadId, "celtic-cross", StringComparison.OrdinalIgnoreCase))
-        {
-            return ("tarot-tier2-celtic-cross", false, 900, 1200);
-        }
-
-        if (engineId.StartsWith("tarot-deckaura", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(engineId, "iching-tarot-built-in", StringComparison.OrdinalIgnoreCase))
-        {
-            var wordLimit = tier == 2 ? 700 : 400;
-            return ("tarot-tier1-deckaura-default", false, wordLimit, tier == 2 ? 900 : 512);
-        }
-
-        var limit = tier == 2 ? 800 : (spreadId == "celtic-cross" ? 500 : 280);
-        return ("tarot-tier1-en", true, limit, tier == 2 ? 1024 : 512);
     }
 }

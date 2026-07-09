@@ -7,11 +7,11 @@ public static class ReadingSectionKeyRegistry
         {
             ["bazi"] =
             [
-                "overview", "yongshen", "geju", "flow", "advice", "warnings"
+                "overview", "basis", "yongshen", "geju", "flow", "advice", "warnings"
             ],
             ["liuyao"] =
             [
-                "overview", "yongshen", "changing", "shi_ying", "advice", "warnings"
+                "overview", "basis", "yongshen", "changing", "shi_ying", "advice", "warnings"
             ],
             ["tarot"] =
             [

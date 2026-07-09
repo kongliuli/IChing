@@ -102,6 +102,19 @@ public partial class FollowUpChatPage : ContentPage
             body,
             DateTimeOffset.UtcNow));
 
+        var labSessionId = App.Sessions.GetLabSessionId(_args.SessionId);
+        if (labSessionId is not null)
+        {
+            var token = string.IsNullOrWhiteSpace(App.Settings.AuthToken) ? null : App.Settings.AuthToken;
+            await ReadingSessionBridge.AppendLabHistoryAsync(
+                App.Settings.LabApiUrl,
+                App.Settings.UseLabApi,
+                token,
+                labSessionId,
+                text,
+                body);
+        }
+
         SendButton.IsEnabled = _rounds < 3;
         QuestionEntry.IsEnabled = _rounds < 3;
     }

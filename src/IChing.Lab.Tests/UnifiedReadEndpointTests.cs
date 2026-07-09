@@ -32,6 +32,8 @@ public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactor
         Assert.Contains("tier0Preview", json);
         Assert.Contains("disclaimer", json);
         Assert.Contains("\"exchange\"", json);
+        Assert.Contains("computedFacts", json);
+        Assert.Contains("dayMaster", json);
     }
 
     [Fact]
@@ -88,6 +90,39 @@ public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactor
             chart = new { spreadTitleZh = "过去现在未来", positions = Array.Empty<object>() }
         });
         Assert.Equal(HttpStatusCode.OK, register.StatusCode);
+    }
+
+    [Fact]
+    public async Task LabChat_AppendHistory_UpdatesSession()
+    {
+        var register = await _client.PostAsJsonAsync("/lab/chat", new
+        {
+            mode = "register",
+            domain = "bazi",
+            tier = 1,
+            input = new
+            {
+                question = (string?)null,
+                focus = "综合",
+                computedFacts = new[] { "fact" },
+                ruleDigest = new[] { "rule" },
+                pluginContext = Array.Empty<object>()
+            },
+            initialOutput = "初始"
+        });
+        using var regDoc = System.Text.Json.JsonDocument.Parse(await register.Content.ReadAsStringAsync());
+        var sessionId = regDoc.RootElement.GetProperty("sessionId").GetString();
+
+        var append = await _client.PostAsJsonAsync("/lab/chat", new
+        {
+            mode = "append",
+            sessionId,
+            userQuestion = "追问1",
+            assistantReply = "回答1"
+        });
+        Assert.Equal(HttpStatusCode.OK, append.StatusCode);
+        var appendJson = await append.Content.ReadAsStringAsync();
+        Assert.Contains("\"rounds\":1", appendJson.Replace(" ", ""));
     }
 
     [Fact]

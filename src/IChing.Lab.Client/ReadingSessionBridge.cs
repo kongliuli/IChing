@@ -33,4 +33,27 @@ public static class ReadingSessionBridge
             authToken,
             cancellationToken);
     }
+
+    public static async Task AppendLabHistoryAsync(
+        string labApiUrl,
+        bool useLabApi,
+        string? authToken,
+        string labSessionId,
+        string userQuestion,
+        string assistantReply,
+        CancellationToken cancellationToken = default)
+    {
+        if (!useLabApi || string.IsNullOrWhiteSpace(labApiUrl))
+        {
+            return;
+        }
+
+        await LabApiClient.AppendChatHistoryAsync(
+            labApiUrl,
+            labSessionId,
+            userQuestion,
+            assistantReply,
+            authToken,
+            cancellationToken);
+    }
 }

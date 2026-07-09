@@ -1,5 +1,6 @@
 using IChing.Lab.Abstractions.Models;
 using IChing.Lab.Abstractions.Prompts;
+using IChing.Lab.Abstractions.Readings;
 using IChing.Lab.Api.Contracts;
 using IChing.Lab.Core.Readings;
 using IChing.Lab.Core.Readings.Templates;
@@ -54,27 +55,29 @@ public sealed class LabReadService
         var (chart, engineId) = _charts.CalculateBazi(input);
         var digest = ReadingSummaries.BuildBaziRuleDigest(chart, req.Focus, _ruleEngine);
         var preview = ReadingSummaries.BuildBaziTier0Preview(chart, req.Focus);
+        var exchangeInput = ExchangeInputBuilder.ForBazi(chart, digest, req.Focus);
 
         if (tier == 0)
         {
-            return OkEnvelope("bazi", tier, chart, digest, preview, null, engineId);
+            return OkEnvelope("bazi", tier, chart, exchangeInput, preview, null, engineId);
         }
 
         var template = ReadingTemplateRegistry.ResolveInitial("bazi", tier);
+        var exchange = ReadingExchangeFactory.CreateInitial("bazi", tier, exchangeInput, null, template.TemplateId);
+        var ctx = ExchangeInferenceRouter.BuildInitialContext(
+            exchange,
+            chart,
+            digest,
+            _interpretation.ResolveEngineMetadata("bazi", engineId),
+            _interpretation.ResolveModuleFocuses("bazi", engineId),
+            req.MaxTokens ?? 512);
         var gen = await RunTemplateInferenceAsync(
             "bazi",
             template.TemplateId,
-            new PromptContext(
-                Chart: chart,
-                RuleDigest: digest,
-                Question: null,
-                Focus: req.Focus,
-                MaxTokens: req.MaxTokens ?? 512,
-                Engine: _interpretation.ResolveEngineMetadata("bazi", engineId),
-                ModuleFocuses: _interpretation.ResolveModuleFocuses("bazi", engineId)),
+            ctx,
             req.MaxTokens ?? 512,
             cancellationToken);
-        return OkEnvelope("bazi", tier, chart, digest, preview, new
+        return OkEnvelope("bazi", tier, chart, exchangeInput, preview, new
         {
             text = gen.IsFallback ? preview.OneLiner : gen.Text,
             isFallback = gen.IsFallback,
@@ -98,26 +101,29 @@ public sealed class LabReadService
         var (chart, engineId) = _charts.CalculateLiuyao(req.Method, req.At ?? DateTimeOffset.Now, req.Seed);
         var digest = ReadingSummaries.BuildLiuyaoRuleDigest(chart, req.Question, req.Focus, _ruleEngine);
         var preview = ReadingSummaries.BuildLiuyaoTier0Preview(chart, req.Question, req.Focus);
+        var exchangeInput = ExchangeInputBuilder.ForLiuyao(chart, digest, req.Question, req.Focus);
 
         if (tier == 0)
         {
-            return OkEnvelope("liuyao", tier, chart, digest, preview, null, engineId);
+            return OkEnvelope("liuyao", tier, chart, exchangeInput, preview, null, engineId);
         }
 
         var template = ReadingTemplateRegistry.ResolveInitial("liuyao", tier);
+        var exchange = ReadingExchangeFactory.CreateInitial("liuyao", tier, exchangeInput, null, template.TemplateId);
+        var ctx = ExchangeInferenceRouter.BuildInitialContext(
+            exchange,
+            chart,
+            digest,
+            _interpretation.ResolveEngineMetadata("liuyao", engineId),
+            null,
+            req.MaxTokens ?? 512);
         var gen = await RunTemplateInferenceAsync(
             "liuyao",
             template.TemplateId,
-            new PromptContext(
-                Chart: chart,
-                RuleDigest: digest,
-                Question: req.Question ?? "综合",
-                Focus: req.Focus,
-                MaxTokens: req.MaxTokens ?? 512,
-                Engine: _interpretation.ResolveEngineMetadata("liuyao", engineId)),
+            ctx,
             req.MaxTokens ?? 512,
             cancellationToken);
-        return OkEnvelope("liuyao", tier, chart, digest, preview, new
+        return OkEnvelope("liuyao", tier, chart, exchangeInput, preview, new
         {
             text = gen.IsFallback ? preview.OneLiner : gen.Text,
             isFallback = gen.IsFallback,
@@ -145,10 +151,11 @@ public sealed class LabReadService
             rules = ReadingSummaries.BuildTarotRuleDigest(reading, _ruleEngine)
         };
         var preview = ReadingSummaries.BuildTarotTier0Preview(reading, req.Question);
+        var exchangeInput = ExchangeInputBuilder.ForTarot(reading, req.Question);
 
         if (tier == 0)
         {
-            return OkEnvelope("tarot", tier, reading, digest, preview, null, engineId);
+            return OkEnvelope("tarot", tier, reading, exchangeInput, preview, null, engineId);
         }
 
         var positions = reading.Positions
@@ -199,7 +206,7 @@ public sealed class LabReadService
             };
         }
 
-        return OkEnvelope("tarot", tier, reading, digest, preview, narrative, engineId, templateId);
+        return OkEnvelope("tarot", tier, reading, exchangeInput, preview, narrative, engineId, templateId);
     }
 
     private async Task<GenerationResult> RunTemplateInferenceAsync(
@@ -248,7 +255,7 @@ public sealed class LabReadService
         string domain,
         int tier,
         object chart,
-        object? ruleDigest,
+        ExchangeInput exchangeInput,
         Tier0Preview tier0Preview,
         object? narrative,
         string? paipanEngine,
@@ -268,7 +275,7 @@ public sealed class LabReadService
             domain,
             tier,
             chart,
-            ruleDigest,
+            exchangeInput,
             tier0Preview,
             output,
             paipanEngine,

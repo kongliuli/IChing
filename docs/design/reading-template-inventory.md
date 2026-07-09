@@ -51,3 +51,6 @@
 - [x] 测评页 Producer HTML（`QuizReadingProducerBridge`）
 - [x] Legacy interpret → read 端点 / 410；`Orchestrator.Interpret` 模板化
 - [x] App↔Lab session register（`ReadingSessionBridge` + chart）
+- [x] `ExchangeInputBuilder` + envelope 真实 `ExchangeInput`
+- [x] `ExchangeInferenceRouter`（bazi/liuyao read 路径）
+- [x] Lab chat `append` mode + App 追问 history 同步

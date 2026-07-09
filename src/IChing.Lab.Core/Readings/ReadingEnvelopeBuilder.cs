@@ -8,7 +8,7 @@ public static class ReadingEnvelopeBuilder
         string domain,
         int tier,
         object chart,
-        object? ruleDigest,
+        ExchangeInput input,
         Tier0Preview preview,
         ExchangeOutput? output,
         string? paipanEngine,
@@ -29,13 +29,6 @@ public static class ReadingEnvelopeBuilder
             tier,
             "zh-CN",
             DateTimeOffset.UtcNow);
-
-        var input = new ExchangeInput(
-            Question: null,
-            Focus: null,
-            ComputedFacts: [],
-            RuleDigest: [],
-            PluginContext: []);
 
         var render = new ExchangeRenderSpec(
             ReadingSchemas.OutputV2,

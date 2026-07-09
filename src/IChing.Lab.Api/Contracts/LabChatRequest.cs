@@ -8,6 +8,7 @@ public sealed record LabChatRequest(
     int Tier = 1,
     string? SessionId = null,
     string? UserQuestion = null,
+    string? AssistantReply = null,
     int? MaxTokens = null,
     ExchangeInput? Input = null,
     string? InitialOutput = null,

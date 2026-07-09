@@ -118,4 +118,32 @@ public sealed class LabApiClient
         using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
         return doc.RootElement.TryGetProperty("sessionId", out var id) ? id.GetString() : null;
     }
+
+    public static async Task<bool> AppendChatHistoryAsync(
+        string baseUrl,
+        string sessionId,
+        string userQuestion,
+        string assistantReply,
+        string? bearerToken = null,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{baseUrl.TrimEnd('/')}/lab/chat";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(new
+            {
+                mode = "append",
+                sessionId,
+                userQuestion,
+                assistantReply
+            })
+        };
+        if (!string.IsNullOrWhiteSpace(bearerToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+        }
+
+        using var response = await SharedHttp.SendAsync(request, cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
 }

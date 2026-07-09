@@ -8,12 +8,12 @@
 | L2 | 测评页 WebView 接 `QuizReadingProducerBridge` | done |
 | L3 | Legacy `interpret` 端点迁移 + `Orchestrator.Interpret` 模板化 | done |
 | L4 | Lab `/lab/chat` register 存 chart + App `ReadingSessionBridge` 同步 | done |
-| L5 | `LabReadService` 填充真实 `ExchangeInput`（envelope 非空桩） | pending |
-| L6 | Lab chat followup 与 App 双向 history 同步 | pending |
-| L7 | `ExchangeInferenceRouter` 统一 Inference Scriban 路径 | pending |
+| L5 | `LabReadService` 填充真实 `ExchangeInput`（envelope 非空桩） | done |
+| L6 | Lab chat followup 与 App 双向 history 同步（`append` mode） | done |
+| L7 | `ExchangeInferenceRouter` 统一 Inference Scriban 路径（bazi/liuyao） | done |
 
 ## Loop 唤醒 prompt
 
 ```
-ReadingExchange loop 池：检查 L5–L7 pending 项，选最小可验证切片实现 + 测试 + commit；全部 done 后仅 arm 长间隔心跳。
+ReadingExchange loop 池已全部完成；arm 长间隔心跳，待新 backlog 写入后再推进。
 ```

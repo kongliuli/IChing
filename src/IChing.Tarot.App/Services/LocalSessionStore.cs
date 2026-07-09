@@ -72,6 +72,16 @@ public sealed class LocalSessionStore
         cmd.ExecuteNonQuery();
     }
 
+    public string? GetLabSessionId(string sessionId)
+    {
+        using var conn = Open();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT lab_session_id FROM sessions WHERE session_id = $id LIMIT 1;";
+        cmd.Parameters.AddWithValue("$id", sessionId);
+        var value = cmd.ExecuteScalar();
+        return value is null or DBNull ? null : (string)value;
+    }
+
     public FollowUpSessionSeed? GetFollowUpSeed(string sessionId)
     {
         using var conn = Open();

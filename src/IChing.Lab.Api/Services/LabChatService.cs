@@ -38,6 +38,11 @@ public sealed class LabChatService
             return RegisterSession(req);
         }
 
+        if (string.Equals(req.Mode, "append", StringComparison.OrdinalIgnoreCase))
+        {
+            return AppendHistory(req);
+        }
+
         if (string.Equals(req.Mode, "initial", StringComparison.OrdinalIgnoreCase))
         {
             return req.Domain.ToLowerInvariant() switch
@@ -75,6 +80,32 @@ public sealed class LabChatService
             DateTimeOffset.UtcNow,
             chartJson);
         return new OkObjectResult(new { sessionId });
+    }
+
+    private IActionResult AppendHistory(LabChatRequest req)
+    {
+        if (string.IsNullOrWhiteSpace(req.SessionId)
+            || string.IsNullOrWhiteSpace(req.UserQuestion)
+            || string.IsNullOrWhiteSpace(req.AssistantReply))
+        {
+            return new BadRequestObjectResult(new { error = "append requires sessionId, userQuestion, assistantReply" });
+        }
+
+        if (!_sessions.TryGetValue(req.SessionId!, out var session))
+        {
+            return new NotFoundObjectResult(new { error = "session not found" });
+        }
+
+        var history = session.History.ToList();
+        history.Add(new DialogueTurn("user", req.UserQuestion!));
+        history.Add(new DialogueTurn("assistant", req.AssistantReply!));
+        var exchangeId = Guid.NewGuid().ToString("N");
+        _sessions[session.SessionId] = session with
+        {
+            LastExchangeId = exchangeId,
+            History = history
+        };
+        return new OkObjectResult(new { sessionId = session.SessionId, exchangeId, rounds = history.Count / 2 });
     }
 
     private async Task<IActionResult> FollowUpAsync(LabChatRequest req, CancellationToken cancellationToken)

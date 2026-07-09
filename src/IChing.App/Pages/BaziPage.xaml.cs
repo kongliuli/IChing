@@ -177,7 +177,8 @@ public partial class BaziPage : ContentPage
         }
 
         var seed = FollowUpPromptTemplates.Bazi(_currentChart, _currentDigest, _currentFocus, _currentInterpretation);
-        await Navigation.PushAsync(new FollowUpChatPage("八字追问", seed.SystemPrompt, seed.Context));
+        var sessionId = App.Sessions.CreateSession("bazi", App.Settings.InterpretTier, _currentChart, _currentDigest);
+        await Navigation.PushAsync(new FollowUpChatPage(new FollowUpChatArgs("八字追问", "bazi", sessionId, seed.SystemPrompt, seed.Context)));
     }
 
     private async void OnExportClicked(object? sender, EventArgs e)

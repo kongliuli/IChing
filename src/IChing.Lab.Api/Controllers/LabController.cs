@@ -13,7 +13,7 @@ namespace IChing.Lab.Api.Controllers;
 
 [ApiController]
 [Route("lab")]
-public class LabController : ControllerBase
+public partial class LabController : ControllerBase
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 

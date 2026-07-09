@@ -8,6 +8,7 @@ public partial class App : Application
     public static InterpretationService Interpretation { get; } = new();
     public static RemoteInterpretationService Remote { get; } = new();
     public static ReadingHistoryStore History { get; } = new();
+    public static LocalSessionStore Sessions { get; } = new();
 
     public App()
     {

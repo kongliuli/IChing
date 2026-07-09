@@ -35,12 +35,14 @@ public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactor
     }
 
     [Fact]
-    public async Task UnifiedRead_UnknownDomain_Returns404()
+    public async Task CreditsConsume_WhenAccountsDisabled_ReturnsOkSkipped()
     {
         var response = await _client.PostAsJsonAsync(
-            "/lab/calendar/read?tier=0",
-            new { year = 2026, month = 1, day = 1 });
+            "/lab/credits/consume",
+            new { exchangeId = "test-exchange-1", domain = "bazi", mode = "followup", tier = 1 });
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var json = await response.Content.ReadAsStringAsync();
+        Assert.Contains("\"ok\":true", json.Replace(" ", ""));
     }
 }

@@ -1,4 +1,5 @@
 using IChing.App.Services;
+using IChing.Lab.Client;
 using IChing.Lab.Core.Integrations;
 using Microsoft.Maui.Controls.Shapes;
 
@@ -6,19 +7,21 @@ namespace IChing.App.Pages;
 
 public partial class FollowUpChatPage : ContentPage
 {
-    private readonly string _systemPrompt;
-    private readonly string _context;
-    private string? _lastUser;
-    private string? _lastAssistant;
+    private readonly FollowUpChatArgs _args;
+    private readonly List<DialogueTurnState> _history = [];
     private int _rounds;
 
-    public FollowUpChatPage(string title, string systemPrompt, string context)
+    public FollowUpChatPage(FollowUpChatArgs args)
     {
         InitializeComponent();
-        Title = title;
-        _systemPrompt = systemPrompt;
-        _context = context;
-        AddBubble("当前上下文", context, incoming: true);
+        _args = args;
+        Title = args.Title;
+        AddBubble("当前上下文", args.Context, incoming: true);
+    }
+
+    public FollowUpChatPage(string title, string systemPrompt, string context)
+        : this(new FollowUpChatArgs(title, "unknown", Guid.NewGuid().ToString("N"), systemPrompt, context))
+    {
     }
 
     private async void OnSendClicked(object? sender, EventArgs e)
@@ -27,6 +30,24 @@ public partial class FollowUpChatPage : ContentPage
         if (string.IsNullOrWhiteSpace(text) || _rounds >= 3)
         {
             return;
+        }
+
+        var exchangeId = Guid.NewGuid().ToString("N");
+        if (App.Settings.UseLabApi)
+        {
+            var token = string.IsNullOrWhiteSpace(App.Settings.AuthToken) ? null : App.Settings.AuthToken;
+            var (ok, status, error) = await LabApiClient.ConsumeCreditsAsync(
+                App.Settings.LabApiUrl,
+                exchangeId,
+                _args.Domain,
+                "followup",
+                token,
+                _args.SessionId);
+            if (!ok)
+            {
+                await DisplayAlertAsync("额度不足", $"HTTP {status}: {error}", "好的");
+                return;
+            }
         }
 
         _rounds++;
@@ -41,8 +62,17 @@ public partial class FollowUpChatPage : ContentPage
             await ChatScroll.ScrollToAsync(ChatHost, ScrollToPosition.End, false);
         }
 
-        _lastUser = text;
-        _lastAssistant = answer.Text;
+        _history.Add(new DialogueTurnState("user", text));
+        _history.Add(new DialogueTurnState("assistant", answer.Text));
+        App.Sessions.AppendExchange(_args.SessionId, new StoredExchange(
+            exchangeId,
+            null,
+            "followup",
+            1,
+            "{}",
+            answer.Text,
+            DateTimeOffset.UtcNow));
+
         SendButton.IsEnabled = _rounds < 3;
         QuestionEntry.IsEnabled = _rounds < 3;
     }
@@ -51,14 +81,13 @@ public partial class FollowUpChatPage : ContentPage
     {
         var messages = new List<ChatTurn>
         {
-            new("system", _systemPrompt),
-            new("assistant", _context)
+            new("system", _args.SystemPrompt),
+            new("assistant", _args.Context)
         };
 
-        if (!string.IsNullOrWhiteSpace(_lastUser) && !string.IsNullOrWhiteSpace(_lastAssistant))
+        foreach (var turn in _history.TakeLast(4))
         {
-            messages.Add(new("user", _lastUser));
-            messages.Add(new("assistant", _lastAssistant));
+            messages.Add(new(turn.Role, turn.Content));
         }
 
         messages.Add(new("user", currentQuestion));
@@ -97,4 +126,6 @@ public partial class FollowUpChatPage : ContentPage
         });
         return label;
     }
+
+    private sealed record DialogueTurnState(string Role, string Content);
 }

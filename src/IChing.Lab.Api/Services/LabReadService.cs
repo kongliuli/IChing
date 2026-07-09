@@ -217,6 +217,13 @@ public sealed class LabReadService
             cancellationToken);
     }
 
+    public async Task<AccountsConsumeResult> ConsumeCreditsAsync(
+        string? authorizationHeader,
+        int tier,
+        string exchangeId,
+        CancellationToken cancellationToken) =>
+        await _accounts.TryConsumeAsync(authorizationHeader, tier, exchangeId, cancellationToken);
+
     private async Task<IActionResult?> EnsureCreditsAsync(int tier, string readingId, CancellationToken cancellationToken)
     {
         var auth = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();

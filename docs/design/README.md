@@ -3,6 +3,9 @@
 ## Architecture & AI
 
 - **[reading-exchange.md](./reading-exchange.md)** — **ReadingExchange** 统一 AI 交互实体、模板、会话、结果产出与扣费（ADR，2026-07-09）
+- **[reading-template-inventory.md](./reading-template-inventory.md)** — Scriban 模板清单与 Packet/Adapter 映射
+- **[reading-producer-catalog.md](./reading-producer-catalog.md)** — `IReadingResultProducer` / Widget 全自动规则
+- **[reading-plugin-extensions.md](./reading-plugin-extensions.md)** — RuleEngine 流派 Prompt 扩展规范
 
 ## App UI direction
 

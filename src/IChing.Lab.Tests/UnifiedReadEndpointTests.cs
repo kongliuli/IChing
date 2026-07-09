@@ -28,9 +28,10 @@ public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactor
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var json = await response.Content.ReadAsStringAsync();
-        Assert.Contains("\"domain\":\"bazi\"", json.Replace(" ", ""));
+        Assert.Contains("reading-envelope.v2", json);
         Assert.Contains("tier0Preview", json);
         Assert.Contains("disclaimer", json);
+        Assert.Contains("\"exchange\"", json);
     }
 
     [Fact]

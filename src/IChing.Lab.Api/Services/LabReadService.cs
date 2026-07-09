@@ -56,16 +56,16 @@ public sealed class LabReadService
 
         if (tier == 0)
         {
-            return new OkObjectResult(ReadEnvelope("bazi", tier, chart, digest, preview, null, engineId));
+            return OkEnvelope("bazi", tier, chart, digest, preview, null, engineId);
         }
 
         var result = _interpretation.Interpret(chart, req.Focus, req.MaxTokens ?? 512);
-        return new OkObjectResult(ReadEnvelope("bazi", tier, chart, digest, preview, new
+        return OkEnvelope("bazi", tier, chart, digest, preview, new
         {
             text = result.Text,
             textEn = result.TextEn,
             isFallback = result.IsFallback
-        }, engineId));
+        }, engineId, result.Engine);
     }
 
     public async Task<IActionResult> ExecuteLiuyaoRead(int tier, LiuyaoReadRequest req, CancellationToken cancellationToken = default)
@@ -87,7 +87,7 @@ public sealed class LabReadService
 
         if (tier == 0)
         {
-            return new OkObjectResult(ReadEnvelope("liuyao", tier, chart, digest, preview, null, engineId));
+            return OkEnvelope("liuyao", tier, chart, digest, preview, null, engineId);
         }
 
         var liuyaoBuilder = ResolvePromptBuilder("liuyao-tier1-default");
@@ -103,12 +103,12 @@ public sealed class LabReadService
             prompt,
             new GenerateOptions(MaxTokens: req.MaxTokens ?? 512),
             CancellationToken.None);
-        return new OkObjectResult(ReadEnvelope("liuyao", tier, chart, digest, preview, new
+        return OkEnvelope("liuyao", tier, chart, digest, preview, new
         {
             text = gen.IsFallback ? preview.OneLiner : gen.Text,
             isFallback = gen.IsFallback,
             fallbackReason = gen.FallbackReason
-        }, engineId));
+        }, engineId, gen.EngineId);
     }
 
     public async Task<IActionResult> ExecuteTarotRead(int tier, TarotReadRequest req, CancellationToken cancellationToken = default)
@@ -134,7 +134,7 @@ public sealed class LabReadService
 
         if (tier == 0)
         {
-            return new OkObjectResult(ReadEnvelope("tarot", tier, reading, digest, preview, null, engineId));
+            return OkEnvelope("tarot", tier, reading, digest, preview, null, engineId);
         }
 
         var positions = reading.Positions
@@ -182,7 +182,7 @@ public sealed class LabReadService
             };
         }
 
-        return new OkObjectResult(ReadEnvelope("tarot", tier, reading, digest, preview, narrative, engineId));
+        return OkEnvelope("tarot", tier, reading, digest, preview, narrative, engineId, templateId);
     }
 
     private async Task<IActionResult?> EnsureCreditsAsync(int tier, string readingId, CancellationToken cancellationToken)
@@ -205,28 +205,37 @@ public sealed class LabReadService
 
     private static bool ValidTier(int tier) => tier is >= 0 and <= 2;
 
-    private static object ReadEnvelope(
+    private static IActionResult OkEnvelope(
         string domain,
         int tier,
         object chart,
         object? ruleDigest,
         Tier0Preview tier0Preview,
         object? narrative,
-        string? paipanEngine = null) => new
+        string? paipanEngine,
+        string? inferenceEngineId = null,
+        string? promptTemplateId = null)
     {
-        domain,
-        tier,
-        engine = new
+        var engineId = inferenceEngineId ?? paipanEngine ?? domain;
+        var output = narrative is null
+            ? null
+            : ReadingEnvelopeBuilder.NarrativeToOutput(domain, narrative, engineId);
+        if (output is not null && promptTemplateId is not null)
         {
-            paipan = paipanEngine ?? (domain == "liuyao" ? "IChingLibrary.SixLines" : "IChing.Lab.Core"),
-            rules = "iching-rules-v1",
-            narrative = tier == 0 ? "none" : "qwen2.5-1.5b-onnx-genai"
-        },
-        chart,
-        ruleDigest,
-        tier0Preview = new { oneLiner = tier0Preview.OneLiner, disclaimer = tier0Preview.Disclaimer },
-        narrative
-    };
+            output = output with { PromptTemplateId = promptTemplateId };
+        }
+
+        var envelope = ReadingEnvelopeBuilder.Build(
+            domain,
+            tier,
+            chart,
+            ruleDigest,
+            tier0Preview,
+            output,
+            paipanEngine,
+            promptTemplateId: promptTemplateId);
+        return new OkObjectResult(envelope);
+    }
 
     private static (string TemplateId, bool UseTranslatePass, int WordLimit, int MaxTokens) ResolveTarotPrompt(
         string engineId,

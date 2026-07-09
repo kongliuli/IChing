@@ -123,6 +123,10 @@ public static class ReadingPromptProtocol
         }
     }
 
+    public static string ToMarkdownPublic(ReadingOutput output) => ToMarkdown(output);
+
+    public static string? ExtractJsonPublic(string raw) => ExtractJson(raw);
+
     public static string LocalizeTitle(string title)
     {
         var text = title.Trim();

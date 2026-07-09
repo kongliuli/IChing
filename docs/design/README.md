@@ -1,4 +1,10 @@
-# App UI direction
+# Design docs
+
+## Architecture & AI
+
+- **[reading-exchange.md](./reading-exchange.md)** — **ReadingExchange** 统一 AI 交互实体、模板、会话、结果产出与扣费（ADR，2026-07-09）
+
+## App UI direction
 
 Generated image references:
 

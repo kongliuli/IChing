@@ -7,4 +7,8 @@
     <RootNamespace>IChing.Lab.Client</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

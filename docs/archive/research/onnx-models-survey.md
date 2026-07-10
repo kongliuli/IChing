@@ -117,7 +117,7 @@ olive auto-opt --model_name Qwen/Qwen2.5-0.5B-Instruct --device cpu --precision 
 
 ## Lab 后续任务
 
-> 推理层完整设计见 [`inference-layer-design.md`](./inference-layer-design.md)
+> 推理层完整设计见 [`inference-layer-design.md`](../../active/inference-layer-design.md)
 
 - [x] `IChing.Lab.Inference` 项目：封装 ORT GenAI
 - [x] `POST /lab/interpret`：命盘 JSON → 短解读

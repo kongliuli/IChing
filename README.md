@@ -14,11 +14,11 @@
 ## 文档
 
 - [文档索引](docs/README.md)
-- [App 入口](docs/apps.md)
-- [Lab API](docs/lab-api.md)
-- [架构说明](docs/architecture.md)
-- [技术栈](docs/tech-stack-dotnet.md)
-- [规则/插件设计](docs/plugin-design.md)
+- [App 入口](docs/active/apps.md)
+- [Lab API](docs/active/lab-api.md)
+- [架构说明](docs/active/architecture.md)
+- [技术栈](docs/active/tech-stack-dotnet.md)
+- [规则/插件设计](docs/active/plugin-design.md)
 
 ## 当前主线
 

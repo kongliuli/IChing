@@ -1,6 +1,6 @@
 # ADR：ReadingExchange 统一 AI 交互与结果产出
 
-**状态**：已接受（讨论闭环，待 Phase 0 实现）  
+**状态**：已接受（主要阶段已落地，作为当前交互协议 ADR 维护）  
 **日期**：2026-07-09  
 **替代/补充**：[inference-layer-design.md](../inference-layer-design.md)、[architecture.md](../architecture.md)
 
@@ -328,7 +328,7 @@ requiredOutputSchema, producerId, extensionPluginIds[]
 - [architecture.md](../architecture.md) — 分层总览
 - [inference-layer-design.md](../inference-layer-design.md) — Tier 与额度策略（本 ADR 细化 G1/娱乐 EntitlementGate）
 - [accounts-api.md](../accounts-api.md) — Accounts consume
-- [lab-api.md](../lab-api.md) — Lab HTTP（待更新 envelope v2）
+- [lab-api.md](../lab-api.md) — Lab HTTP（envelope v2 已落地）
 
 ---
 

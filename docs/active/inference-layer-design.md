@@ -377,7 +377,7 @@ models/qwen2.5-1.5b-genai/
 
 ### 7.1 为何英译中
 
-- 小阿卡纳将导入 **英文 Waite 完整牌义**（见 `docs/research-tarot-optimization.md`）
+- 小阿卡纳将导入 **英文 Waite 完整牌义**（见 `docs/archive/research/research-tarot-optimization.md`）
 - 1.5B 模型**英文叙述质量高于中文术语文本**
 - 两 pass 可分离「事实层（英文）」与「呈现层（中文）」，便于 QA
 
@@ -589,9 +589,9 @@ Prompt 修改建议：
 
 | 文档 | 说明 |
 |------|------|
-| [onnx-models-survey.md](./onnx-models-survey.md) | 模型选型调研 |
-| [research-paipan-algorithms.md](./research-paipan-algorithms.md) | 排盘算法 |
-| [research-tarot-optimization.md](./research-tarot-optimization.md) | 塔罗 Layer1 数据 |
+| [onnx-models-survey.md](../archive/research/onnx-models-survey.md) | 模型选型调研归档 |
+| [research-paipan-algorithms.md](../archive/research/research-paipan-algorithms.md) | 排盘算法调研归档 |
+| [research-tarot-optimization.md](../archive/research/research-tarot-optimization.md) | 塔罗 Layer1 数据调研归档 |
 | [tech-stack-dotnet.md](./tech-stack-dotnet.md) | .NET Lab 栈 |
 | [prompts/fixtures/](./prompts/fixtures/) | 提示词测试样例 |
 

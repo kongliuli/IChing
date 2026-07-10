@@ -47,7 +47,7 @@
 
 | 库 / 数据集 | 形态 | 维度 | 价值 |
 |----|------|------|------|
-| [tarot-card-meanings](https://www.npmjs.com/package/tarot-card-meanings) (Deckaura) | NPM + PyPI | 12 维：upright / reversed / love / career / yesNo / keywords / element / planet / "how someone sees you" | 直接做 Tier 0 模板与小阿卡纳牌义库（[research-tarot-optimization.md](./research-tarot-optimization.md) Phase A 数据源） |
+| [tarot-card-meanings](https://www.npmjs.com/package/tarot-card-meanings) (Deckaura) | NPM + PyPI | 12 维：upright / reversed / love / career / yesNo / keywords / element / planet / "how someone sees you" | 直接做 Tier 0 模板与小阿卡纳牌义库（[research-tarot-optimization.md](../archive/research/research-tarot-optimization.md) Phase A 数据源） |
 | [Deckaura 78 牌研究论文](https://cdn.shopify.com/s/files/1/0953/6195/8161/files/Tarot_Interpretation_Systems_Academic_Paper.pdf) | Kaggle / HuggingFace | 同上 + 元素分布统计 | 学术化牌义参考 |
 | [Tarot MCP Server](https://lobehub.com/mcp/morax-tarot-mcp) (Morax) | Node.js / TS | 11 牌阵 + 自定义牌阵（1–15 位） | 牌阵扩展接口设计参考；元素平衡分析引擎可借鉴 |
 | [RoxyAPI tarot](https://roxyapi.com/docs/tutorials/tarot-app) | 商业 API（含 C# SDK） | daily / three-card / yes-no / celtic-cross | 商业 API 形态参考，可作为远程排盘插件 |
@@ -494,7 +494,7 @@ foreach (var manifest in loader.Discover())
 - **不替代** [inference-layer-design.md](./inference-layer-design.md)：分层（Layer1 / Tier / 英译中）逻辑保持
 - **不替代** [tech-stack-dotnet.md](./tech-stack-dotnet.md)：技术栈仍是 .NET 10
 - **补充** `IChartEngine` / `RuleEngine`：后端正式入口已经收敛到 .NET Lab，原型后端文档已移除。
-- **承接** [onnx-models-survey.md](./onnx-models-survey.md)：模型选型属于 `IInferenceEngine` 实现细节
+- **承接** [onnx-models-survey.md](../archive/research/onnx-models-survey.md)：模型选型属于 `IInferenceEngine` 实现细节
 
 ---
 

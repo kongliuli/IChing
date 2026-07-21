@@ -13,7 +13,7 @@
 - 新建 `ChartInterpretationOrchestrator`，承担 `Interpret` / `InterpretTarotEnglishThenChinese` 编排，注入 `IEnumerable<IInferenceEngine>` 选引擎
 - **BREAKING**（内部）：`ChartInterpretationService` 标记 `[Obsolete]`，保留 1 个版本以兼容现有测试
 - `Program.cs` / DI 注册改为 `services.AddSingleton<IInferenceEngine, OnnxGenAiEngine>()` + `services.AddSingleton<ChartInterpretationOrchestrator>()`
-- [LabController](file:///workspace/src/IChing.Lab.Api/Controllers/LabController.cs) 改注入 `ChartInterpretationOrchestrator`
+- [LabController](../../../../src/IChing.Lab.Api/Controllers/LabController.cs) 改注入 `ChartInterpretationOrchestrator`
 - 现有 `MvpFlowIntegrationTest` / `LabFeatureTests` 必须全绿
 
 ## Impact

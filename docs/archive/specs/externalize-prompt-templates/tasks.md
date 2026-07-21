@@ -5,7 +5,7 @@
   - [x] SubTask 1.2: 验证 `dotnet restore` 通过
 
 - [x] Task 2: 提取现有 prompt 字符串到模板文件
-  - [x] SubTask 2.1: 新建 `prompts/bazi-tier1-default.txt`（从 [BaziPromptBuilder](file:///workspace/src/IChing.Lab.Inference/Prompts/BaziPromptBuilder.cs) 迁移）
+  - [x] SubTask 2.1: 新建 `prompts/bazi-tier1-default.txt`（从 `BaziPromptBuilder` 迁移）
   - [x] SubTask 2.2: 新建 `prompts/liuyao-tier1-default.txt`（从 LiuyaoPromptBuilder 迁移）
   - [x] SubTask 2.3: 新建 `prompts/tarot-tier1-en.txt`（从 TarotPromptBuilder 迁移）
   - [x] SubTask 2.4: 新建 `prompts/tarot-translate-to-zh.txt`（迁移翻译 prompt）

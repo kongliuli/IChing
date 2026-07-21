@@ -10,7 +10,7 @@
   - [x] SubTask 2.3: `OpenAiChatClient.cs` 顶部加注释指向 `samples/OpenAiCompatibleEngine/OpenAiRemoteEngine` 作为插件化替代
 
 - [x] Task 3: README 与解决方案标注
-  - [x] SubTask 3.1: [README.md](file:///workspace/README.md) 模块表 `IChing.Desktop` 行注明 `(deprecated, paused)`
+  - [x] SubTask 3.1: [README.md](../../../../README.md) 模块表 `IChing.Desktop` 行注明 `(deprecated, paused)`
   - [x] SubTask 3.2: `IChing.Lab.sln 中 IChing.Desktop 项目注释说明不参与默认 CI 构建
 
 - [ ] Task 4: 验证不破坏现有构建

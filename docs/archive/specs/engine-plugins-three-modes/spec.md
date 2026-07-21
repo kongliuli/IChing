@@ -2,7 +2,7 @@
 
 ## Why
 
-[plugin-design.md §4.4.3](file:///workspace/docs/plugin-design.md) 定义了三类 AI 调用模式（进程内 / 本地 HTTP / 远程 API），但当前仅模式 A 的 ONNX GenAI 落地。需要实现剩余插件，使所有引擎统一为 `IInferenceEngine` 实现，并构建降级链。
+[plugin-design.md §4.4.3](../../../active/plugin-design.md) 定义了三类 AI 调用模式（进程内 / 本地 HTTP / 远程 API），但当前仅模式 A 的 ONNX GenAI 落地。需要实现剩余插件，使所有引擎统一为 `IInferenceEngine` 实现，并构建降级链。
 
 **依赖**：
 - [plugin-abstractions](../plugin-abstractions/spec.md)（`IInferenceEngine`）
@@ -24,7 +24,7 @@
 
 ### 模式 C 远程 API（外部插件，复用基类）
 - 在 `samples/OpenAiCompatibleEngine/` 内加：
-  - `OpenAiRemoteEngine`（EngineId="openai-remote"，整合 [OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs) 逻辑）
+  - `OpenAiRemoteEngine`（EngineId="openai-remote"，整合 [OpenAiChatClient](../../../../src/IChing.Desktop/OpenAiChatClient.cs) 逻辑）
   - `AzureOpenAiEngine`（EngineId="azure-openai-remote"，Azure 端点格式）
 - API key 走 `IConfiguration` + User Secrets，不入仓
 
@@ -35,7 +35,7 @@
 - 新增 `GET /health/engines` 端点：返回每个引擎 `IsReady` 状态
 
 ### 配置 schema
-- `appsettings.json` 加完整 `plugins:inferenceEngines` 数组（见 [plugin-design.md §5.3](file:///workspace/docs/plugin-design.md)）
+- `appsettings.json` 加完整 `plugins:inferenceEngines` 数组（见 [plugin-design.md §5.3](../../../active/plugin-design.md)）
 - 每个 engine 含 `mode` 字段（InProcess / LocalHttp / RemoteApi）
 
 ## Impact

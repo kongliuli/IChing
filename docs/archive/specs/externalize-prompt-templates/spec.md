@@ -2,7 +2,7 @@
 
 ## Why
 
-[BaziPromptBuilder](file:///workspace/src/IChing.Lab.Inference/Prompts/BaziPromptBuilder.cs) / [LiuyaoPromptBuilder](file:///workspace/src/IChing.Lab.Inference/Prompts/LiuyaoPromptBuilder.cs) / [TarotPromptBuilder](file:///workspace/src/IChing.Lab.Inference/Prompts/TarotPromptBuilder.cs) 均为 `static` 类，模板字符串硬编码，改 prompt 必须重编译。需要外置到 `prompts/*.txt` 文件，使用 Scriban 模板引擎渲染，支持运行时热加载。
+`BaziPromptBuilder` / `LiuyaoPromptBuilder` / `TarotPromptBuilder` 均为 `static` 类，模板字符串硬编码，改 prompt 必须重编译。需要外置到 `prompts/*.txt` 文件，使用 Scriban 模板引擎渲染，支持运行时热加载。
 
 **依赖**：[plugin-abstractions](../plugin-abstractions/spec.md)（需要 `IPromptBuilder` 接口）
 
@@ -18,7 +18,7 @@
 - 新建 `PromptTemplateRegistry`：启动扫描 + `FileSystemWatcher` 热重载
 - 迁移 3 个 PromptBuilder 的字符串到模板文件，原 `static` 方法标 `[Obsolete]`
 - `ChartInterpretationOrchestrator` 改注入 `IPromptBuilder`（来自 refactor-inference-engine）
-- Tier 0 模板不走此机制（仍在 [ReadingSummaries](file:///workspace/src/IChing.Lab.Core/Readings/ReadingSummaries.cs)）
+- Tier 0 模板不走此机制（仍在 [ReadingSummaries](../../../../src/IChing.Lab.Core/Readings/ReadingSummaries.cs)）
 
 ## Impact
 

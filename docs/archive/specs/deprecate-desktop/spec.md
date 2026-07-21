@@ -6,9 +6,9 @@
 
 ## What Changes
 
-- [IChing.Desktop.csproj](file:///workspace/src/IChing.Desktop/IChing.Desktop.csproj) 新增 `<Description>` 与 XML 注释标注「已废弃，暂停演进」
+- [IChing.Desktop.csproj](../../../../src/IChing.Desktop/IChing.Desktop.csproj) 新增 `<Description>` 与 XML 注释标注「已废弃，暂停演进」
 - `App.xaml.cs` / `MainWindow.xaml.cs` 顶部加 `[Obsolete("Desktop client is deprecated; use IChing.Lab.Api + plugins. Will be revisited after plugin mainline completes.")]` 程序级注释
-- [README.md](file:///workspace/README.md) 模块表注明 `IChing.Desktop` 为 deprecated
+- [README.md](../../../../README.md) 模块表注明 `IChing.Desktop` 为 deprecated
 - 从 `IChing.Lab.sln` 的主构建配置中**保留**项目（不卸载），但标注不参与 CI 默认构建（通过配置项 `DesktopDeprecated=true` 跳过，或文档说明手动构建）
 - `OpenAiChatClient.cs` 加注释指向 `samples/OpenAiCompatibleEngine/OpenAiRemoteEngine` 作为替代实现
 - **不删除任何桌面端代码**，不回滚用户既有改动
@@ -21,7 +21,7 @@
 
 ## Impact
 
-- Affected code: [IChing.Desktop/](file:///workspace/src/IChing.Desktop/)（仅注释/描述）、[README.md](file:///workspace/README.md)、[IChing.Lab.sln](file:///workspace/src/IChing.Lab.sln)（构建配置注释）
+- Affected code: [IChing.Desktop/](../../../../src/IChing.Desktop/)（仅注释/描述）、[README.md](../../../../README.md)、[IChing.Lab.sln](../../../../src/IChing.Lab.sln)（构建配置注释）
 - Affected specs: 无依赖，独立执行
 - 无破坏性变更：桌面端仍可手动构建运行，只是不再演进
 

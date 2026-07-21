@@ -36,7 +36,7 @@
 ## 阶段三：模式 C 远程 API
 
 - [x] Task 6: 实现 OpenAiRemoteEngine 与 AzureOpenAiEngine
-  - [x] SubTask 6.1: `OpenAiRemoteEngine`：EngineId="openai-remote"，整合 [OpenAiChatClient](file:///workspace/src/IChing.Desktop/OpenAiChatClient.cs) 逻辑
+  - [x] SubTask 6.1: `OpenAiRemoteEngine`：EngineId="openai-remote"，整合 [OpenAiChatClient](../../../../src/IChing.Desktop/OpenAiChatClient.cs) 逻辑
   - [x] SubTask 6.2: `AzureOpenAiEngine`：EngineId="azure-openai-remote"，URL 格式 `{baseUrl}/openai/deployments/{model}/chat/completions?api-version=...`
   - [x] SubTask 6.3: API key 从 `IConfiguration[apiKeyKey]` 读，不入仓
   - [x] SubTask 6.4: 文档说明 User Secrets 配置方式（`dotnet user-secrets set "OpenAI:ApiKey" "..."`）

@@ -1,6 +1,6 @@
 - [x] `samples/OpenAiCompatibleEngine/DeepSeekEngine.cs` 存在，继承 `OpenAiCompatibleEngineBase`
 - [x] `EngineId="deepseek-remote"`，`ModelName="deepseek-chat"`，`ApiEndpoint="/v1/chat/completions"`
-- [x] `HttpClient.BaseAddress="https://api.deepseek.com/v1"`，默认 `Authorization: Bearer sk-2c248bc685c144739c88181fb665d89d`
+- [x] `HttpClient.BaseAddress="https://api.deepseek.com/v1"`，默认 `Authorization: Bearer <redacted-test-key>`
 - [x] 代码注释明确标注 `TEST-ONLY / 生产环境须改为 User Secrets`
 - [x] `EngineModule.Register` 追加注册 `DeepSeekEngine`
 - [x] `appsettings.json` 的 `plugins:inferenceEngines` 含 `deepseek-remote` 条目

@@ -17,8 +17,8 @@
 - [App 入口](docs/active/apps.md)
 - [Lab API](docs/active/lab-api.md)
 - [架构说明](docs/active/architecture.md)
-- [技术栈](docs/active/tech-stack-dotnet.md)
-- [规则/插件设计](docs/active/plugin-design.md)
+- [ReadingExchange](docs/active/design/reading-exchange.md)（统一 AI 交互与 envelope v2）
+- [未实现路线图](docs/active/roadmap.md)
 
 ## 当前主线
 

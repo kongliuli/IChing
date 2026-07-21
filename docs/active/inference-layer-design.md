@@ -1,9 +1,15 @@
 # 推理层产品设计：排盘 × ONNX × 分层解读
 
-> **状态**：设计定稿 + 部署/提示词测试阶段  
-> **日期**：2026-07-03  
-> **适用范围**：八字、六爻、塔罗三域的本地 ONNX 解读层  
+> **状态**：设计定稿；Phase 0–2 已落地，envelope 以 ReadingExchange 为准<br>
+> **日期**：2026-07-03（定稿） / 2026-07-15（状态同步）<br>
+> **适用范围**：八字、六爻、塔罗三域的本地 ONNX 解读层<br>
 > **原则**：**计算 deterministic，解读 generative**
+>
+> **2026-07 更新**：
+>
+> - §5.2 的 `narrative.text` envelope **已被** [reading-exchange.md](./design/reading-exchange.md) 的 `reading-envelope.v2` **取代**；HTTP 契约以 ADR 与 [lab-api.md](./lab-api.md) 为准。
+> - §10 路线图 **Phase 0–2 已完成**（模型试跑、Layer1/Tier0、`/lab/{domain}/read` + envelope v2）。未完成项见 [roadmap.md](./roadmap.md)。
+> - Fixture 路径：`docs/active/prompts/fixtures/`（非 `docs/prompts/`）。
 
 ---
 
@@ -532,7 +538,7 @@ dotnet run --project IChing.Lab.PromptTest -- \
 dotnet run --project IChing.Lab.PromptTest -- --dry-run --fixture tarot-tier1-en
 ```
 
-Fixture 文件：`docs/prompts/fixtures/*.json`
+Fixture 文件：`docs/active/prompts/fixtures/*.json`
 
 ### 9.2 测试矩阵
 
@@ -568,7 +574,7 @@ Pass1 字数 / Pass2 字数：
 Prompt 修改建议：
 ```
 
-结果建议存本地：`docs/prompts/runs/`（gitignore 可选）
+结果建议存本地：`docs/active/prompts/runs/`（gitignore 可选）
 
 ---
 
@@ -576,12 +582,12 @@ Prompt 修改建议：
 
 | 阶段 | 内容 | 产出 |
 |------|------|------|
-| **Phase 0（当前）** | 部署 1.5B + PromptTest + 文档 | 模型可加载、3 域 Prompt 试跑 |
-| Phase 1 | Layer1 六爻 + Tier0 模板 + `positionContext` 塔罗 | Core 无 ONNX 的免费档 |
-| Phase 2 | `/lab/{domain}/read` + 统一 envelope | API 可演示 |
-| Phase 3 | 会员额度 + 推广刷新 | 计费联调 |
+| **Phase 0（已完成）** | 部署 1.5B + PromptTest + 文档 | 模型可加载、3 域 Prompt 试跑 |
+| **Phase 1（已完成）** | Layer1 六爻 + Tier0 模板 + `positionContext` 塔罗 | Core 无 ONNX 的免费档 |
+| **Phase 2（已完成）** | `/lab/{domain}/read` + envelope v2 | API 可演示；契约见 [reading-exchange.md](./design/reading-exchange.md) |
+| Phase 3 | 会员额度 + 推广刷新 | 计费联调；见 [roadmap.md](./roadmap.md) |
 | Phase 4 | 小阿卡纳英文牌库 + 塔罗 Phase A 数据 | 英译中质量提升 |
-| Phase 5 | 八字 Layer1 + Tier2 分段 | 三域详析齐全 |
+| Phase 5 | 八字 Layer1 深化 + Tier2 分段 | 三域详析齐全 |
 
 ---
 

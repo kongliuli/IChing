@@ -58,6 +58,6 @@ export IOS_PROVISION_PROFILE="IChing Tarot AppStore"
 
 | 平台 | 脚本 | 产物 |
 |------|------|------|
-| Windows | `scripts/publish-tarot-app-v1.cmd` | zip |
+| Windows | `scripts/publish-tarot-app-v1.1.cmd` | zip |
 | Android | 同上 | apk |
 | iOS | `scripts/publish-tarot-app-ios.sh` | ipa（需 macOS） |

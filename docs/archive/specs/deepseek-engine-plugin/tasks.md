@@ -3,7 +3,7 @@
 - [x] Task 1: 实现 DeepSeekEngine 引擎类
   - [x] SubTask 1.1: 在 `samples/OpenAiCompatibleEngine/` 新增 `DeepSeekEngine.cs`，继承 `OpenAiCompatibleEngineBase`
   - [x] SubTask 1.2: `EngineId="deepseek-remote"`，`ModelName="deepseek-chat"`，`ApiEndpoint="/v1/chat/completions"`
-  - [x] SubTask 1.3: 构造 `HttpClient` 时设 `BaseAddress="https://api.deepseek.com/v1"` + 默认 `Authorization: Bearer sk-2c248bc685c144739c88181fb665d89d`，注释标注 `TEST-ONLY`
+  - [x] SubTask 1.3: 构造 `HttpClient` 时设 `BaseAddress="https://api.deepseek.com/v1"` + 默认 `Authorization: Bearer <redacted-test-key>`，注释标注 `TEST-ONLY`
   - [x] SubTask 1.4: 实现 `ProbeIsReady` 返回 true（远程 API 不主动探活）
   - [x] SubTask 1.5: `appsettings.json` 留 `apiKeyKey="DeepSeek:ApiKey"` 占位（生产切换 User Secrets）
 

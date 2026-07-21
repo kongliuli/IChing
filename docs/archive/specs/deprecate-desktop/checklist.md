@@ -2,7 +2,7 @@
 - [x] `App.xaml.cs` 顶部含 `// DEPRECATED: Desktop client paused. Use IChing.Lab.Api + plugins. See spec: deprecate-desktop.` 注释
 - [x] `MainWindow.xaml.cs` 顶部含同样废弃注释
 - [x] `OpenAiChatClient.cs` 顶部含注释指向 `samples/OpenAiCompatibleEngine/OpenAiRemoteEngine` 作为替代
-- [x] [README.md](file:///workspace/README.md) 模块表 `IChing.Desktop` 行注明 `(deprecated, paused)`
+- [x] [README.md](../../../../README.md) 模块表 `IChing.Desktop` 行注明 `(deprecated, paused)`
 - [x] `IChing.Lab.sln` 中 IChing.Desktop 项目注释说明不参与默认 CI 构建
 - [x] `dotnet build src/IChing.Lab.sln` 全绿（桌面端仍可编译）
 - [x] `IChing.Desktop/` 目录文件数未减少

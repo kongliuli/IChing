@@ -2,7 +2,7 @@
 
 ## Why
 
-[BaziEngine](file:///workspace/src/IChing.Lab.Core/Bazi/BaziEngine.cs) / [LiuyaoNajiaService](file:///workspace/src/IChing.Lab.Core/Liuyao/LiuyaoNajiaService.cs) / [TarotEngine](file:///workspace/src/IChing.Lab.Core/Tarot/TarotEngine.cs) 均为 `static` 类，无法注册到 DI 容器，也无法被同名 domain 下多个实现替换。需要包装为 `IChartEngine` 实现并保留向下兼容（原 static API 不变）。
+[BaziEngine](../../../../src/IChing.Lab.Core/Bazi/BaziEngine.cs) / [LiuyaoNajiaService](../../../../src/IChing.Lab.Core/Liuyao/LiuyaoNajiaService.cs) / [TarotEngine](../../../../src/IChing.Lab.Core/Tarot/TarotEngine.cs) 均为 `static` 类，无法注册到 DI 容器，也无法被同名 domain 下多个实现替换。需要包装为 `IChartEngine` 实现并保留向下兼容（原 static API 不变）。
 
 **依赖**：[plugin-abstractions](../plugin-abstractions/spec.md)（需要 `IChartEngine` 接口）
 
@@ -15,7 +15,7 @@
   - `CalendarEngine`（Domain="calendar"，EngineId="lunar-csharp-1.6.8"）
 - 包装类内部委托给原 static 方法（不改算法）
 - 注册到 DI 容器：`services.AddSingleton<IChartEngine, BaziChartEngine>()` 等
-- [LabController](file:///workspace/src/IChing.Lab.Api/Controllers/LabController.cs) 保留原 static 调用（向下兼容）；同时新增一个示范端点 `/lab/engines` 列出已注册引擎
+- [LabController](../../../../src/IChing.Lab.Api/Controllers/LabController.cs) 保留原 static 调用（向下兼容）；同时新增一个示范端点 `/lab/engines` 列出已注册引擎
 - **不破坏**：原 static API 完全保留，现有测试不动
 
 ## Impact

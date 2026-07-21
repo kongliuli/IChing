@@ -10,7 +10,7 @@
 
 - 定义 `ExternalHttpChartBridge` 抽象基类（位于 `IChing.Lab.Core` 或新 `samples/ChartBridge`）：通过 HTTP sidecar 调用外部 Python/Node 算法服务，统一 `ChartRequest → JSON → IChartEngine.Calculate` 适配
 - 定义 `McpChartBridge` 抽象基类：通过 MCP 协议调用 MCP 服务器（如 mymcp-fun/bazi、tarot-mcp）
-- `IChartEngine` 接口扩展 `EngineMetadata` 只读属性（来源库名、版本、算法依据、模块面向），用于审计与 Prompt 联动（见 [algorithm-aware-prompt-templates](file:///workspace/.trae/specs/algorithm-aware-prompt-templates/spec.md)）
+- `IChartEngine` 接口扩展 `EngineMetadata` 只读属性（来源库名、版本、算法依据、模块面向），用于审计与 Prompt 联动（见 [algorithm-aware-prompt-templates](../algorithm-aware-prompt-templates/spec.md)）
 
 ### 2. 每域扩展至 5+ 引擎
 
@@ -47,7 +47,7 @@
 #### Calendar（目标 6）
 | # | EngineId | 类型 | 现实依据 |
 |---|----------|------|----------|
-| 1 | `calendar-huangli-builtin` | 内置（已有） | 基于 lunar-csharp 的 [HuangLiService](file:///workspace/src/IChing.Lab.Core/Calendar/HuangLiService.cs) |
+| 1 | `calendar-huangli-builtin` | 内置（已有） | 基于 lunar-csharp 的 [HuangLiService](../../../../src/IChing.Lab.Core/Calendar/HuangLiService.cs) |
 | 2 | `calendar-cnlunar-bridge` | HTTP 桥接 | [cnlunar](https://pypi.org/project/cnlunar/)，《钦定协纪辨方书》宜忌等第 |
 | 3 | `calendar-lunar-calendar-bridge` | HTTP 桥接 | [lunar-calendar](https://gitcode.com/gh_mirrors/lu/lunar-calendar) VSOP87/LEA-406 天文算法，1901–2100 香港天文台数据 |
 | 4 | `calendar-koyomi-remote` | 远程 API | [国立天文台 koyomi](https://eco2.mtk.nao.ac.jp/cgi-bin/koyomi/cande/phenomena_sy.cgi) 二十四节气长期版 |
@@ -68,9 +68,9 @@
 
 ## Impact
 
-- Affected code: [IChing.Lab.Abstractions/Engines/IChartEngine.cs](file:///workspace/src/IChing.Lab.Abstractions/Engines/IChartEngine.cs)（加 metadata）、[IChing.Lab.Core/Engines/](file:///workspace/src/IChing.Lab.Core/Engines/)（4 个内置包装器加 metadata）、新增 `samples/ChartBridge/` 与多个域插件项目、[appsettings.json](file:///workspace/src/IChing.Lab.Api/appsettings.json)
-- Affected specs: 依赖 [plugin-abstractions](file:///workspace/.trae/specs/plugin-abstractions/spec.md) + [wrap-chart-engines](file:///workspace/.trae/specs/wrap-chart-engines/spec.md) + [plugin-loader-and-di](file:///workspace/.trae/specs/plugin-loader-and-di/spec.md)（均已完成）
-- 被依赖：[algorithm-aware-prompt-templates](file:///workspace/.trae/specs/algorithm-aware-prompt-templates/spec.md) 依赖本 spec 的 `EngineMetadata`
+- Affected code: [IChing.Lab.Abstractions/Engines/IChartEngine.cs](../../../../src/IChing.Lab.Abstractions/Engines/IChartEngine.cs)（加 metadata）、[IChing.Lab.Core/Engines/](../../../../src/IChing.Lab.Core/Engines/)（4 个内置包装器加 metadata）、新增 `samples/ChartBridge/` 与多个域插件项目、[appsettings.json](../../../../src/IChing.Lab.Api/appsettings.json)
+- Affected specs: 依赖 [plugin-abstractions](../plugin-abstractions/spec.md) + [wrap-chart-engines](../wrap-chart-engines/spec.md) + [plugin-loader-and-di](../plugin-loader-and-di/spec.md)（均已完成）
+- 被依赖：[algorithm-aware-prompt-templates](../algorithm-aware-prompt-templates/spec.md) 依赖本 spec 的 `EngineMetadata`
 
 ## ADDED Requirements
 

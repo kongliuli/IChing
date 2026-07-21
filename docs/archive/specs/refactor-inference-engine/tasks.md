@@ -23,7 +23,7 @@
   - [x] SubTask 4.3: `LabController` 改注 `ChartInterpretationOrchestrator`
 
 - [x] Task 5: 验证现有测试全绿
-  - [x] SubTask 5.1: `dotnet test` 全绿（含 [MvpFlowIntegrationTest](file:///workspace/src/IChing.Lab.Api/test) / [LabFeatureTests](file:///workspace/src/IChing.Lab.Tests/LabFeatureTests.cs)）
+  - [x] SubTask 5.1: `dotnet test` 全绿（含 `MvpFlowIntegrationTest` / [LabFeatureTests](../../../../src/IChing.Lab.Tests/LabFeatureTests.cs)）
   - [x] SubTask 5.2: 跑 dry-run fixture（`dotnet run --project IChing.Lab.PromptTest -- --dry-run`）输出完整 Prompt
   - [x] SubTask 5.3: API 响应 JSON 结构与改造前一致（人工 diff）
 

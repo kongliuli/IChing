@@ -8,7 +8,7 @@
 
 ### 1. EngineMetadata 流入 PromptContext
 
-- `IChartEngine` 输出 `EngineMetadata`（含 `EngineId / Source / ModuleFocus`，见 [expand-chart-algorithm-plugins](file:///workspace/.trae/specs/expand-chart-algorithm-plugins/spec.md)）
+- `IChartEngine` 输出 `EngineMetadata`（含 `EngineId / Source / ModuleFocus`，见 [expand-chart-algorithm-plugins](../expand-chart-algorithm-plugins/spec.md)）
 - 排盘响应附带 `engine.metadata` 字段
 - `PromptContext` 新增 `EngineMetadata? Engine` 与 `IReadOnlyList<string> ModuleFocuses` 字段
 - `ChartInterpretationOrchestrator` 把排盘引擎的 metadata 传入 `PromptContext`
@@ -46,8 +46,8 @@
 
 ## Impact
 
-- Affected code: [IChing.Lab.Abstractions/Models/PromptContext.cs](file:///workspace/src/IChing.Lab.Abstractions/Models/PromptContext.cs)、[IChing.Lab.Abstractions/Plugins/IPluginManifest.cs](file:///workspace/src/IChing.Lab.Abstractions/Plugins/IPluginManifest.cs) 邻近的 metadata、[IChing.Lab.Inference/Prompts/PromptTemplateRegistry.cs](file:///workspace/src/IChing.Lab.Inference/Prompts/PromptTemplateRegistry.cs)、[ChartInterpretationOrchestrator.cs](file:///workspace/src/IChing.Lab.Inference/ChartInterpretationOrchestrator.cs)、[prompts/](file:///workspace/prompts/)
-- Affected specs: 依赖 [expand-chart-algorithm-plugins](file:///workspace/.trae/specs/expand-chart-algorithm-plugins/spec.md)（提供 `EngineMetadata`）+ [externalize-prompt-templates](file:///workspace/.trae/specs/externalize-prompt-templates/spec.md)（已完成，提供 Scriban + 热重载）
+- Affected code: [IChing.Lab.Abstractions/Models/PromptContext.cs](../../../../src/IChing.Lab.Abstractions/Models/PromptContext.cs)、[IChing.Lab.Abstractions/Plugins/IPluginManifest.cs](../../../../src/IChing.Lab.Abstractions/Plugins/IPluginManifest.cs) 邻近的 metadata、[IChing.Lab.Inference/Prompts/PromptTemplateRegistry.cs](../../../../src/IChing.Lab.Inference/Prompts/PromptTemplateRegistry.cs)、[ChartInterpretationOrchestrator.cs](../../../../src/IChing.Lab.Inference/ChartInterpretationOrchestrator.cs)、[prompts/](../../../../prompts/)
+- Affected specs: 依赖 [expand-chart-algorithm-plugins](../expand-chart-algorithm-plugins/spec.md)（提供 `EngineMetadata`）+ [externalize-prompt-templates](../externalize-prompt-templates/spec.md)（已完成，提供 Scriban + 热重载）
 
 ## ADDED Requirements
 

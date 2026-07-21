@@ -8,6 +8,7 @@ obj/
 /models/
 .tmp-build/
 .tmp-screenshots/
+/packages-microsoft-prod.deb
 *.user
 **/App_Data/DataProtectionKeys/
 # plugins/ 下为构建产物（示例/外部插件 DLL），不纳入版本控制；保留 .gitkeep 占位。

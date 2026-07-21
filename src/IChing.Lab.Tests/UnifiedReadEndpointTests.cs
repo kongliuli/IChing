@@ -71,6 +71,14 @@ public class UnifiedReadEndpointTests : IClassFixture<LabApiWebApplicationFactor
     }
 
     [Fact]
+    public async Task LabChat_InitialWithoutDomain_ReturnsBadRequest()
+    {
+        var response = await _client.PostAsJsonAsync("/lab/chat", new { mode = "initial" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task LabChat_RegisterWithChart_AcceptsSession()
     {
         var register = await _client.PostAsJsonAsync("/lab/chat", new

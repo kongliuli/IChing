@@ -40,8 +40,8 @@ public sealed class CoreLiuyaoReadingProducer : IReadingResultProducer
                 }, JsonOptions)),
                 new ReadingWidgetVm("shiYingBadge", "世应", JsonSerializer.Serialize(new
                 {
-                    shi = chart.Lines.FirstOrDefault(l => l.Role.Contains("世", StringComparison.Ordinal))?.Position,
-                    ying = chart.Lines.FirstOrDefault(l => l.Role.Contains("应", StringComparison.Ordinal))?.Position
+                    shi = chart.Lines.FirstOrDefault(l => l.Role?.Contains("世", StringComparison.Ordinal) == true)?.Position,
+                    ying = chart.Lines.FirstOrDefault(l => l.Role?.Contains("应", StringComparison.Ordinal) == true)?.Position
                 }, JsonOptions))
             ];
 

@@ -45,7 +45,7 @@ public sealed class LabChatService
 
         if (string.Equals(req.Mode, "initial", StringComparison.OrdinalIgnoreCase))
         {
-            return req.Domain.ToLowerInvariant() switch
+            return req.Domain?.ToLowerInvariant() switch
             {
                 "bazi" when req.Bazi is not null => await _reads.ExecuteBaziRead(req.Tier, req.Bazi, cancellationToken),
                 "liuyao" when req.Liuyao is not null => await _reads.ExecuteLiuyaoRead(req.Tier, req.Liuyao, cancellationToken),

@@ -46,11 +46,8 @@ public sealed class OpenAiRemoteEngine : OpenAiCompatibleEngineBase
             baseUrl = "https://api.openai.com/v1";
         }
 
-        _model = configuration["OpenAI:Model"];
-        if (string.IsNullOrWhiteSpace(_model))
-        {
-            _model = "gpt-4o-mini";
-        }
+        var model = configuration["OpenAI:Model"];
+        _model = string.IsNullOrWhiteSpace(model) ? "gpt-4o-mini" : model;
 
         _client = new HttpClient
         {

@@ -39,11 +39,8 @@ public sealed class OllamaLocalEngine : OpenAiCompatibleEngineBase
             baseUrl = "http://localhost:11434";
         }
 
-        _model = configuration["Ollama:Model"];
-        if (string.IsNullOrWhiteSpace(_model))
-        {
-            _model = "qwen2.5:7b";
-        }
+        var model = configuration["Ollama:Model"];
+        _model = string.IsNullOrWhiteSpace(model) ? "qwen2.5:7b" : model;
 
         _client = new HttpClient
         {

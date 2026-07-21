@@ -39,11 +39,8 @@ public sealed class LlamaServerLocalEngine : OpenAiCompatibleEngineBase
             baseUrl = "http://localhost:8080";
         }
 
-        _model = configuration["LlamaServer:Model"];
-        if (string.IsNullOrWhiteSpace(_model))
-        {
-            _model = "local-model";
-        }
+        var model = configuration["LlamaServer:Model"];
+        _model = string.IsNullOrWhiteSpace(model) ? "local-model" : model;
 
         _client = new HttpClient
         {

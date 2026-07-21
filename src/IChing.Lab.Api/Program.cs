@@ -1,3 +1,4 @@
+using IChing.Lab.Api.Commercial;
 using IChing.Lab.Api.Components;
 using IChing.Lab.Api.Services;
 using IChing.Lab.Composition;
@@ -8,6 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+
+builder.Services.Configure<CommercialAiOptions>(
+    builder.Configuration.GetSection(CommercialAiOptions.SectionName));
+
+// 商业版：把服务端 Key 注入配置，供 remote-api 引擎读取；App 侧永不接触 Key。
+CommercialAiBootstrap.Apply(builder.Configuration);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -37,7 +44,7 @@ builder.Services.AddDataProtection()
     .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath));
 
 var modelPath = LabPathResolver.ResolveModelPath(
-    builder.Configuration["Inference:ModelPath"] ?? "./models/qwen3-0.6b-genai",
+    builder.Configuration["Inference:ModelPath"] ?? "./models/qwen3.5-2b-genai",
     builder.Environment.ContentRootPath);
 var promptsRoot = LabPathResolver.ResolvePromptsRoot(
     builder.Configuration["Prompts:TemplateRoot"] ?? "./prompts",

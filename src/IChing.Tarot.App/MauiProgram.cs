@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using IChing.Client.Shared.Editions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 
 namespace IChing.Tarot.App;
@@ -7,6 +8,8 @@ public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
+		EditionHost.Capabilities = EditionCapabilities.DevShell;
+
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()

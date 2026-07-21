@@ -10,7 +10,8 @@ public static class ReadingResultProducerRegistry
         new CoreBaziReadingProducer(),
         new CoreLiuyaoReadingProducer(),
         new CoreTarotReadingProducer(),
-        new EntertainmentQuizProducer()
+        new EntertainmentQuizProducer(),
+        new EngagementReadingProducer()
     ];
 
     public static IReadingResultProducer? Resolve(ReadingExchange exchange) =>

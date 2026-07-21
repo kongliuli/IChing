@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="IChing.Tarot.App.Pages.ExplorePage"
+             Title="探索"
+             Background="{StaticResource PageGradient}">
+
+    <ScrollView>
+        <VerticalStackLayout x:Name="RootStack"
+                             Padding="22,26,22,34"
+                             Spacing="18"
+                             MaximumWidthRequest="980"
+                             HorizontalOptions="Center">
+
+            <Label x:Name="HeaderTitleLabel"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Gold}" />
+
+            <Label x:Name="HeaderSubtitleLabel"
+                   TextColor="{StaticResource TextSecondary}"
+                   FontSize="14"
+                   LineBreakMode="WordWrap" />
+
+            <Border x:Name="DailyTipCard"
+                    IsVisible="False"
+                    Stroke="{StaticResource GoldDim}"
+                    StrokeThickness="1"
+                    BackgroundColor="{StaticResource Surface}"
+                    Padding="16"
+                    StrokeShape="RoundRectangle 8">
+                <VerticalStackLayout Spacing="8">
+                    <Label x:Name="DailyTipDateLabel"
+                           FontSize="12"
+                           TextColor="{StaticResource Muted}" />
+                    <Label x:Name="DailyTipLabel"
+                           FontSize="16"
+                           TextColor="{StaticResource TextPrimary}"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </Border>
+
+            <VerticalStackLayout x:Name="ModulesHost" Spacing="18" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

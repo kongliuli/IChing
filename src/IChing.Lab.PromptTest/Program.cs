@@ -189,7 +189,8 @@ static List<string> ResolveFixtures(string dir, string? id)
 
 static Options ParseArgs(string[] args)
 {
-    var modelPath = "./models/qwen2.5-1.5b-genai";
+    // 免费版端侧默认档：Qwen3.5-2B INT4 GenAI；轻量可换 qwen3.5-0.8b-genai
+    var modelPath = "./models/qwen3.5-2b-genai";
     string? fixtureDir = null;
     string? fixtureId = null;
     var dryRun = false;

@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:IChing.Tarot.App.Services"
+             x:Class="IChing.Tarot.App.Pages.DrawPage"
+             Shell.NavBarIsVisible="False"
+             Title="塔罗"
+             Background="{StaticResource PageGradient}">
+
+    <ScrollView x:Name="MainScroll">
+        <VerticalStackLayout x:Name="PageBody"
+                             Padding="24,22,24,34"
+                             Spacing="18"
+                             MaximumWidthRequest="1360"
+                             HorizontalOptions="Center">
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="塔罗占卜"
+                           FontSize="34"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource TextPrimary}" />
+                    <Label Text="提问 / 牌阵 / 解读报告"
+                           FontSize="13"
+                           TextColor="{StaticResource Gold}" />
+                    <BoxView HeightRequest="2"
+                             WidthRequest="64"
+                             HorizontalOptions="Start"
+                             Color="{StaticResource Gold}" />
+                </VerticalStackLayout>
+                <Border Grid.Column="1"
+                        WidthRequest="58"
+                        HeightRequest="58"
+                        Stroke="{StaticResource Gold}"
+                        StrokeThickness="2"
+                        BackgroundColor="{StaticResource Surface}"
+                        StrokeShape="RoundRectangle 8">
+                    <Image Source="spread_three.svg"
+                           WidthRequest="42"
+                           HeightRequest="42"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center" />
+                </Border>
+            </Grid>
+
+            <Grid x:Name="ResponsiveGrid"
+                  ColumnDefinitions="420,*"
+                  RowDefinitions="Auto"
+                  ColumnSpacing="16"
+                  RowSpacing="16">
+
+                <VerticalStackLayout x:Name="LeftColumn" Spacing="14">
+                    <Border Stroke="{StaticResource StrokeSoft}"
+                            StrokeThickness="1"
+                            Background="{StaticResource CardGradient}"
+                            Padding="18"
+                            StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout Spacing="12">
+                            <Label Text="你的问题"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Gold}" />
+                            <Editor x:Name="QuestionEntry"
+                                    Placeholder="例如：接下来三个月的事业方向"
+                                    PlaceholderColor="{StaticResource Muted}"
+                                    TextColor="{StaticResource TextPrimary}"
+                                    BackgroundColor="{StaticResource SurfaceAlt}"
+                                    AutoSize="TextChanges"
+                                    MinimumHeightRequest="96"
+                                    MaxLength="200" />
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Text="牌阵" FontSize="12" TextColor="{StaticResource TextSecondary}" />
+                                    <Picker x:Name="SpreadPicker"
+                                            Title="选择牌阵"
+                                            TextColor="{StaticResource TextPrimary}"
+                                            TitleColor="{StaticResource Muted}"
+                                            BackgroundColor="{StaticResource SurfaceAlt}"
+                                            SelectedIndexChanged="OnSpreadChanged" />
+                                </VerticalStackLayout>
+                                <Border Grid.Column="1"
+                                        Padding="10,7"
+                                        BackgroundColor="{StaticResource SurfaceAlt}"
+                                        Stroke="{StaticResource GoldDim}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 8"
+                                        VerticalOptions="End">
+                                    <Label x:Name="SpreadDifficultyLabel"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Gold}" />
+                                </Border>
+                            </Grid>
+
+                            <Label x:Name="SpreadDescriptionLabel"
+                                   TextColor="{StaticResource TextSecondary}"
+                                   FontSize="12"
+                                   LineBreakMode="WordWrap" />
+
+                            <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="8">
+                                <Image Source="spread_single.svg" HeightRequest="42" />
+                                <Image Grid.Column="1" Source="spread_three.svg" HeightRequest="42" />
+                                <Image Grid.Column="2" Source="spread_six.svg" HeightRequest="42" />
+                                <Image Grid.Column="3" Source="spread_celtic.svg" HeightRequest="42" />
+                            </Grid>
+
+                            <Button x:Name="AdvancedToggleButton"
+                                    Text="显示高级选项"
+                                    Clicked="OnAdvancedToggleClicked"
+                                    FontSize="12"
+                                    Padding="0,4"
+                                    HorizontalOptions="Start"
+                                    TextColor="{StaticResource PurpleLight}"
+                                    BackgroundColor="Transparent"
+                                    BorderWidth="0" />
+                            <VerticalStackLayout x:Name="AdvancedPanel"
+                                                 IsVisible="False"
+                                                 Spacing="6">
+                                <Label Text="随机种子，留空则每次不同"
+                                       TextColor="{StaticResource Muted}"
+                                       FontSize="12" />
+                                <Entry x:Name="SeedEntry"
+                                       Keyboard="Numeric"
+                                       Placeholder="如 42"
+                                       PlaceholderColor="{StaticResource Muted}"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       BackgroundColor="{StaticResource SurfaceAlt}" />
+                            </VerticalStackLayout>
+
+                            <Button x:Name="DrawButton"
+                                    Text="开始抽牌"
+                                    Clicked="OnDrawClicked"
+                                    TextColor="#21180B"
+                                    FontAttributes="Bold"
+                                    FontSize="16"
+                                    BackgroundColor="{StaticResource Gold}"
+                                    Padding="18,13"
+                                    CornerRadius="8"
+                                    HorizontalOptions="Fill" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Stroke="{StaticResource StrokeSoft}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            Padding="16"
+                            StrokeShape="RoundRectangle 8">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                            <Border WidthRequest="38"
+                                    HeightRequest="54"
+                                    Stroke="{StaticResource GoldDim}"
+                                    StrokeThickness="1"
+                                    BackgroundColor="{StaticResource SurfaceAlt}"
+                                    StrokeShape="RoundRectangle 6">
+                                <Label Text="78"
+                                       FontSize="15"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Gold}"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center" />
+                            </Border>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="牌组预览"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="本地抽牌，牌面按需缓存，解读时才联网。"
+                                       FontSize="12"
+                                       TextColor="{StaticResource TextSecondary}" />
+                            </VerticalStackLayout>
+                            <Label Grid.Column="2"
+                                   Text="RWS"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Gold}"
+                                   VerticalTextAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <Border x:Name="HistoryPanel"
+                            IsVisible="False"
+                            Stroke="{StaticResource StrokeSoft}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource Surface}"
+                            Padding="16"
+                            StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0"
+                                       Text="最近抽牌"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Gold}" />
+                                <Button Grid.Column="1"
+                                        Text="清空"
+                                        FontSize="11"
+                                        Padding="8,2"
+                                        CornerRadius="8"
+                                        Clicked="OnClearHistoryClicked"
+                                        TextColor="{StaticResource Muted}"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="{StaticResource GoldDim}"
+                                        BorderWidth="1" />
+                            </Grid>
+                            <CollectionView x:Name="HistoryCollection"
+                                            SelectionMode="Single"
+                                            SelectionChanged="OnHistorySelected"
+                                            HeightRequest="140">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="services:HistoryEntry">
+                                        <Border Padding="10,8"
+                                                Margin="0,0,0,8"
+                                                BackgroundColor="{StaticResource SurfaceAlt}"
+                                                Stroke="{StaticResource StrokeSoft}"
+                                                StrokeThickness="1"
+                                                StrokeShape="RoundRectangle 8">
+                                            <Label Text="{Binding DisplayLine}"
+                                                   FontSize="12"
+                                                   TextColor="{StaticResource TextSecondary}"
+                                                   LineBreakMode="TailTruncation" />
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout x:Name="RightColumn"
+                                     Grid.Column="1"
+                                     Spacing="14">
+                    <Border x:Name="EmptyStatePanel"
+                            Stroke="{StaticResource StrokeSoft}"
+                            StrokeThickness="1"
+                            BackgroundColor="{StaticResource SurfaceRaised}"
+                            Padding="24"
+                            StrokeShape="RoundRectangle 8">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="18">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="牌阵预览"
+                                       FontSize="24"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource ParchmentText}" />
+                                <Label x:Name="EmptyStateHintLabel"
+                                       Text="选择单牌、三牌、六牌或凯尔特十字后，这里会展示牌位、正逆位、牌义摘要和 AI 解读入口。"
+                                       FontSize="13"
+                                       TextColor="#675B70" />
+                                <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10" Margin="0,10,0,0">
+                                    <Border HeightRequest="156"
+                                            BackgroundColor="#EFE4D0"
+                                            Stroke="#D8C596"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 8">
+                                        <Label Text="过去"
+                                               TextColor="#7A6232"
+                                               HorizontalTextAlignment="Center"
+                                               VerticalTextAlignment="Center" />
+                                    </Border>
+                                    <Border Grid.Column="1"
+                                            HeightRequest="156"
+                                            BackgroundColor="#EFE4D0"
+                                            Stroke="#D8C596"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 8">
+                                        <Label Text="现在"
+                                               TextColor="#7A6232"
+                                               HorizontalTextAlignment="Center"
+                                               VerticalTextAlignment="Center" />
+                                    </Border>
+                                    <Border Grid.Column="2"
+                                            HeightRequest="156"
+                                            BackgroundColor="#EFE4D0"
+                                            Stroke="#D8C596"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 8">
+                                        <Label Text="未来"
+                                               TextColor="#7A6232"
+                                               HorizontalTextAlignment="Center"
+                                               VerticalTextAlignment="Center" />
+                                    </Border>
+                                </Grid>
+                            </VerticalStackLayout>
+                            <Image Grid.Column="1"
+                                   Source="spread_celtic.svg"
+                                   WidthRequest="58"
+                                   HeightRequest="58"
+                                   VerticalOptions="Start" />
+                        </Grid>
+                    </Border>
+
+                    <Border x:Name="ReadingPanel"
+                            IsVisible="False"
+                            Stroke="{StaticResource StrokeSoft}"
+                            StrokeThickness="1"
+                            Background="{StaticResource CardGradient}"
+                            Padding="18"
+                            StrokeShape="RoundRectangle 8">
+                        <VerticalStackLayout Spacing="14">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                                <VerticalStackLayout Spacing="3">
+                                    <Label x:Name="ReadingTitleLabel"
+                                           FontSize="22"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource PurpleLight}" />
+                                    <Label x:Name="ReadingMetaLabel"
+                                           FontSize="12"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+                                <Button Grid.Column="1"
+                                        Text="复制"
+                                        FontSize="12"
+                                        Padding="10,5"
+                                        CornerRadius="8"
+                                        Clicked="OnCopySpreadClicked"
+                                        TextColor="{StaticResource Gold}"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="{StaticResource GoldDim}"
+                                        BorderWidth="1" />
+                                <Button x:Name="SaveSpreadButton"
+                                        Grid.Column="2"
+                                        Text="导出图片"
+                                        FontSize="12"
+                                        Padding="10,5"
+                                        CornerRadius="8"
+                                        Clicked="OnSaveSpreadImageClicked"
+                                        TextColor="{StaticResource Gold}"
+                                        BackgroundColor="Transparent"
+                                        BorderColor="{StaticResource GoldDim}"
+                                        BorderWidth="1" />
+                            </Grid>
+
+                            <Button x:Name="SpreadToggleButton"
+                                    Text="隐藏牌阵"
+                                    Clicked="OnSpreadToggleClicked"
+                                    FontSize="13"
+                                    Padding="0,4"
+                                    HorizontalOptions="Start"
+                                    TextColor="{StaticResource Gold}"
+                                    BackgroundColor="Transparent"
+                                    BorderWidth="0" />
+
+                            <VerticalStackLayout x:Name="SpreadBoardPanel" IsVisible="True" Spacing="0">
+                                <Grid x:Name="SpreadBoardHost"
+                                      ColumnDefinitions="*"
+                                      RowDefinitions="Auto"
+                                      ColumnSpacing="8"
+                                      RowSpacing="8" />
+                            </VerticalStackLayout>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <Button Grid.Column="0"
+                                        Text="AI 解读"
+                                        x:Name="InterpretButton"
+                                        Clicked="OnInterpretClicked"
+                                        IsEnabled="False"
+                                        TextColor="#21180B"
+                                        FontAttributes="Bold"
+                                        BackgroundColor="{StaticResource Gold}"
+                                        CornerRadius="8"
+                                        Padding="14,12" />
+                                <Button Grid.Column="1"
+                                        Text="重新抽牌"
+                                        Clicked="OnRedrawClicked"
+                                        TextColor="{StaticResource Gold}"
+                                        BackgroundColor="{StaticResource SurfaceAlt}"
+                                        BorderColor="{StaticResource GoldDim}"
+                                        BorderWidth="1"
+                                        CornerRadius="8"
+                                        Padding="14,12" />
+                            </Grid>
+
+                            <ActivityIndicator x:Name="LoadingIndicator"
+                                               IsRunning="False"
+                                               IsVisible="False"
+                                               Color="{StaticResource Gold}" />
+
+                            <Border x:Name="InterpretationPanel"
+                                    IsVisible="False"
+                                    Padding="16"
+                                    BackgroundColor="{StaticResource SurfaceAlt}"
+                                    Stroke="{StaticResource PurpleLight}"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 8">
+                                <VerticalStackLayout Spacing="10">
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+                                        <Label Grid.Column="0"
+                                               Text="解读报告"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource PurpleLight}" />
+                                        <Button x:Name="FollowUpButton"
+                                                Grid.Column="1"
+                                                Text="继续追问"
+                                                IsVisible="False"
+                                                FontSize="12"
+                                                Padding="10,4"
+                                                CornerRadius="8"
+                                                Clicked="OnFollowUpClicked"
+                                                TextColor="{StaticResource Gold}"
+                                                BackgroundColor="Transparent"
+                                                BorderColor="{StaticResource GoldDim}"
+                                                BorderWidth="1" />
+                                        <Button Grid.Column="2"
+                                                Text="复制"
+                                                FontSize="12"
+                                                Padding="10,4"
+                                                CornerRadius="8"
+                                                Clicked="OnCopyInterpretationClicked"
+                                                TextColor="{StaticResource Gold}"
+                                                BackgroundColor="Transparent"
+                                                BorderColor="{StaticResource GoldDim}"
+                                                BorderWidth="1" />
+                                        <Button x:Name="SaveInterpretButton"
+                                                Grid.Column="3"
+                                                Text="导出图片"
+                                                FontSize="12"
+                                                Padding="10,4"
+                                                CornerRadius="8"
+                                                Clicked="OnSaveInterpretationImageClicked"
+                                                TextColor="{StaticResource Gold}"
+                                                BackgroundColor="Transparent"
+                                                BorderColor="{StaticResource GoldDim}"
+                                                BorderWidth="1" />
+                                    </Grid>
+                                    <Label x:Name="InterpretationStatusLabel"
+                                           FontSize="12"
+                                           TextColor="{StaticResource Muted}" />
+                                    <WebView x:Name="InterpretationWebView"
+                                             HeightRequest="720"
+                                             Navigating="OnInterpretationWebViewNavigating" />
+                                    <VerticalStackLayout x:Name="InterpretationBoardHost"
+                                                         IsVisible="False"
+                                                         Spacing="12" />
+                                    <VerticalStackLayout x:Name="MonetizationHost"
+                                                         IsVisible="False"
+                                                         Spacing="8" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

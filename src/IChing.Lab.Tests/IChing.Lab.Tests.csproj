@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\IChing.Client.Shared\IChing.Client.Shared.csproj" />
     <ProjectReference Include="..\IChing.Lab.Api\IChing.Lab.Api.csproj" />
     <ProjectReference Include="..\IChing.Lab.Composition\IChing.Lab.Composition.csproj" />
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />

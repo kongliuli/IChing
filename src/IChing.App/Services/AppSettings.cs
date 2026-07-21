@@ -67,24 +67,22 @@ public sealed class AppSettings : IOpenAiChatCredentials
         set => Preferences.Default.Set("iching_max_tokens", Math.Clamp(value, 128, 4000));
     }
 
-    public bool IsConfigured => !string.IsNullOrWhiteSpace(ApiKey);
+    public bool IsConfigured =>
+        IChing.Lab.Core.Integrations.OpenAiEndpointHelpers.IsConfigured(ApiKey, BaseUrl);
 
     public bool IsLabConfigured => !string.IsNullOrWhiteSpace(LabApiUrl);
 
     public void ApplyProviderPreset(string provider)
     {
-        Provider = provider;
-        if (provider == "openai")
+        var preset = IChing.Client.Shared.Settings.ProviderPresets.Find(provider);
+        if (preset is null)
         {
-            BaseUrl = "https://api.openai.com/v1";
-            Model = "gpt-4o-mini";
+            Provider = provider;
             return;
         }
 
-        if (provider == "deepseek")
-        {
-            BaseUrl = DefaultBaseUrl;
-            Model = "deepseek-chat";
-        }
+        Provider = preset.Id;
+        BaseUrl = preset.BaseUrl;
+        Model = preset.Model;
     }
 }

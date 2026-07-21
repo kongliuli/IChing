@@ -16,7 +16,7 @@ public class ReadingSummaryTests
         var liuyao = LiuyaoNajiaService.Coin(DateTimeOffset.Parse("2026-07-03T12:00:00+08:00"), 42);
         var tarot = TarotEngine.Draw("past-present-future", "career", 42);
 
-        Assert.Contains("Day master", ReadingSummaries.BuildBaziTier0Preview(bazi, "career").OneLiner);
+        Assert.Contains("日主", ReadingSummaries.BuildBaziTier0Preview(bazi, "career").OneLiner);
         Assert.Contains("世爻", ReadingSummaries.BuildLiuyaoTier0Preview(liuyao, "career", null).OneLiner);
         Assert.True(ReadingSummaries.BuildTarotRuleDigest(tarot).Total > 0);
         Assert.NotEmpty(ReadingSummaries.BuildBaziRuleDigest(bazi, "career").ActivePlugins);

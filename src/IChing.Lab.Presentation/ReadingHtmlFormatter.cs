@@ -51,7 +51,7 @@ public static class ReadingHtmlFormatter
             .toc { padding:14px 16px; margin-bottom:12px; border:1px solid var(--line); border-radius:8px; background:var(--panel); }
             .toc-title { margin:0 0 10px; color:var(--muted); font-size:12px; }
             .toc-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-            .toc a { display:block; min-width:0; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--ink); text-decoration:none; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(255,255,255,.025); }
+            .toc a,.toc button.toc-link { display:block; width:100%; min-width:0; padding:8px 10px; border:1px solid var(--line); border-radius:8px; color:var(--ink); text-decoration:none; font:inherit; font-size:13px; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; background:rgba(255,255,255,.025); cursor:pointer; }
             .spread-table { margin-bottom:12px; overflow:hidden; border:1px solid var(--line); border-radius:8px; background:var(--card); }
             .spread-table h2 { margin:0; padding:14px 16px 10px; font-size:17px; }
             table { width:100%; border-collapse:collapse; }
@@ -89,6 +89,15 @@ public static class ReadingHtmlFormatter
             <section class="hero"><h1>{{H(title)}}</h1><p>{{H(subject)}}</p></section>
             {{body}}
           </main>
+          <script>
+            // WinUI WebView 会把 hash 锚点解析成 https://appdir/… 并 ERR_ACCESS_DENIED；改用页内滚动
+            document.querySelectorAll('button.toc-link[data-sec]').forEach(function (btn) {
+              btn.addEventListener('click', function () {
+                var el = document.getElementById(btn.getAttribute('data-sec'));
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              });
+            });
+          </script>
         </body>
         </html>
         """;
@@ -189,7 +198,8 @@ public static class ReadingHtmlFormatter
             return string.Empty;
         }
 
-        var links = string.Join("", sections.Select((s, i) => $"""<a href="#sec-{i + 1}">{H(s.Title)}</a>"""));
+        var links = string.Join("", sections.Select((s, i) =>
+            $"""<button type="button" class="toc-link" data-sec="sec-{i + 1}">{H(s.Title)}</button>"""));
         return $$"""
         <nav class="toc">
           <p class="toc-title">目录</p>

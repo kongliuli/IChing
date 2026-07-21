@@ -146,4 +146,39 @@ public sealed class LabApiClient
         using var response = await SharedHttp.SendAsync(request, cancellationToken);
         return response.IsSuccessStatusCode;
     }
+
+    /// <summary>商业版追问：服务端持有 LLM Key，App 只传 sessionId + 用户问题。</summary>
+    public static async Task<JsonDocument?> FollowUpAsync(
+        string baseUrl,
+        string sessionId,
+        string userQuestion,
+        int? maxTokens = null,
+        string? bearerToken = null,
+        CancellationToken cancellationToken = default)
+    {
+        var url = $"{baseUrl.TrimEnd('/')}/lab/chat";
+        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        {
+            Content = JsonContent.Create(new
+            {
+                mode = "followup",
+                sessionId,
+                userQuestion,
+                maxTokens
+            })
+        };
+        if (!string.IsNullOrWhiteSpace(bearerToken))
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+        }
+
+        using var response = await SharedHttp.SendAsync(request, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        return await JsonDocument.ParseAsync(stream, cancellationToken: cancellationToken);
+    }
 }

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>IChing.Client.Shared</RootNamespace>
+    <Description>Edition-agnostic client shared layer: interpretation providers, sanitizer, session helpers.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\IChing.Lab.Abstractions\IChing.Lab.Abstractions.csproj" />
+    <ProjectReference Include="..\IChing.Lab.Client\IChing.Lab.Client.csproj" />
+    <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
+    <ProjectReference Include="..\IChing.Lab.Inference\IChing.Lab.Inference.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+    <!-- CVE-2025-6965: Microsoft.Data.Sqlite still allows the vulnerable 2.1.11 bundle. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.*" />
+  </ItemGroup>
+
+</Project>

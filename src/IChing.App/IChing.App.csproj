@@ -31,13 +31,14 @@
 
   <ItemGroup>
     <MauiImage Include="Resources\Images\*.svg" />
-    <MauiFont Include="..\IChing.Tarot.App\Resources\Fonts\OpenSans-Regular.ttf" />
-    <MauiFont Include="..\IChing.Tarot.App\Resources\Fonts\OpenSans-Semibold.ttf" />
+    <MauiFont Include="..\IChing.Tarot.App.Shared\Resources\Fonts\OpenSans-Regular.ttf" />
+    <MauiFont Include="..\IChing.Tarot.App.Shared\Resources\Fonts\OpenSans-Semibold.ttf" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\IChing.Lab.Core\IChing.Lab.Core.csproj" />
     <ProjectReference Include="..\IChing.Lab.Client\IChing.Lab.Client.csproj" />
     <ProjectReference Include="..\IChing.Lab.Presentation\IChing.Lab.Presentation.csproj" />
+    <ProjectReference Include="..\IChing.Client.Shared\IChing.Client.Shared.csproj" />
   </ItemGroup>
 </Project>

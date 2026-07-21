@@ -10,7 +10,7 @@ namespace IChing.Lab.Core.Integrations;
 /// </summary>
 public static class OpenAiCompatibleChatClient
 {
-    private static readonly HttpClient SharedHttp = new() { Timeout = TimeSpan.FromMinutes(2) };
+    private static readonly HttpClient SharedHttp = new() { Timeout = TimeSpan.FromMinutes(5) };
 
     public static Task<HttpResponseMessage> SendAsync(
         IOpenAiChatCredentials credentials,
@@ -18,7 +18,11 @@ public static class OpenAiCompatibleChatClient
         CancellationToken cancellationToken = default)
     {
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{credentials.BaseUrl.TrimEnd('/')}/chat/completions");
-        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials.ApiKey);
+        // 本机 Ollama 等无需 Key：空 Key 时不加 Authorization
+        if (!string.IsNullOrWhiteSpace(credentials.ApiKey))
+        {
+            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials.ApiKey);
+        }
 
         var payload = new Dictionary<string, object?>
         {
@@ -38,6 +42,13 @@ public static class OpenAiCompatibleChatClient
             payload["thinking"] = new { type = "disabled" };
         }
 
+        // Ollama Qwen3.5 等会把 max_tokens 耗在 reasoning 上导致 content 为空
+        if (OpenAiEndpointHelpers.IsLocalBaseUrl(credentials.BaseUrl)
+            || credentials.BaseUrl.Contains("11434", StringComparison.OrdinalIgnoreCase))
+        {
+            payload["think"] = false;
+        }
+
         httpRequest.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
         return SharedHttp.SendAsync(
             httpRequest,
@@ -54,7 +65,7 @@ public static class OpenAiCompatibleChatClient
     {
         if (!credentials.IsConfigured)
         {
-            yield return "请先在设置中填写 API Key";
+            yield return "请先在设置中填写 API Key，或选择本机 Ollama 等本地端点";
             yield break;
         }
 
@@ -94,7 +105,11 @@ public static class OpenAiCompatibleChatClient
                 && choices[0].TryGetProperty("delta", out var delta)
                 && delta.TryGetProperty("content", out var content))
             {
-                yield return content.GetString() ?? string.Empty;
+                var piece = content.GetString();
+                if (!string.IsNullOrEmpty(piece))
+                {
+                    yield return piece;
+                }
             }
         }
     }

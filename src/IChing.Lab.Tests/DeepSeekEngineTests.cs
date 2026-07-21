@@ -18,7 +18,7 @@ namespace IChing.Lab.Tests;
 /// </summary>
 public class DeepSeekEngineTests
 {
-    private const string ExpectedApiKey = "sk-2c248bc685c144739c88181fb665d89d";
+    private const string ExpectedApiKey = "unit-test-api-key";
     private const string ExpectedModel = "deepseek-chat";
 
     /// <summary>
@@ -39,7 +39,7 @@ public class DeepSeekEngineTests
             }
             """);
 
-        using var engine = new DeepSeekEngine(capturer, NullLogger<DeepSeekEngine>.Instance);
+        using var engine = new DeepSeekEngine(capturer, NullLogger<DeepSeekEngine>.Instance, ExpectedApiKey);
 
         var result = await engine.GenerateAsync("解释乾卦", new GenerateOptions(MaxTokens: 64), CancellationToken.None);
 
@@ -71,7 +71,7 @@ public class DeepSeekEngineTests
     {
         var capturer = new RequestCapturer(HttpStatusCode.InternalServerError, "upstream error");
 
-        using var engine = new DeepSeekEngine(capturer, NullLogger<DeepSeekEngine>.Instance);
+        using var engine = new DeepSeekEngine(capturer, NullLogger<DeepSeekEngine>.Instance, ExpectedApiKey);
 
         var result = await engine.GenerateAsync("解释坤卦", new GenerateOptions(MaxTokens: 64), CancellationToken.None);
 

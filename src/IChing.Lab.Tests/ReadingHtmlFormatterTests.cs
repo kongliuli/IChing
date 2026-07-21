@@ -103,7 +103,8 @@ public class ReadingHtmlFormatterTests
 
         Assert.Contains("重点摘要", html);
         Assert.Contains("目录", html);
-        Assert.Contains("href=\"#sec-1\"", html);
+        Assert.Contains("data-sec=\"sec-1\"", html);
+        Assert.Contains("button type=\"button\" class=\"toc-link\"", html);
     }
 
     [Fact]

@@ -17,9 +17,10 @@ public static class ReadingSummaries
 
     public static Tier0Preview BuildBaziTier0Preview(BaziChart chart, string? focus)
     {
-        var focusText = Blank(focus, "general");
+        var focusText = Blank(focus, "综合");
         var oneLiner =
-            $"Day master {chart.DayMaster}, month pillar {chart.MonthPillar.GanZhi}, pattern {chart.YongShen.GeJu.Pattern}, strength {chart.YongShen.Strength}, yongshen {chart.YongShen.PrimaryYongShen}; focus {focusText}.";
+            $"日主{chart.DayMaster}，月柱{chart.MonthPillar.GanZhi}，格局{chart.YongShen.GeJu.Pattern}，" +
+            $"强弱{chart.YongShen.Strength}，用神{chart.YongShen.PrimaryYongShen}；关注{focusText}。";
         return new Tier0Preview(oneLiner, Tier0Disclaimer);
     }
 
@@ -31,11 +32,11 @@ public static class ReadingSummaries
         var oneLiner = $"{chart.OriginalHexagram}{changed}；{changeText}。未分类问题默认以世爻为用神。";
         if (!string.IsNullOrWhiteSpace(question))
         {
-            oneLiner = $"问题“{question.Trim()}”：{oneLiner}";
+            oneLiner = $"问题「{question.Trim()}」：{oneLiner}";
         }
         else if (!string.IsNullOrWhiteSpace(focus))
         {
-            oneLiner = $"关注“{focus.Trim()}”：{oneLiner}";
+            oneLiner = $"关注「{focus.Trim()}」：{oneLiner}";
         }
 
         return new Tier0Preview(oneLiner, Tier0Disclaimer);
@@ -44,10 +45,10 @@ public static class ReadingSummaries
     public static Tier0Preview BuildTarotTier0Preview(TarotReading reading, string? question)
     {
         var narrative = TarotNarrative.Build(reading);
-        var cards = string.Join("; ", reading.Positions.Select(p =>
-            $"[{p.PositionTitleZh}] {p.CardName} {(p.Reversed ? "reversed" : "upright")}: {Truncate(p.Meaning, 48)}"));
+        var cards = string.Join("；", reading.Positions.Select(p =>
+            $"[{p.PositionTitleZh}] {p.CardNameZh}（{(p.Reversed ? "逆位" : "正位")}）：{Truncate(p.Meaning, 48)}"));
         var oneLiner = question is { Length: > 0 }
-            ? $"Question '{question}': {narrative.Summary} {cards}"
+            ? $"问题「{question}」：{narrative.Summary} {cards}"
             : $"{narrative.Summary} {cards}";
         return new Tier0Preview(oneLiner.Trim(), Tier0Disclaimer);
     }

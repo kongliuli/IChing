@@ -39,46 +39,65 @@ public sealed class OnnxGenAiEngine : IInferenceEngine
         LabModels.GenerateOptions options,
         CancellationToken ct)
     {
+        // 模型加载与推理均为 CPU 同步重活；必须离开 UI 线程，否则 MAUI 会「未响应」
+        return Task.Run(() => GenerateCore(prompt, options, ct), ct);
+    }
+
+    private LabModels.GenerationResult GenerateCore(
+        string prompt,
+        LabModels.GenerateOptions options,
+        CancellationToken ct)
+    {
         ct.ThrowIfCancellationRequested();
         EnsureModel();
 
         if (_model is null || _tokenizer is null)
         {
-            return Task.FromResult(new LabModels.GenerationResult(
+            return new LabModels.GenerationResult(
                 EngineId,
                 Text: string.Empty,
                 IsFallback: true,
                 FallbackReason: "model not loaded",
-                ElapsedMs: 0));
+                ElapsedMs: 0);
         }
 
         var sw = Stopwatch.StartNew();
         try
         {
-            var text = RunGeneration(prompt, options.MaxTokens);
+            var text = RunGeneration(prompt, options.MaxTokens, ct);
             sw.Stop();
-            return Task.FromResult(new LabModels.GenerationResult(
+            return new LabModels.GenerationResult(
                 EngineId,
                 text,
                 IsFallback: false,
                 FallbackReason: null,
-                sw.ElapsedMilliseconds));
+                sw.ElapsedMilliseconds);
+        }
+        catch (OperationCanceledException)
+        {
+            sw.Stop();
+            return new LabModels.GenerationResult(
+                EngineId,
+                Text: string.Empty,
+                IsFallback: true,
+                FallbackReason: "cancelled",
+                sw.ElapsedMilliseconds);
         }
         catch (Exception ex)
         {
             sw.Stop();
             _logger.LogWarning(ex, "ONNX inference failed");
-            return Task.FromResult(new LabModels.GenerationResult(
+            return new LabModels.GenerationResult(
                 EngineId,
                 Text: string.Empty,
                 IsFallback: true,
                 FallbackReason: ex.Message,
-                sw.ElapsedMilliseconds));
+                sw.ElapsedMilliseconds);
         }
     }
 
     // 执行单次生成，流式拼接 token。
-    private string RunGeneration(string prompt, int maxTokens)
+    private string RunGeneration(string prompt, int maxTokens, CancellationToken ct)
     {
         var sequences = _tokenizer!.Encode(prompt);
         using var parameters = new GeneratorParams(_model!);
@@ -91,6 +110,7 @@ public sealed class OnnxGenAiEngine : IInferenceEngine
         var output = new StringBuilder();
         while (!generator.IsDone())
         {
+            ct.ThrowIfCancellationRequested();
             generator.GenerateNextToken();
             output.Append(stream.Decode(generator.GetSequence(0)[^1]));
         }

@@ -95,7 +95,11 @@ public partial class FollowUpChatPage : ContentPage
         SendButton.IsEnabled = false;
         var answer = AddBubble("继续解答", string.Empty, incoming: true);
         var raw = new System.Text.StringBuilder();
-        await foreach (var chunk in App.Interpretation.StreamFollowUpAsync(messages))
+        var labSessionId = App.Sessions.GetLabSessionId(_args.SessionId);
+        var followUp = App.Interpretation.ShouldUseLabFollowUp(labSessionId)
+            ? App.Interpretation.StreamLabFollowUpAsync(labSessionId!, text)
+            : App.Interpretation.StreamFollowUpAsync(messages);
+        await foreach (var chunk in followUp)
         {
             raw.Append(chunk);
             answer.Text = ReadingPromptProtocol.NormalizeOutput(raw.ToString());
@@ -116,8 +120,8 @@ public partial class FollowUpChatPage : ContentPage
             body,
             DateTimeOffset.UtcNow));
 
-        var labSessionId = App.Sessions.GetLabSessionId(_args.SessionId);
-        if (labSessionId is not null)
+        // Lab 路径已由 /lab/chat followup 落库；BYOK 路径才需 AppendLabHistory 同步。
+        if (labSessionId is not null && !App.Interpretation.ShouldUseLabFollowUp(labSessionId))
         {
             var token = string.IsNullOrWhiteSpace(App.Settings.AuthToken) ? null : App.Settings.AuthToken;
             await ReadingSessionBridge.AppendLabHistoryAsync(

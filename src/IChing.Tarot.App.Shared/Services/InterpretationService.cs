@@ -89,6 +89,15 @@ public sealed class InterpretationService
         CancellationToken cancellationToken = default) =>
         _facade.StreamFollowUpAsync(messages, cancellationToken);
 
+    public bool ShouldUseLabFollowUp(string? labSessionId) =>
+        _facade.ShouldUseLabFollowUp(labSessionId);
+
+    public IAsyncEnumerable<string> StreamLabFollowUpAsync(
+        string labSessionId,
+        string userQuestion,
+        CancellationToken cancellationToken = default) =>
+        _facade.StreamLabFollowUpAsync(labSessionId, userQuestion, cancellationToken);
+
     private static InterpretationResult Tier0Result(TarotReading reading, string? question, string? error = null)
     {
         var text = IChing.Client.Shared.Providers.RichRuleReading.Build(

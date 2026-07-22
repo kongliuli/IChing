@@ -1,4 +1,5 @@
 using IChing.App.Services;
+using IChing.Client.Shared.Editions;
 
 namespace IChing.App.Pages;
 
@@ -20,6 +21,23 @@ public partial class SettingsPage : ContentPage
 
     private void LoadSettings()
     {
+        var caps = EditionHost.Capabilities;
+        AiSettingsCard.IsVisible = caps.AllowAiInterpretation;
+        ByokSettingsPanel.IsVisible = caps.ShowApiKeySettings;
+        EditionHintLabel.IsVisible = caps.Kind == EditionKind.Commercial || caps.Kind == EditionKind.Free;
+        EditionHintLabel.Text = caps.Kind switch
+        {
+            EditionKind.Commercial => $"商业版走自建 Lab（{App.Settings.LabApiUrl}）",
+            EditionKind.Free => "免费版仅本地排盘，无 AI 解读",
+            _ => string.Empty
+        };
+
+        if (!caps.ShowApiKeySettings)
+        {
+            UpdateStatus();
+            return;
+        }
+
         ProviderPicker.SelectedIndex = App.Settings.Provider switch
         {
             "openai" => 1,

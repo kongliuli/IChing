@@ -6,16 +6,16 @@
 
 ## 进行中
 
-- [~] **塔罗前端壳演进**（P1–P3 代码已落地，待人工验证）→ [specs/tarot-shell-evolution/spec.md](active/specs/tarot-shell-evolution/spec.md)
+- [~] **塔罗前端壳演进**（P1–P3 代码已落地；人工验证 **延后**，不归档）→ [specs/tarot-shell-evolution/spec.md](active/specs/tarot-shell-evolution/spec.md)
   Qwen3.5 下载/接入说明另见 [qwen35-genai.md](active/qwen35-genai.md)（自建 GenAI 包仍待上游/本地导出）
-- [~] **Byok 壳全流程接入**（代码已通，待 GUI 点验）→ [specs/byok-full-flow/spec.md](active/specs/byok-full-flow/spec.md)
+- [~] **Byok 壳全流程接入**（代码已通；GUI 点验 **延后**，不归档）→ [specs/byok-full-flow/spec.md](active/specs/byok-full-flow/spec.md)
 
 ## 待启动
 
-- [ ] 架构可视化 + API 参考：已产出 [architecture-diagrams.md](active/architecture-diagrams.md) 和 [api-reference.md](active/api-reference.md)，需人工校对
-- [ ] 易占域壳提取：`IChing.App` 按塔罗模式抽 `IChing.App.Shared` + Free/Byok/Biz head（等塔罗壳演进 P1 验证后复制）
-- [ ] 端侧 Qwen3.5 GenAI 包：用 `scripts/build-qwen35-genai.ps1` 自建后接入下载器（见 [qwen35-genai.md](active/qwen35-genai.md)）
-- [ ] 商业版追问走 Lab：`FollowUpChatPage` / `CommercialLabProvider.StreamFollowUpAsync` 接 `LabApiClient.FollowUpAsync`（Byok 全流程已统一 Facade，本项专做 Commercial）
+- [ ] 架构可视化 + API 参考：已产出 [architecture-diagrams.md](active/architecture-diagrams.md) 和 [api-reference.md](active/api-reference.md)；人工校对 **延后**
+- [~] 易占域壳提取：`IChing.App.Shared` + Free/Byok/Biz/DevShell 已落地并可 Windows 构建；GUI 点验（闸门 H6）**延后**
+- [ ] 端侧 Qwen3.5 GenAI 包：用 `scripts/build-qwen35-genai.ps1` 自建后接入下载器（见 [qwen35-genai.md](active/qwen35-genai.md)）（C1 探测未发现产物，blocked:export）
+- [~] 商业版追问走 Lab：代码已接 `StreamLabFollowUpAsync` → `CommercialLabProvider.FollowUpAsync`（塔罗+易占 FollowUpChatPage）；GUI 点验（闸门 H5）**延后**
 
 ## 长期池（无 spec，来源见 roadmap）
 

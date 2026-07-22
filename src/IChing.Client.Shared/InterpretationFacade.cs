@@ -86,4 +86,13 @@ public sealed class InterpretationFacade
         IReadOnlyList<ChatTurn> messages,
         CancellationToken cancellationToken = default) =>
         _provider.StreamFollowUpAsync(messages, cancellationToken);
+
+    public bool ShouldUseLabFollowUp(string? labSessionId) =>
+        _provider.ShouldUseLabFollowUp(labSessionId);
+
+    public IAsyncEnumerable<string> StreamLabFollowUpAsync(
+        string labSessionId,
+        string userQuestion,
+        CancellationToken cancellationToken = default) =>
+        _provider.StreamLabFollowUpAsync(labSessionId, userQuestion, cancellationToken);
 }

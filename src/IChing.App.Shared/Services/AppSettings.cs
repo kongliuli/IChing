@@ -5,7 +5,7 @@ namespace IChing.App.Services;
 public sealed class AppSettings : IOpenAiChatCredentials
 {
     public const string DefaultBaseUrl = "https://api.deepseek.com/v1";
-    public const string DefaultLabApiUrl = "http://localhost:5000";
+    public string DefaultLabApiUrl => EditionHost.DefaultLabApiUrl;
 
     public string Provider
     {

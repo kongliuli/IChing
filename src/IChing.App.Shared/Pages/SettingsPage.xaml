@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="IChing.App.Pages.SettingsPage"
+             Shell.NavBarIsVisible="False"
+             Title="设置">
+    <ScrollView>
+        <VerticalStackLayout Padding="22,24,22,36"
+                             Spacing="18"
+                             MaximumWidthRequest="920"
+                             HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="5">
+                <Label Text="设置" Style="{StaticResource PageTitle}" />
+                <Label Text="远程解读 / 本地保存"
+                       Style="{StaticResource PageKicker}" />
+                <BoxView HeightRequest="2"
+                         WidthRequest="56"
+                         HorizontalOptions="Start"
+                         Color="{StaticResource Cinnabar}" />
+            </VerticalStackLayout>
+
+            <Border x:Name="AiSettingsCard" Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="AI 解读" Style="{StaticResource SectionTitle}" />
+                    <Label x:Name="EditionHintLabel" Style="{StaticResource Caption}" IsVisible="False" />
+
+                    <VerticalStackLayout x:Name="ByokSettingsPanel" Spacing="12">
+                        <Label Text="服务商" Style="{StaticResource Caption}" />
+                        <Picker x:Name="ProviderPicker" SelectedIndexChanged="OnProviderChanged">
+                            <Picker.Items>
+                                <x:String>DeepSeek</x:String>
+                                <x:String>OpenAI</x:String>
+                                <x:String>自定义</x:String>
+                            </Picker.Items>
+                        </Picker>
+
+                        <Label Text="API Base URL" Style="{StaticResource Caption}" />
+                        <Entry x:Name="BaseUrlEntry" />
+
+                        <Label Text="模型" Style="{StaticResource Caption}" />
+                        <Entry x:Name="ModelEntry" />
+
+                        <Label Text="API Key" Style="{StaticResource Caption}" />
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <Entry x:Name="ApiKeyEntry"
+                                   IsPassword="True"
+                                   Placeholder="sk-..." />
+                            <Button x:Name="ToggleKeyButton"
+                                    Grid.Column="1"
+                                    Text="显示"
+                                    FontSize="12"
+                                    Clicked="OnToggleKeyClicked"
+                                    Style="{StaticResource SecondaryButton}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="温度" Style="{StaticResource Caption}" />
+                                <Entry x:Name="TemperatureEntry" Text="0.6" Placeholder="0-1" Keyboard="Numeric" />
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="最大 tokens" Style="{StaticResource Caption}" />
+                                <Entry x:Name="MaxTokensEntry" Text="700" Placeholder="700" Keyboard="Numeric" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="保存"
+                                    Clicked="OnSaveClicked"
+                                    Style="{StaticResource PrimaryButton}" />
+                            <Button x:Name="TestButton"
+                                    Grid.Column="1"
+                                    Text="测试连接"
+                                    Clicked="OnTestClicked"
+                                    Style="{StaticResource SecondaryButton}" />
+                        </Grid>
+                    </VerticalStackLayout>
+
+                    <ActivityIndicator x:Name="TestIndicator"
+                                       IsVisible="False"
+                                       IsRunning="False"
+                                       Color="{StaticResource Jade}" />
+                    <Label x:Name="StatusLabel"
+                           FontSize="13"
+                           TextColor="{StaticResource Muted}" />
+                </VerticalStackLayout>
+            </Border>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -115,12 +115,50 @@ public sealed class CompositeInterpretationProvider : IInterpretationProvider
             return EmptyAsync();
         }
 
+        // 商业版追问走 StreamLabFollowUpAsync(sessionId)，不走裸 messages。
+        if (_edition.Kind == EditionKind.Commercial)
+        {
+            return EmptyAsync();
+        }
+
         if (_edition.AllowRemoteByok && _settings.IsConfigured)
         {
             return _byok.StreamFollowUpAsync(messages, cancellationToken);
         }
 
         return EmptyAsync();
+    }
+
+    /// <summary>
+    /// 是否应走 Lab <c>/lab/chat</c> followup（需要已登记的 labSessionId）。
+    /// </summary>
+    public bool ShouldUseLabFollowUp(string? labSessionId) =>
+        _edition.AllowFollowUp
+        && _edition.AllowLabCommercial
+        && !string.IsNullOrWhiteSpace(labSessionId)
+        && (_edition.Kind == EditionKind.Commercial || _settings.UseLabApi)
+        && _settings.IsLabConfigured;
+
+    /// <summary>商业/DevShell Lab 追问：非流式一次返回，拆成单 chunk 供 UI 复用。</summary>
+    public async IAsyncEnumerable<string> StreamLabFollowUpAsync(
+        string labSessionId,
+        string userQuestion,
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        if (!ShouldUseLabFollowUp(labSessionId))
+        {
+            yield break;
+        }
+
+        var result = await _lab.FollowUpAsync(labSessionId, userQuestion, cancellationToken: cancellationToken);
+        if (!string.IsNullOrWhiteSpace(result.Text))
+        {
+            yield return result.Text;
+        }
+        else if (!string.IsNullOrWhiteSpace(result.Error))
+        {
+            yield return $"（{result.Error}）";
+        }
     }
 
     private static async IAsyncEnumerable<string> EmptyAsync()

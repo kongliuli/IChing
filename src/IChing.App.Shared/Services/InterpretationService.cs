@@ -27,7 +27,7 @@ public sealed class InterpretationService
             () => App.Settings.AuthToken,
             () => App.Settings.Temperature,
             () => App.Settings.MaxTokens);
-        _facade = new InterpretationFacade(EditionCapabilities.DevShell, settings);
+        _facade = new InterpretationFacade(EditionHost.Capabilities, settings);
     }
 
     public async Task<RemoteInterpretationResult> InterpretBaziAsync(
@@ -57,6 +57,20 @@ public sealed class InterpretationService
         _ = settings;
         return await _facade.TestAsync(cancellationToken);
     }
+
+    public bool ShouldUseLabFollowUp(string? labSessionId) =>
+        _facade.ShouldUseLabFollowUp(labSessionId);
+
+    public IAsyncEnumerable<string> StreamLabFollowUpAsync(
+        string labSessionId,
+        string userQuestion,
+        CancellationToken cancellationToken = default) =>
+        _facade.StreamLabFollowUpAsync(labSessionId, userQuestion, cancellationToken);
+
+    public IAsyncEnumerable<string> StreamFollowUpAsync(
+        IReadOnlyList<ChatTurn> messages,
+        CancellationToken cancellationToken = default) =>
+        _facade.StreamFollowUpAsync(messages, cancellationToken);
 
     private static RemoteInterpretationResult ToRemote(InterpretationResult result) =>
         new(result.Text, result.IsFallback, result.Error);

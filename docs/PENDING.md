@@ -12,6 +12,7 @@
 
 ## 待启动
 
+- [ ] 架构可视化 + API 参考：已产出 [architecture-diagrams.md](active/architecture-diagrams.md) 和 [api-reference.md](active/api-reference.md)，需人工校对
 - [ ] 易占域壳提取：`IChing.App` 按塔罗模式抽 `IChing.App.Shared` + Free/Byok/Biz head（等塔罗壳演进 P1 验证后复制）
 - [ ] 端侧 Qwen3.5 GenAI 包：用 `scripts/build-qwen35-genai.ps1` 自建后接入下载器（见 [qwen35-genai.md](active/qwen35-genai.md)）
 - [ ] 商业版追问走 Lab：`FollowUpChatPage` / `CommercialLabProvider.StreamFollowUpAsync` 接 `LabApiClient.FollowUpAsync`（Byok 全流程已统一 Facade，本项专做 Commercial）

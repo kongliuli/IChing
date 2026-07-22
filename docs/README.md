@@ -13,6 +13,8 @@
 - [App 入口](active/apps.md)：八字/六爻 App、塔罗 App、运行脚本。
 - [Lab API](active/lab-api.md)：HTTP 路由、Demo、规则插件管理、envelope v2。
 - [架构说明](active/architecture.md)：项目分层、目录边界、正式/示例代码划分。
+- [架构图集](active/architecture-diagrams.md)：Mermaid 架构图（分层、降级链、会话流、鉴权、MAUI）。
+- [API 参考](active/api-reference.md)：完整 HTTP 端点文档（请求/响应结构、curl 示例）。
 - [技术栈](active/tech-stack-dotnet.md)：.NET、MAUI、ASP.NET Core、推理与排盘依赖。
 - [推理层设计](active/inference-layer-design.md)：Tier、模型、PromptTest（envelope 见 ReadingExchange）。
 - [规则/插件设计](active/plugin-design.md)：已落地的插件接口、加载机制、推理引擎扩展。

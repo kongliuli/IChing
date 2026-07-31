@@ -1,0 +1,17 @@
+{
+  "templateId": "tarot-tier1-default",
+  "domain": "tarot",
+  "tier": 1,
+  "mode": "initial",
+  "language": "zh-CN",
+  "needsTranslationPass": false,
+  "wordLimit": 400,
+  "maxTokens": 800,
+  "systemDirectives": [
+    "Interpret only from the serialized tarot spread, positions, cards, zodiac, and rule digest; never add or replace cards."
+  ],
+  "outputSections": [
+    { "key": "overview", "title": "整体能量" },
+    { "key": "advice", "title": "行动建议" }
+  ]
+}

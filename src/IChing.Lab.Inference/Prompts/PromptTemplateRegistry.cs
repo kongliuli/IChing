@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.IO;
+using System.Text.Json;
+using IChing.Lab.Core.Readings.Templates;
 using Microsoft.Extensions.Logging;
 
 namespace IChing.Lab.Inference.Prompts;
@@ -14,6 +16,7 @@ public sealed class PromptTemplateRegistry : IDisposable
     private readonly string _templateRoot;
     private readonly ILogger<PromptTemplateRegistry> _logger;
     private readonly ConcurrentDictionary<string, string> _cache = new();
+    private readonly ConcurrentDictionary<string, ReadingTemplateMeta> _metaCache = new();
     private readonly FileSystemWatcher? _watcher;
     private bool _disposed;
 
@@ -27,15 +30,15 @@ public sealed class PromptTemplateRegistry : IDisposable
         // FileSystemWatcher 在 Linux 上正常工作；目录不存在时跳过监听（仅依赖内嵌默认）。
         if (Directory.Exists(_templateRoot))
         {
-            _watcher = new FileSystemWatcher(_templateRoot, "*.txt")
+            _watcher = new FileSystemWatcher(_templateRoot)
             {
                 IncludeSubdirectories = false,
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.Size
             };
-            _watcher.Created += (_, e) => OnChanged(e.Name, e.FullPath);
-            _watcher.Changed += (_, e) => OnChanged(e.Name, e.FullPath);
-            _watcher.Deleted += (_, e) => OnDeleted(e.Name);
-            _watcher.Renamed += (_, e) => { OnChanged(e.Name, e.FullPath); OnDeleted(e.OldName); };
+            _watcher.Created += (_, e) => OnFileEvent(e.Name, e.FullPath);
+            _watcher.Changed += (_, e) => OnFileEvent(e.Name, e.FullPath);
+            _watcher.Deleted += (_, e) => OnFileDeleted(e.Name);
+            _watcher.Renamed += (_, e) => { OnFileEvent(e.Name, e.FullPath); OnFileDeleted(e.OldName); };
             _watcher.Error += (_, e) => _logger.LogWarning("FileSystemWatcher 出错: {Message}", e.GetException().Message);
             _watcher.EnableRaisingEvents = true;
         }
@@ -45,7 +48,7 @@ public sealed class PromptTemplateRegistry : IDisposable
         }
     }
 
-    /// <summary>启动时扫描目录下所有 .txt 模板并加载到缓存。</summary>
+    /// <summary>启动时扫描目录下所有 .txt 模板与 .meta.json 元数据并加载到缓存。</summary>
     private void ScanAll()
     {
         if (!Directory.Exists(_templateRoot))
@@ -56,6 +59,11 @@ public sealed class PromptTemplateRegistry : IDisposable
         foreach (var file in Directory.GetFiles(_templateRoot, "*.txt"))
         {
             LoadFile(Path.GetFileNameWithoutExtension(file), file);
+        }
+
+        foreach (var file in Directory.GetFiles(_templateRoot, "*.meta.json"))
+        {
+            LoadMeta(Path.GetFileNameWithoutExtension(file).Replace(".meta", "", StringComparison.OrdinalIgnoreCase), file);
         }
     }
 
@@ -84,19 +92,32 @@ public sealed class PromptTemplateRegistry : IDisposable
         }
     }
 
-    private void OnChanged(string? fileName, string fullPath)
+    private void LoadMeta(string templateId, string fullPath)
     {
-        if (string.IsNullOrEmpty(fileName))
+        try
         {
-            return;
-        }
+            if (!File.Exists(fullPath))
+            {
+                _metaCache.TryRemove(templateId, out _);
+                return;
+            }
 
-        var templateId = Path.GetFileNameWithoutExtension(fileName);
-        LoadFile(templateId, fullPath);
-        _logger.LogInformation("模板已热重载: {TemplateId}", templateId);
+            var json = File.ReadAllText(fullPath);
+            var meta = JsonSerializer.Deserialize<ReadingTemplateMeta>(json);
+            if (meta is not null)
+            {
+                _metaCache[templateId] = meta;
+                _logger.LogInformation("已加载模板元数据: {TemplateId}", templateId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "加载模板元数据失败: {TemplateId}", templateId);
+            _metaCache.TryRemove(templateId, out _);
+        }
     }
 
-    private void OnDeleted(string? fileName)
+    private void OnFileEvent(string? fileName, string fullPath)
     {
         if (string.IsNullOrEmpty(fileName))
         {
@@ -104,8 +125,38 @@ public sealed class PromptTemplateRegistry : IDisposable
         }
 
         var templateId = Path.GetFileNameWithoutExtension(fileName);
-        _cache.TryRemove(templateId, out _);
-        _logger.LogWarning("模板文件被删除，回退到内嵌默认: {TemplateId}", templateId);
+        if (fileName.EndsWith(".meta.json", StringComparison.OrdinalIgnoreCase))
+        {
+            templateId = Path.GetFileNameWithoutExtension(templateId);
+            LoadMeta(templateId, fullPath);
+            _logger.LogInformation("模板元数据已热重载: {TemplateId}", templateId);
+        }
+        else
+        {
+            LoadFile(templateId, fullPath);
+            _logger.LogInformation("模板已热重载: {TemplateId}", templateId);
+        }
+    }
+
+    private void OnFileDeleted(string? fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+        {
+            return;
+        }
+
+        var templateId = Path.GetFileNameWithoutExtension(fileName);
+        if (fileName.EndsWith(".meta.json", StringComparison.OrdinalIgnoreCase))
+        {
+            templateId = Path.GetFileNameWithoutExtension(templateId);
+            _metaCache.TryRemove(templateId, out _);
+            _logger.LogWarning("模板元数据文件被删除: {TemplateId}", templateId);
+        }
+        else
+        {
+            _cache.TryRemove(templateId, out _);
+            _logger.LogWarning("模板文件被删除，回退到内嵌默认: {TemplateId}", templateId);
+        }
     }
 
     /// <summary>
@@ -163,6 +214,39 @@ public sealed class PromptTemplateRegistry : IDisposable
         _logger.LogWarning("三级回退未命中任何模板：domain={Domain}, tier={Tier}, engineVariant={Variant}, module={Module}",
             domain, tier, engineVariant, module);
         return string.Empty;
+    }
+
+    /// <summary>
+    /// 按 templateId 取模板元数据；文件缺失/读取失败/解析失败返回 null，绝不抛异常。
+    /// </summary>
+    public ReadingTemplateMeta? GetMeta(string templateId)
+    {
+        if (_metaCache.TryGetValue(templateId, out var meta))
+        {
+            return meta;
+        }
+
+        try
+        {
+            var metaPath = Path.Combine(_templateRoot, templateId + ".meta.json");
+            if (!File.Exists(metaPath))
+            {
+                return null;
+            }
+
+            var json = File.ReadAllText(metaPath);
+            var parsed = JsonSerializer.Deserialize<ReadingTemplateMeta>(json);
+            if (parsed is not null)
+            {
+                _metaCache[templateId] = parsed;
+            }
+            return parsed;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "读取模板元数据失败: {TemplateId}", templateId);
+            return null;
+        }
     }
 
     /// <summary>按 templateId 取模板文本（优先缓存，次内嵌默认），未命中返回 false。</summary>

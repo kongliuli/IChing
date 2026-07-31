@@ -38,6 +38,7 @@ IPromptBuilder[] promptBuilders =
     new TemplatePromptBuilder(registry, "bazi", 1, "bazi-tier1-default"),
     new TemplatePromptBuilder(registry, "liuyao", 1, "liuyao-tier1-default"),
     new TemplatePromptBuilder(registry, "tarot", 1, "tarot-tier1-en"),
+    new TemplatePromptBuilder(registry, "tarot", 1, "tarot-tier1-default"),
     new TemplatePromptBuilder(registry, "tarot", 1, "tarot-translate-to-zh")
 ];
 var promptBuilderIndex = promptBuilders.ToDictionary(b => b.TemplateId);

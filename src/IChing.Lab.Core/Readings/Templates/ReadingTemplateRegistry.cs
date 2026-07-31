@@ -14,6 +14,7 @@ public static class ReadingTemplateRegistry
             ["bazi-tier1-default"] = new("bazi-tier1-default", "bazi", "initial", 1, ReadingSchemas.OutputV2, "core.bazi"),
             ["liuyao-tier1-default"] = new("liuyao-tier1-default", "liuyao", "initial", 1, ReadingSchemas.OutputV2, "core.liuyao"),
             ["tarot-tier1-en"] = new("tarot-tier1-en", "tarot", "initial", 1, ReadingSchemas.OutputV2, "core.tarot", NeedsTranslationPass: true),
+            ["tarot-tier1-default"] = new("tarot-tier1-default", "tarot", "initial", 1, ReadingSchemas.OutputV2, "core.tarot"),
             ["tarot-tier1-deckaura-default"] = new("tarot-tier1-deckaura-default", "tarot", "initial", 1, ReadingSchemas.OutputV2, "core.tarot"),
             ["tarot-tier2-celtic-cross"] = new("tarot-tier2-celtic-cross", "tarot", "initial", 2, ReadingSchemas.OutputV2, "core.tarot"),
             ["tarot-translate-to-zh"] = new("tarot-translate-to-zh", "tarot", "translate", 1, ReadingSchemas.OutputV2, "core.tarot"),
@@ -40,7 +41,7 @@ public static class ReadingTemplateRegistry
         }
 
         var limit = tier == 2 ? 800 : (spreadId == "celtic-cross" ? 500 : 280);
-        return new(Template("tarot-tier1-en"), limit, tier == 2 ? 1024 : 512);
+        return new(Template("tarot-tier1-default"), limit, tier == 2 ? 1024 : 512);
     }
 
     public static bool TryGet(string templateId, out ReadingTemplateDescriptor descriptor) =>

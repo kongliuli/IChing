@@ -53,6 +53,8 @@ public static class LabServiceCollectionExtensions
         services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
             sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 1, "tarot-tier1-en"));
         services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
+            sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 1, "tarot-tier1-default"));
+        services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
             sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 1, "tarot-translate-to-zh"));
         services.AddSingleton<IPromptBuilder>(sp => new TemplatePromptBuilder(
             sp.GetRequiredService<PromptTemplateRegistry>(), "tarot", 1, "tarot-tier1-deckaura-default"));

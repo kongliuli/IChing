@@ -138,6 +138,6 @@ public sealed class TarotDemoService
         }
 
         var limit = tier == 2 ? 800 : (spreadId == "celtic-cross" ? 500 : 280);
-        return ("tarot-tier1-en", true, limit, tier == 2 ? 1024 : 512);
+        return ("tarot-tier1-default", false, limit, tier == 2 ? 1024 : 512);
     }
 }

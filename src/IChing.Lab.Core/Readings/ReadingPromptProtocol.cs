@@ -445,12 +445,14 @@ public static class ReadingPromptTemplateManager
                     new("basis", "用神与动爻"),
                     new("advice", "行动建议")
                 ]),
+            // 保持与 prompts/tarot-tier1-default.meta.json outputSections 一致
             ["tarot:initial"] = new(
                 "tarot",
                 "initial",
-                ["Interpret only from the serialized tarot spread, positions, cards, and plugin facts; never add or replace cards."],
+                ["Interpret only from the serialized tarot spread, positions, cards, zodiac, and rule digest; never add or replace cards."],
                 [
-                    new("overview", "整体能量")
+                    new("overview", "整体能量"),
+                    new("advice", "行动建议")
                 ]),
             ["bazi:followup"] = new(
                 "bazi",

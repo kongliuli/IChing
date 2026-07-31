@@ -13,6 +13,7 @@ public static class ReadingSectionKeyRegistry
             [
                 "overview", "basis", "yongshen", "changing", "shi_ying", "advice", "warnings"
             ],
+            // Common fixed keys only; position keys are open (see IsKnownKey).
             ["tarot"] =
             [
                 "overview", "spread", "advice", "warnings"
@@ -24,6 +25,13 @@ public static class ReadingSectionKeyRegistry
         if (string.IsNullOrWhiteSpace(domain) || string.IsNullOrWhiteSpace(key))
         {
             return false;
+        }
+
+        // Tarot section keys include dynamic spread positions (past/present/future, etc.)
+        // that cannot be enumerated; any non-empty key is allowed.
+        if (string.Equals(domain, "tarot", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
         }
 
         return AllowedKeys.TryGetValue(domain, out var set) && set.Contains(key);

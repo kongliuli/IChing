@@ -7,4 +7,5 @@ namespace IChing.Lab.Inference.Prompts;
 public sealed record TarotPromptInput(
     string SpreadTitle,
     IReadOnlyList<TarotPositionPrompt> Positions,
-    int WordLimit);
+    int WordLimit,
+    string? Zodiac = null);

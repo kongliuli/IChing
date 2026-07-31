@@ -28,6 +28,48 @@ public class ExchangeInputBuilderTests
         Assert.Equal("问", input.Question);
         Assert.Single(input.RuleDigest);
     }
+
+    [Fact]
+    public void ForTarot_WithZodiac_IncludesZodiacInComputedFacts()
+    {
+        var reading = new TarotReading(
+            "past-present-future",
+            "Past Present Future",
+            "过去现在未来",
+            "desc",
+            false,
+            "问",
+            1,
+            [
+                new TarotPositionReading(
+                    "past", "Past", "过去", "ctx",
+                    "The Fool", "愚者", "url", false, "新开始")
+            ]);
+        var input = ExchangeInputBuilder.ForTarot(reading, "问", zodiac: "天蝎座");
+
+        Assert.Contains("zodiac: 天蝎座", input.ComputedFacts);
+    }
+
+    [Fact]
+    public void ForTarot_WithoutZodiac_OmitsZodiacEntry()
+    {
+        var reading = new TarotReading(
+            "past-present-future",
+            "Past Present Future",
+            "过去现在未来",
+            "desc",
+            false,
+            "问",
+            1,
+            [
+                new TarotPositionReading(
+                    "past", "Past", "过去", "ctx",
+                    "The Fool", "愚者", "url", false, "新开始")
+            ]);
+        var input = ExchangeInputBuilder.ForTarot(reading, "问");
+
+        Assert.DoesNotContain(input.ComputedFacts, f => f.StartsWith("zodiac:", StringComparison.Ordinal));
+    }
 }
 
 public class ExchangeInferenceRouterTests

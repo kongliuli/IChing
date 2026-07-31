@@ -36,18 +36,18 @@ public static class ExchangeInputBuilder
             RuleDigest: [digest.ShiYaoSummary, digest.YongShenSummary],
             PluginContext: PluginContextFrom(digest.Items));
 
-    public static ExchangeInput ForTarot(TarotReading reading, string? question) =>
-        new(
+    public static ExchangeInput ForTarot(TarotReading reading, string? question, string? zodiac = null)
+    {
+        var facts = new List<string> { $"spread: {reading.SpreadTitleZh}" };
+        if (zodiac is not null) facts.Add($"zodiac: {zodiac}");
+        facts.AddRange(reading.Positions.Select(p => $"[{p.PositionTitleZh}] {p.CardNameZh} {(p.Reversed ? "逆位" : "正位")}"));
+        return new ExchangeInput(
             Question: question ?? reading.Question,
             Focus: null,
-            ComputedFacts:
-            [
-                $"spread: {reading.SpreadTitleZh}",
-                ..reading.Positions.Select(p =>
-                    $"[{p.PositionTitleZh}] {p.CardNameZh} {(p.Reversed ? "逆位" : "正位")}")
-            ],
+            ComputedFacts: facts,
             RuleDigest: reading.Positions.Select(p => p.Meaning).ToArray(),
             PluginContext: []);
+    }
 
     private static IReadOnlyList<ExchangePluginContext> PluginContextFrom(IReadOnlyList<RuleDigestItem> items) =>
         items

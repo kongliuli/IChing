@@ -10,6 +10,7 @@
 > - §5.2 的 `narrative.text` envelope **已被** [reading-exchange.md](./design/reading-exchange.md) 的 `reading-envelope.v2` **取代**；HTTP 契约以 ADR 与 [lab-api.md](./lab-api.md) 为准。
 > - §10 路线图 **Phase 0–2 已完成**（模型试跑、Layer1/Tier0、`/lab/{domain}/read` + envelope v2）。未完成项见 [roadmap.md](./roadmap.md)。
 > - Fixture 路径：`docs/active/prompts/fixtures/`（非 `docs/prompts/`）。
+> - **塔罗默认模板**已切换为 `tarot-tier1-default`（中文直出、`needsTranslationPass=false`）；§7 英译中管线与 `tarot-tier1-en` **保留兼容**（deckaura/celtic 等路径）。资产与 Birthday→星座见 [prompts/README.md](./prompts/README.md)、清单见 [reading-template-inventory.md](./design/reading-template-inventory.md)。
 
 ---
 
@@ -21,7 +22,7 @@
 |----|------|------|
 | **排盘层** | `IChing.Lab.Core` 确定性算法 | 四柱、纳甲、六亲、抽牌、牌阵 |
 | **规则层 Layer1** | 查表 + 轻量规则引擎 | 用神、旬空、旺衰、牌阵统计——**结论给模型，不让模型推** |
-| **叙述层 Layer2** | Qwen2.5-1.5B ONNX GenAI | 把结构化结论写成可读中文（塔罗经英译中） |
+| **叙述层 Layer2** | Qwen2.5-1.5B ONNX GenAI | 把结构化结论写成可读中文（塔罗默认 `tarot-tier1-default` 中文直出；兼容路径仍可英译中） |
 
 ### 1.2 不做什么
 
@@ -36,7 +37,7 @@
 | 1 | **三档 tier** | Tier 0 免费概览；Tier 1/2 付费 ONNX 解读 |
 | 2 | **额度策略** | Tier 1+ 默认会员/次数制；**后续通过推广活动刷新额度**（邀请、签到、活动码等） |
 | 3 | **六爻未分类问事** | 默认以**世爻**为用神 |
-| 4 | **塔罗语言管线** | **英文完整生成 → 再翻译成简体中文**（小阿卡纳牌义以英文 Waite 为准） |
+| 4 | **塔罗语言管线** | **默认中文直出**（`tarot-tier1-default`，单 pass）；`tarot-tier1-en` + 英译中第二 pass **保留兼容**（小阿卡纳 Waite 英文牌义仍可用于兼容路径） |
 | 5 | **模型选型** | **Qwen2.5-1.5B-Instruct**，ONNX Runtime GenAI 格式，INT4/量化优先 |
 
 ---
@@ -149,7 +150,8 @@ flowchart TB
     T0 --> Bazi & Liu & Tar
     L1 --> PB
     PB -->|bazi/liuyao 中文| ONNX
-    PB -->|tarot 英文| ONNX --> EN2ZH --> ONNX
+    PB -->|tarot 默认中文 tarot-tier1-default| ONNX
+    PB -->|tarot 兼容 en| ONNX --> EN2ZH --> ONNX
     ONNX --> Read
 ```
 
@@ -213,7 +215,7 @@ public record LiuyaoRuleDigest(
 - 十神、刑冲合害、日主强弱（简版）
 - 复用 lunar-csharp，与六爻共享日历
 
-### 4.3 塔罗 Layer1（P0，配合英译中）
+### 4.3 塔罗 Layer1（P0）
 
 | 统计项 | 用途 |
 |--------|------|
@@ -222,7 +224,7 @@ public record LiuyaoRuleDigest(
 | 逆位比例 | 阻滞感修饰 |
 | 牌阵类型 | 时间线 vs 十字结构叙述框架 |
 
-输出 `TarotRuleDigest` 进英文 Prompt（模型英文更稳）。
+输出 `TarotRuleDigest` 注入默认中文模板（`tarot-tier1-default` 的 `rule_digest`）；兼容 en 路径仍进英文 Prompt。
 
 ---
 
@@ -290,7 +292,7 @@ Content-Type: application/json
 }
 ```
 
-**塔罗 Tier 1（英译中）**
+**塔罗 Tier 1（默认 `tarot-tier1-default` 中文直出；可选 Birthday→星座）**
 
 ```http
 POST /lab/tarot/read?tier=1
@@ -298,10 +300,14 @@ Content-Type: application/json
 
 {
   "spreadId": "past-present-future",
-  "question": "Should I change jobs this year?",
-  "seed": 7
+  "question": "今年是否适合换工作？",
+  "seed": 7,
+  "birthday": "1990-05-12"
 }
 ```
+
+- `birthday` 可空（`yyyy-MM-dd`）；有则经 `ZodiacCalculator.FromBirthday` 注入模板 `zodiac_block`，无则跳过星座段。
+- 兼容路径仍可用 `tarot-tier1-en` 走英译中两 pass（见 §7）。
 
 ---
 
@@ -379,12 +385,16 @@ models/qwen2.5-1.5b-genai/
 
 ---
 
-## 7. 塔罗 ONNX 适配（英文 → 中文）
+## 7. 塔罗 ONNX 适配
 
-### 7.1 为何英译中
+> **默认路径（当前代码）**：`tarot-tier1-default` — 中文六段式 Scriban 单 pass（`needsTranslationPass=false`，`wordLimit=400` / `maxTokens=800`，`outputSections=[overview, advice]`）。可选 `Birthday` → `zodiac_block`。详见 [prompts/README.md](./prompts/README.md)。
+>
+> **以下 §7.1–7.5 描述兼容路径** `tarot-tier1-en` + `tarot-translate-to-zh`（deckaura/celtic 等仍可引用），**不再是全局默认**。
+
+### 7.1 为何曾采用英译中（兼容路径背景）
 
 - 小阿卡纳将导入 **英文 Waite 完整牌义**（见 `docs/archive/research/research-tarot-optimization.md`）
-- 1.5B 模型**英文叙述质量高于中文术语文本**
+- 1.5B 模型**英文叙述质量高于中文术语文本**（历史选型理由；默认已改为中文直出）
 - 两 pass 可分离「事实层（英文）」与「呈现层（中文）」，便于 QA
 
 ### 7.2 管线
@@ -599,7 +609,9 @@ Prompt 修改建议：
 | [research-paipan-algorithms.md](../archive/research/research-paipan-algorithms.md) | 排盘算法调研归档 |
 | [research-tarot-optimization.md](../archive/research/research-tarot-optimization.md) | 塔罗 Layer1 数据调研归档 |
 | [tech-stack-dotnet.md](./tech-stack-dotnet.md) | .NET Lab 栈 |
+| [prompts/README.md](./prompts/README.md) | 模板+meta 约定、塔罗默认与 Birthday→星座 |
 | [prompts/fixtures/](./prompts/fixtures/) | 提示词测试样例 |
+| [reading-template-inventory.md](./design/reading-template-inventory.md) | Scriban templateId 清单 |
 
 ---
 

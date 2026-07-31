@@ -5,6 +5,8 @@
 
 ## Scriban 文件（`prompts/*.txt`）
 
+约定：每个 `prompts/{templateId}.txt` 可伴生同名前缀元数据 `prompts/{templateId}.meta.json`（字段含 templateId / domain / tier / mode / language / needsTranslationPass / wordLimit / maxTokens / systemDirectives / outputSections）。文件名前缀即 `templateId`。详见 [prompts/README.md](../prompts/README.md)。
+
 | templateId | domain | tier | mode | producerId | 说明 |
 |------------|--------|------|------|------------|------|
 | `bazi-tier1-default` | bazi | 1 | initial | core.bazi | 全局 default |
@@ -17,10 +19,18 @@
 | `liuyao-tier1-default` | liuyao | 1 | initial | core.liuyao | 全局 default |
 | `liuyao-tier1-sixlines-najia` | liuyao | 1 | initial | core.liuyao | najia 模块 |
 | `liuyao-tier1-sixlines-shensha` | liuyao | 1 | initial | core.liuyao | shensha 模块 |
-| `tarot-tier1-en` | tarot | 1 | initial | core.tarot | 英文 + 翻译 pass |
+| `tarot-tier1-default` | tarot | 1 | initial | core.tarot | **全局 default**：中文六段式直出（txt+meta）；`needsTranslationPass=false`；`wordLimit=400` / `maxTokens=800`；`outputSections=[overview/整体能量, advice/行动建议]`；可选 `zodiac_block`（Birthday→星座） |
+| `tarot-tier1-en` | tarot | 1 | initial | core.tarot | 英文 + 翻译 pass；**保留注册兼容**（非默认；deckaura/celtic 等路径仍可引用） |
 | `tarot-tier1-deckaura-default` | tarot | 1 | initial | core.tarot | 中文直出 |
 | `tarot-tier2-celtic-cross` | tarot | 2 | initial | core.tarot | 凯尔特十字长文 |
 | `tarot-translate-to-zh` | tarot | 1 | translate | core.tarot | 英译中第二 pass |
+
+### `tarot-tier1-default` 要点
+
+- **双文件**：`prompts/tarot-tier1-default.txt` + `prompts/tarot-tier1-default.meta.json`
+- **模板结构（六段）**：牌阵 / 牌面 / 释义 / 星座（可空 `zodiac_block`）/ 提问 / 追问（可空）；末尾 `reading-output.v2` JSON 规制与排版规则
+- **默认解析**：`ReadingTemplateRegistry.ResolveTarot` 与 `TarotDemoService.ResolveTarotPrompt` 默认分支均返回本 templateId（中文直出，取消英译中两 pass）
+- **双源 outputSections**：`meta.json` 与 `ReadingPromptTemplateManager.Get("tarot","initial")` 硬编码保持一致（`overview`/`advice`），两侧注释互指
 
 ## Core 注册（非 Scriban）
 

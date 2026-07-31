@@ -123,6 +123,26 @@ public class ReadingSummaryTests
     }
 
     [Fact]
+    public void TarotInitial_WithZodiac_AddsZodiacFact()
+    {
+        var tarot = TarotEngine.Draw("past-present-future", "career", 42);
+        var packet = ReadingPromptPackets.TarotInitial(
+            tarot, ReadingSummaries.BuildTarotRuleDigest(tarot), tarot.Question, zodiac: "天蝎座");
+
+        Assert.Contains("zodiac: 天蝎座", packet.ComputedFacts);
+    }
+
+    [Fact]
+    public void TarotInitial_WithoutZodiac_OmitsZodiacFact()
+    {
+        var tarot = TarotEngine.Draw("past-present-future", "career", 42);
+        var packet = ReadingPromptPackets.TarotInitial(
+            tarot, ReadingSummaries.BuildTarotRuleDigest(tarot), tarot.Question);
+
+        Assert.DoesNotContain(packet.ComputedFacts, f => f.StartsWith("zodiac:", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void PromptTemplate_MergesPluginSections()
     {
         var template = ReadingPromptTemplateManager.Get(

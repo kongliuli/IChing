@@ -691,7 +691,7 @@ public static class ReadingPromptPackets
             OutputSections: template.OutputSections);
     }
 
-    public static ReadingPromptPacket TarotInitial(TarotReading reading, TarotRuleDigest digest, string? question)
+    public static ReadingPromptPacket TarotInitial(TarotReading reading, TarotRuleDigest digest, string? question, string? zodiac = null)
     {
         var plugins = Plugins(digest.Items);
         var positionSections = reading.Positions
@@ -702,6 +702,13 @@ public static class ReadingPromptPackets
             plugins,
             digest.ActivePlugins,
             positionSections.Append(new OutputSectionSpec("advice", "行动建议")));
+        var facts = new List<string>
+        {
+            $"spread: {reading.SpreadTitleZh} / {reading.SpreadTitle}"
+        };
+        if (!string.IsNullOrWhiteSpace(zodiac))
+            facts.Add($"zodiac: {zodiac}");
+        facts.Add($"cards: {FormatTarotCards(reading.Positions)}");
         return new(
             Schema: "reading-request.v1",
             OutputSchema: ReadingSchemas.OutputV2,
@@ -711,11 +718,7 @@ public static class ReadingPromptPackets
             Tier: 1,
             Question: question ?? reading.Question,
             Focus: null,
-            ComputedFacts:
-            [
-                $"spread: {reading.SpreadTitleZh} / {reading.SpreadTitle}",
-                $"cards: {FormatTarotCards(reading.Positions)}"
-            ],
+            ComputedFacts: facts,
             RuleDigest:
             [
                 $"major: {digest.MajorCount}/{digest.Total}",

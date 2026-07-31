@@ -26,8 +26,8 @@ public sealed class TemplatePromptBuilder : IPromptBuilder
         Domain = domain;
         Tier = tier;
         TemplateId = templateId;
-        // 塔罗英文模板需要额外的英译中 pass；其余模板（含翻译模板自身）不需要。
-        _needsTranslationPass = domain == "tarot" && templateId == "tarot-tier1-en";
+        // 优先从 meta 文件读取 NeedsTranslationPass；tarot-tier1-en 无 meta 文件，保留硬编码哨兵。
+        _needsTranslationPass = registry.GetMeta(templateId)?.NeedsTranslationPass ?? (templateId == "tarot-tier1-en");
     }
 
     public string Domain { get; }
@@ -200,6 +200,28 @@ public sealed class TemplatePromptBuilder : IPromptBuilder
                     script["spread_title"] = string.Empty;
                     script["positions_block"] = string.Empty;
                     script["word_limit"] = 280;
+                }
+                script["rule_digest"] = FormatRuleDigestSimple(ctx.RuleDigest);
+                break;
+
+            case ("tarot", "tarot-tier1-default"):
+                if (ctx.Chart is TarotPromptInput zhInput)
+                {
+                    var zodiac = zhInput.Zodiac;
+                    script["spread_title"] = zhInput.SpreadTitle;
+                    script["positions_block"] = FormatPositionsBlock(zhInput.Positions);
+                    script["word_limit"] = zhInput.WordLimit;
+                    // null (not "") so Scriban {{ if zodiac_block }} omits the section
+                    script["zodiac_block"] = string.IsNullOrWhiteSpace(zodiac) ? null : $"占卜者星座：{zodiac}";
+                    script["follow_up"] = string.IsNullOrWhiteSpace(ctx.FollowUp) ? null : ctx.FollowUp;
+                }
+                else
+                {
+                    script["spread_title"] = string.Empty;
+                    script["positions_block"] = string.Empty;
+                    script["word_limit"] = 400;
+                    script["zodiac_block"] = null;
+                    script["follow_up"] = string.IsNullOrWhiteSpace(ctx.FollowUp) ? null : ctx.FollowUp;
                 }
                 script["rule_digest"] = FormatRuleDigestSimple(ctx.RuleDigest);
                 break;

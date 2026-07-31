@@ -151,7 +151,8 @@ public sealed class LabReadService
             rules = ReadingSummaries.BuildTarotRuleDigest(reading, _ruleEngine)
         };
         var preview = ReadingSummaries.BuildTarotTier0Preview(reading, req.Question);
-        var exchangeInput = ExchangeInputBuilder.ForTarot(reading, req.Question);
+        var zodiac = ZodiacCalculator.FromBirthday(req.Birthday);
+        var exchangeInput = ExchangeInputBuilder.ForTarot(reading, req.Question, zodiac);
 
         if (tier == 0)
         {
@@ -165,7 +166,7 @@ public sealed class LabReadService
         var templateId = tarotResolution.Descriptor.TemplateId;
         var tarotBuilder = ResolvePromptBuilder(templateId);
         var tarotCtx = new PromptContext(
-            Chart: new TarotPromptInput(reading.SpreadTitleZh, positions, tarotResolution.WordLimit),
+            Chart: new TarotPromptInput(reading.SpreadTitleZh, positions, tarotResolution.WordLimit, Zodiac: zodiac),
             RuleDigest: digest,
             Question: req.Question ?? "General reading",
             Focus: null,

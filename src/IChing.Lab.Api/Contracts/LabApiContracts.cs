@@ -54,7 +54,7 @@ public record LiuyaoReadRequest(
     string? Focus,
     int? MaxTokens);
 
-public record TarotReadRequest(string? SpreadId, string? Question, int? Seed, int? MaxTokens);
+public record TarotReadRequest(string? SpreadId, string? Question, int? Seed, int? MaxTokens, string? Birthday = null);
 
 public record EngineHealthStatus(string EngineId, bool IsReady, bool IsDefault);
 
